@@ -1,12 +1,16 @@
 const { Router } = require('express');
 const prisma = require('../lib/prisma');
+const { escalatePriorities, urgencyScore } = require('../lib/priority');
 
 const router = Router();
 
 // GET /api/tickets
 router.get('/', async (req, res) => {
   try {
-    const { status, priority, categoryId, labelId, search, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
+    const { status, priority, categoryId, labelId, search, sortBy = 'urgency', sortOrder = 'asc' } = req.query;
+
+    // Escalate priorities based on approaching deadlines
+    await escalatePriorities(prisma, req.user.id);
 
     const where = { userId: req.user.id };
     if (status) where.status = status;
@@ -20,11 +24,25 @@ router.get('/', async (req, res) => {
       ];
     }
 
-    const tickets = await prisma.ticket.findMany({
+    let tickets = await prisma.ticket.findMany({
       where,
       include: { category: true, labels: true },
-      orderBy: { [sortBy]: sortOrder },
     });
+
+    // Sort by urgency (default) or by requested field
+    if (sortBy === 'urgency') {
+      tickets.sort((a, b) => urgencyScore(a) - urgencyScore(b));
+    } else {
+      tickets.sort((a, b) => {
+        const aVal = a[sortBy];
+        const bVal = b[sortBy];
+        if (aVal == null && bVal == null) return 0;
+        if (aVal == null) return 1;
+        if (bVal == null) return -1;
+        const cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+        return sortOrder === 'desc' ? -cmp : cmp;
+      });
+    }
 
     res.json(tickets);
   } catch (err) {
@@ -74,7 +92,6 @@ router.post('/', async (req, res) => {
 // PATCH /api/tickets/:id
 router.patch('/:id', async (req, res) => {
   try {
-    // Verify ownership
     const existing = await prisma.ticket.findFirst({ where: { id: req.params.id, userId: req.user.id } });
     if (!existing) return res.status(404).json({ error: 'Ticket not found' });
 

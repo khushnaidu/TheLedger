@@ -1,18 +1,46 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, RefreshCw } from 'lucide-react';
 import { api } from '../api';
 import { STATUS_CONFIG, PRIORITY_CONFIG, STATUSES } from '../constants';
 import StatusBadge from '../components/StatusBadge';
+import PriorityBadge from '../components/PriorityBadge';
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const loadDashboard = async () => {
+    // Auto-sync Canvas in background (fire and forget on first load)
+    api.autoSyncCanvas()
+      .then((result) => {
+        if (result.imported > 0 || result.updated > 0) {
+          setSyncResult(result);
+          // Refresh stats after sync brought new data
+          api.getStats().then(setStats);
+        }
+      })
+      .catch(() => {}); // silently fail if Canvas not connected
+
+    // Load stats immediately (don't wait for sync)
     api.getStats().then(setStats).catch(console.error).finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { loadDashboard(); }, []);
+
+  const manualSync = async () => {
+    setSyncing(true);
+    try {
+      const result = await api.autoSyncCanvas();
+      setSyncResult(result);
+      const fresh = await api.getStats();
+      setStats(fresh);
+    } catch {}
+    setSyncing(false);
+  };
 
   if (loading) return <div className="max-w-[960px] mx-auto pt-4"><div className="rule-8 mb-20" /></div>;
   if (!stats) return <div className="t-label">Connection lost</div>;
@@ -25,7 +53,19 @@ export default function Dashboard() {
     <div className="max-w-[960px] mx-auto stagger">
       <div className="rule-8 mb-16" />
 
-      {/* Hero — title + buildings side by side */}
+      {/* Sync notification */}
+      {syncResult && (syncResult.imported > 0 || syncResult.updated > 0) && (
+        <div className="border-2 border-black p-4 mb-10 flex items-center justify-between">
+          <p className="t-small text-black">
+            Canvas sync: {syncResult.imported > 0 && `${syncResult.imported} new assignment${syncResult.imported !== 1 ? 's' : ''} imported`}
+            {syncResult.imported > 0 && syncResult.updated > 0 && ', '}
+            {syncResult.updated > 0 && `${syncResult.updated} updated`}
+          </p>
+          <button onClick={() => setSyncResult(null)} className="t-label hover:text-black">Dismiss</button>
+        </div>
+      )}
+
+      {/* Hero */}
       <div className="flex items-end gap-12 mb-20">
         <div className="flex-1">
           <p className="t-label mb-6">Overview</p>
@@ -35,7 +75,6 @@ export default function Dashboard() {
             {inProgress > 0 && ` ${inProgress} currently active.`}
           </p>
         </div>
-        {/* Buildings art — anchors the hero section */}
         <img src="/art/buildings.jpg" alt="" className="w-[240px] mix-blend-multiply opacity-90 flex-shrink-0" />
       </div>
 
@@ -146,33 +185,53 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Recent */}
+        {/* Most Urgent */}
         <div>
           <div className="flex items-center justify-between mb-8">
-            <p className="t-label">Recent</p>
-            <button onClick={() => navigate('/list')} className="btn-ghost">All</button>
+            <p className="t-label">Most Urgent</p>
+            <button onClick={manualSync} disabled={syncing} className="btn-ghost">
+              <RefreshCw className={`w-2.5 h-2.5 ${syncing ? 'animate-spin' : ''}`} />
+              Sync
+            </button>
           </div>
           <div className="space-y-0">
-            {stats.recentTickets.map((ticket, i) => (
-              <div
-                key={ticket.id}
-                onClick={() => navigate(`/tickets/${ticket.id}`)}
-                className={`py-4 cursor-pointer group ${
-                  i < stats.recentTickets.length - 1 ? 'border-b border-[var(--ink-08)]' : ''
-                }`}
-              >
-                <p className="text-[0.6875rem] leading-snug group-hover:text-[var(--stamp)] transition-colors mb-2">
-                  {ticket.title}
-                </p>
-                <StatusBadge status={ticket.status} />
-              </div>
-            ))}
-            {stats.recentTickets.length === 0 && <p className="t-small pt-4">No entries</p>}
+            {(stats.urgentTickets || []).map((ticket, i) => {
+              const daysLeft = ticket.dueDate
+                ? Math.ceil((new Date(ticket.dueDate) - new Date()) / (1000 * 60 * 60 * 24))
+                : null;
+              const isOverdue = daysLeft !== null && daysLeft < 0;
+              const isUrgent = daysLeft !== null && daysLeft <= 2 && daysLeft >= 0;
+
+              return (
+                <div
+                  key={ticket.id}
+                  onClick={() => navigate(`/tickets/${ticket.id}`)}
+                  className={`py-4 cursor-pointer group ${
+                    i < (stats.urgentTickets || []).length - 1 ? 'border-b border-[var(--ink-08)]' : ''
+                  }`}
+                >
+                  <p className="text-[0.6875rem] leading-snug group-hover:text-[var(--stamp)] transition-colors mb-2">
+                    {ticket.title}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <PriorityBadge priority={ticket.priority} />
+                    {daysLeft !== null && (
+                      <span className={`text-[0.5rem] tracking-[0.06em] ${
+                        isOverdue ? 'text-[var(--stamp)]' : isUrgent ? 'text-[var(--stamp)]' : 'text-[var(--ink-30)]'
+                      }`}>
+                        {isOverdue ? `${Math.abs(daysLeft)}d overdue` : daysLeft === 0 ? 'Due today' : `${daysLeft}d left`}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            {(!stats.urgentTickets || stats.urgentTickets.length === 0) && <p className="t-small pt-4">All clear</p>}
           </div>
         </div>
       </div>
 
-      {/* Couch — bottom of page editorial element */}
+      {/* Couch */}
       <div className="flex justify-end mt-20 mb-10">
         <img src="/art/couchrandom.jpg" alt="" className="w-[160px] mix-blend-multiply opacity-90" />
       </div>

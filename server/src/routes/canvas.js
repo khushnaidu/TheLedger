@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const prisma = require('../lib/prisma');
+const { computePriority } = require('../lib/priority');
 
 const router = Router();
 
@@ -289,6 +290,113 @@ router.post('/sync', async (req, res) => {
     }
 
     res.json({ updated });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/canvas/auto-sync — silently import new assignments + update existing
+// Called on dashboard load. Imports from ALL active courses into School category.
+router.post('/auto-sync', async (req, res) => {
+  try {
+    const config = await prisma.canvasIntegration.findUnique({ where: { userId: req.user.id } });
+    if (!config) return res.json({ imported: 0, updated: 0 });
+
+    // Find or create School category for this user
+    let schoolCategory = await prisma.category.findFirst({
+      where: { userId: req.user.id, name: { equals: 'School', mode: 'insensitive' } },
+    });
+    if (!schoolCategory) {
+      schoolCategory = await prisma.category.create({
+        data: { name: 'School', color: '#000000', icon: 'graduation-cap', userId: req.user.id },
+      });
+    }
+
+    // Fetch all active courses
+    let courses;
+    try {
+      courses = await canvasRequestAll(config.baseUrl, config.apiToken, '/courses', {
+        enrollment_state: 'active',
+      });
+      courses = courses.filter((c) => c.workflow_state === 'available');
+    } catch {
+      return res.json({ imported: 0, updated: 0, error: 'Could not reach Canvas' });
+    }
+
+    let imported = 0;
+    let updated = 0;
+
+    for (const course of courses) {
+      let assignments;
+      try {
+        assignments = await canvasRequestAll(
+          config.baseUrl,
+          config.apiToken,
+          `/courses/${course.id}/assignments`,
+          { include: ['submission'] }
+        );
+      } catch {
+        continue; // skip courses we can't read
+      }
+
+      for (const a of assignments) {
+        const canvasId = String(a.id);
+        const courseId = String(course.id);
+
+        const existing = await prisma.ticket.findFirst({
+          where: { canvasAssignmentId: canvasId, userId: req.user.id },
+        });
+
+        const isSubmitted = a.submission?.workflow_state === 'submitted' || a.submission?.workflow_state === 'graded';
+
+        if (existing) {
+          // Update existing ticket
+          const data = {};
+          if (a.due_at && (!existing.dueDate || new Date(a.due_at).getTime() !== existing.dueDate.getTime())) {
+            data.dueDate = new Date(a.due_at);
+          }
+          if (a.name !== existing.title) {
+            data.title = a.name;
+          }
+          if (isSubmitted && existing.status !== 'DONE') {
+            data.status = 'DONE';
+          }
+          if (Object.keys(data).length > 0) {
+            await prisma.ticket.update({ where: { id: existing.id }, data });
+            updated++;
+          }
+        } else {
+          // Import new assignment
+          const priority = computePriority(a.due_at) || 'MEDIUM';
+          const status = isSubmitted ? 'DONE' : 'TODO';
+
+          const description = [
+            a.description ? stripHtml(a.description) : '',
+            '',
+            a.html_url ? `Canvas: ${a.html_url}` : '',
+            a.points_possible ? `Points: ${a.points_possible}` : '',
+            a.submission_types?.length ? `Type: ${a.submission_types.join(', ')}` : '',
+          ].filter(Boolean).join('\n');
+
+          await prisma.ticket.create({
+            data: {
+              title: a.name,
+              description,
+              status,
+              priority,
+              categoryId: schoolCategory.id,
+              userId: req.user.id,
+              dueDate: a.due_at ? new Date(a.due_at) : null,
+              canvasAssignmentId: canvasId,
+              canvasCourseId: courseId,
+            },
+          });
+          imported++;
+        }
+      }
+    }
+
+    res.json({ imported, updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

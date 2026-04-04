@@ -73,4 +73,5 @@ export const api = {
   getCanvasAssignments: (courseId) => request(`/canvas/courses/${courseId}/assignments`),
   importCanvasAssignments: (data) => request('/canvas/import', { method: 'POST', body: JSON.stringify(data) }),
   syncCanvas: () => request('/canvas/sync', { method: 'POST' }),
+  autoSyncCanvas: () => request('/canvas/auto-sync', { method: 'POST' }),
 };

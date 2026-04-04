@@ -4,18 +4,32 @@ import { api } from '../api';
 import { STATUSES, STATUS_CONFIG } from '../constants';
 import TicketCard from '../components/TicketCard';
 
+// Client-side urgency sort (mirrors server logic)
+function urgencyScore(ticket) {
+  if (!ticket.dueDate) {
+    const w = { CRITICAL: 100, HIGH: 200, MEDIUM: 300, LOW: 400 };
+    return w[ticket.priority] || 350;
+  }
+  return (new Date(ticket.dueDate) - new Date()) / (1000 * 60 * 60);
+}
+
 export default function Board() {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchTickets = () => {
-    api.getTickets({ sortBy: 'order', sortOrder: 'asc' })
+    api.getTickets({ sortBy: 'urgency' })
       .then(setTickets).catch(console.error).finally(() => setLoading(false));
   };
 
   useEffect(() => { fetchTickets(); }, []);
 
-  const columns = STATUSES.reduce((acc, s) => { acc[s] = tickets.filter((t) => t.status === s); return acc; }, {});
+  const columns = STATUSES.reduce((acc, s) => {
+    acc[s] = tickets
+      .filter((t) => t.status === s)
+      .sort((a, b) => urgencyScore(a) - urgencyScore(b));
+    return acc;
+  }, {});
 
   const handleDragEnd = async (result) => {
     if (!result.destination) return;

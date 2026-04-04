@@ -14,8 +14,8 @@ export default function ListView() {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterPriority, setFilterPriority] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
-  const [sortBy, setSortBy] = useState('createdAt');
-  const [sortOrder, setSortOrder] = useState('desc');
+  const [sortBy, setSortBy] = useState('urgency');
+  const [sortOrder, setSortOrder] = useState('asc');
   const navigate = useNavigate();
 
   const fetchData = () => {
