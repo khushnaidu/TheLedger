@@ -352,7 +352,14 @@ router.post('/auto-sync', async (req, res) => {
         continue; // skip courses we can't read
       }
 
+      // Only process assignments due within the last 7 days or in the future
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 7);
+
       for (const a of assignments) {
+        // Skip assignments with no due date or due date older than 7 days ago
+        if (!a.due_at || new Date(a.due_at) < cutoff) continue;
+
         const canvasId = String(a.id);
         const courseId = String(course.id);
 
