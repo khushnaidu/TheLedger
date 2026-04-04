@@ -38,6 +38,11 @@ body {
   font-weight: 400;
   text-transform: uppercase;
   -webkit-font-smoothing: antialiased;
+  cursor: url('/cursors/hand.png') 16 2, auto;
+}
+
+a, button, [role="button"], input[type="submit"], select, .cursor-pointer {
+  cursor: url('/cursors/hand.png') 16 2, pointer;
 }
 
 /* Flatten all weight — everything is regular 400 */
