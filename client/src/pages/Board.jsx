@@ -100,14 +100,15 @@ export default function Board() {
       <h1 className="t-display text-[2.5rem] mb-16">Board</h1>
 
       <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <div className="flex gap-6 overflow-x-auto pb-8">
+        {/* Columns — fixed height, internal scroll */}
+        <div className="flex gap-6 overflow-x-auto" style={{ height: 'calc(100vh - 240px)' }}>
           {STATUSES.map((status) => {
             const config = STATUS_CONFIG[status];
             const colTickets = columns[status] || [];
             const isActive = status === 'IN_PROGRESS';
 
             return (
-              <div key={status} className="flex-shrink-0 w-[240px]">
+              <div key={status} className="flex-shrink-0 w-[240px] flex flex-col">
                 <div className={`mb-6 ${isActive ? 'rule-4' : 'rule-2'}`} style={isActive ? { background: 'var(--stamp)' } : {}} />
                 <div className="flex items-center justify-between mb-6">
                   <span className={`t-label ${isActive ? 'text-[var(--stamp)]' : ''}`}>{config.label}</span>
@@ -117,7 +118,7 @@ export default function Board() {
                 <Droppable droppableId={status}>
                   {(provided, snapshot) => (
                     <div ref={provided.innerRef} {...provided.droppableProps}
-                      className={`space-y-3 min-h-[200px] transition-colors ${snapshot.isDraggingOver ? 'bg-[var(--ink-04)] p-2 -m-2' : ''}`}>
+                      className={`space-y-3 flex-1 overflow-y-auto pr-1 transition-colors ${snapshot.isDraggingOver ? 'bg-[var(--ink-04)] p-2 -m-2' : ''}`}>
                       {colTickets.map((ticket, index) => (
                         <Draggable key={ticket.id} draggableId={ticket.id} index={index}>
                           {(prov, snap) => (
@@ -141,29 +142,39 @@ export default function Board() {
               </div>
             );
           })}
-        </div>
 
-        {/* Trash drop zone */}
-        <div className={`fixed bottom-0 left-[220px] right-0 z-40 flex justify-center transition-all duration-300 ${
-          dragging ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
-        }`}>
-          <Droppable droppableId="TRASH">
-            {(provided, snapshot) => {
-              const isOver = snapshot.isDraggingOver;
-              return (
-                <div ref={provided.innerRef} {...provided.droppableProps}
-                  className={`w-full flex items-center justify-center gap-3 py-6 transition-all duration-150 ${
-                    isOver ? 'bg-[var(--stamp)] text-white' : 'bg-black text-white'
-                  }`}>
-                  <Trash2 className={`w-4 h-4 transition-transform duration-150 ${isOver ? 'scale-125' : ''}`} />
-                  <span className="text-[0.625rem] tracking-[0.14em] uppercase">
-                    {isOver ? 'Release to delete' : 'Drag here to delete'}
-                  </span>
-                  <div className="hidden">{provided.placeholder}</div>
-                </div>
-              );
-            }}
-          </Droppable>
+          {/* Trash column — appears when dragging */}
+          <div className={`flex-shrink-0 transition-all duration-200 overflow-hidden ${
+            dragging ? 'w-[120px] opacity-100' : 'w-0 opacity-0'
+          }`}>
+            <div className="rule-2 mb-6" style={{ background: 'var(--stamp)' }} />
+            <div className="flex items-center justify-center mb-6">
+              <span className="t-label text-[var(--stamp)]">Delete</span>
+            </div>
+            <Droppable droppableId="TRASH">
+              {(provided, snapshot) => {
+                const isOver = snapshot.isDraggingOver;
+                return (
+                  <div ref={provided.innerRef} {...provided.droppableProps}
+                    className={`flex-1 flex flex-col items-center justify-center border-2 border-dashed transition-all duration-150 min-h-[200px] ${
+                      isOver
+                        ? 'border-[var(--stamp)] bg-[var(--stamp)] bg-opacity-5'
+                        : 'border-[var(--ink-15)]'
+                    }`}>
+                    <Trash2 className={`w-5 h-5 mb-2 transition-all duration-150 ${
+                      isOver ? 'text-[var(--stamp)] scale-125' : 'text-[var(--ink-15)]'
+                    }`} />
+                    <span className={`text-[0.5rem] tracking-[0.1em] uppercase ${
+                      isOver ? 'text-[var(--stamp)]' : 'text-[var(--ink-15)]'
+                    }`}>
+                      {isOver ? 'Release' : 'Drop here'}
+                    </span>
+                    <div className="hidden">{provided.placeholder}</div>
+                  </div>
+                );
+              }}
+            </Droppable>
+          </div>
         </div>
       </DragDropContext>
 
