@@ -45,6 +45,20 @@ a, button, [role="button"], input[type="submit"], select, .cursor-pointer {
   cursor: url('/cursors/hand.png') 16 2, pointer;
 }
 
+/* Pressed state */
+:active {
+  cursor: url('/cursors/hand-press.png') 13 2, auto;
+}
+
+/* Drag/grab state */
+[data-rfd-draggable-id] {
+  cursor: url('/cursors/hand.png') 16 2, grab;
+}
+[data-rfd-draggable-id]:active,
+.is-dragging {
+  cursor: url('/cursors/hand-grab.png') 20 4, grabbing;
+}
+
 /* Flatten all weight — everything is regular 400 */
 h1, h2, h3, h4, h5, h6, b, strong, th {
   font-weight: 400;
