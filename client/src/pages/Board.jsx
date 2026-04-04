@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { Trash2 } from 'lucide-react';
 import { api } from '../api';
 import { STATUSES, STATUS_CONFIG } from '../constants';
 import TicketCard from '../components/TicketCard';
 
-// Client-side urgency sort (mirrors server logic)
 function urgencyScore(ticket) {
   if (!ticket.dueDate) {
     const w = { CRITICAL: 100, HIGH: 200, MEDIUM: 300, LOW: 400 };
@@ -16,6 +16,9 @@ function urgencyScore(ticket) {
 export default function Board() {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dragging, setDragging] = useState(false);
+  const [trashHover, setTrashHover] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   const fetchTickets = () => {
     api.getTickets({ sortBy: 'urgency' })
@@ -31,9 +34,28 @@ export default function Board() {
     return acc;
   }, {});
 
+  const handleDragStart = () => setDragging(true);
+
   const handleDragEnd = async (result) => {
+    setDragging(false);
+    setTrashHover(false);
+
     if (!result.destination) return;
     const { draggableId, destination } = result;
+
+    // Dropped on trash
+    if (destination.droppableId === 'TRASH') {
+      setDeletingId(draggableId);
+      // Animate out, then delete
+      setTimeout(async () => {
+        setTickets((prev) => prev.filter((t) => t.id !== draggableId));
+        setDeletingId(null);
+        try { await api.deleteTicket(draggableId); } catch { fetchTickets(); }
+      }, 400);
+      return;
+    }
+
+    // Normal column move
     setTickets((prev) => prev.map((t) => t.id === draggableId ? { ...t, status: destination.droppableId, order: destination.index } : t));
     try { await api.moveTicket(draggableId, { status: destination.droppableId, order: destination.index }); } catch { fetchTickets(); }
   };
@@ -54,7 +76,7 @@ export default function Board() {
       <p className="t-label mb-6">Workflow</p>
       <h1 className="t-display text-[2.5rem] mb-16">Board</h1>
 
-      <DragDropContext onDragEnd={handleDragEnd}>
+      <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="flex gap-6 overflow-x-auto pb-8">
           {STATUSES.map((status) => {
             const config = STATUS_CONFIG[status];
@@ -75,9 +97,10 @@ export default function Board() {
                       className={`space-y-3 min-h-[200px] transition-colors ${snapshot.isDraggingOver ? 'bg-[var(--ink-04)] p-2 -m-2' : ''}`}>
                       {colTickets.map((ticket, index) => (
                         <Draggable key={ticket.id} draggableId={ticket.id} index={index}>
-                          {(provided, snapshot) => (
-                            <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-                              <TicketCard ticket={ticket} isDragging={snapshot.isDragging} />
+                          {(prov, snap) => (
+                            <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps}
+                              className={deletingId === ticket.id ? 'trash-crumple' : ''}>
+                              <TicketCard ticket={ticket} isDragging={snap.isDragging} />
                             </div>
                           )}
                         </Draggable>
@@ -95,6 +118,32 @@ export default function Board() {
               </div>
             );
           })}
+        </div>
+
+        {/* Trash drop zone — slides up when dragging */}
+        <div className={`fixed bottom-0 left-[220px] right-0 z-40 flex justify-center transition-all duration-300 ${
+          dragging ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
+        }`}>
+          <Droppable droppableId="TRASH">
+            {(provided, snapshot) => {
+              const isOver = snapshot.isDraggingOver;
+              return (
+                <div ref={provided.innerRef} {...provided.droppableProps}
+                  className={`w-full flex items-center justify-center gap-3 py-6 transition-all duration-150 ${
+                    isOver
+                      ? 'bg-[var(--stamp)] text-white'
+                      : 'bg-black text-white'
+                  }`}>
+                  <Trash2 className={`w-4 h-4 transition-transform duration-150 ${isOver ? 'scale-125' : ''}`} />
+                  <span className="text-[0.625rem] tracking-[0.14em] uppercase">
+                    {isOver ? 'Release to delete' : 'Drag here to delete'}
+                  </span>
+                  {/* Hidden placeholder so droppable works */}
+                  <div className="hidden">{provided.placeholder}</div>
+                </div>
+              );
+            }}
+          </Droppable>
         </div>
       </DragDropContext>
 
