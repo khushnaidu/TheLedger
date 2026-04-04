@@ -3,12 +3,12 @@ const prisma = require('../lib/prisma');
 
 const router = Router();
 
-// GET /api/tickets - list all tickets with filters
+// GET /api/tickets
 router.get('/', async (req, res) => {
   try {
     const { status, priority, categoryId, labelId, search, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
 
-    const where = {};
+    const where = { userId: req.user.id };
     if (status) where.status = status;
     if (priority) where.priority = priority;
     if (categoryId) where.categoryId = categoryId;
@@ -35,8 +35,8 @@ router.get('/', async (req, res) => {
 // GET /api/tickets/:id
 router.get('/:id', async (req, res) => {
   try {
-    const ticket = await prisma.ticket.findUnique({
-      where: { id: req.params.id },
+    const ticket = await prisma.ticket.findFirst({
+      where: { id: req.params.id, userId: req.user.id },
       include: { category: true, labels: true },
     });
     if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
@@ -58,6 +58,7 @@ router.post('/', async (req, res) => {
         status,
         priority,
         categoryId,
+        userId: req.user.id,
         dueDate: dueDate ? new Date(dueDate) : null,
         labels: labelIds?.length ? { connect: labelIds.map(id => ({ id })) } : undefined,
       },
@@ -73,6 +74,10 @@ router.post('/', async (req, res) => {
 // PATCH /api/tickets/:id
 router.patch('/:id', async (req, res) => {
   try {
+    // Verify ownership
+    const existing = await prisma.ticket.findFirst({ where: { id: req.params.id, userId: req.user.id } });
+    if (!existing) return res.status(404).json({ error: 'Ticket not found' });
+
     const { title, description, status, priority, categoryId, labelIds, dueDate, order } = req.body;
 
     const data = {};
@@ -102,6 +107,9 @@ router.patch('/:id', async (req, res) => {
 // DELETE /api/tickets/:id
 router.delete('/:id', async (req, res) => {
   try {
+    const existing = await prisma.ticket.findFirst({ where: { id: req.params.id, userId: req.user.id } });
+    if (!existing) return res.status(404).json({ error: 'Ticket not found' });
+
     await prisma.ticket.delete({ where: { id: req.params.id } });
     res.json({ success: true });
   } catch (err) {
@@ -109,9 +117,12 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// PATCH /api/tickets/:id/move - update status and order (for kanban drag)
+// PATCH /api/tickets/:id/move
 router.patch('/:id/move', async (req, res) => {
   try {
+    const existing = await prisma.ticket.findFirst({ where: { id: req.params.id, userId: req.user.id } });
+    if (!existing) return res.status(404).json({ error: 'Ticket not found' });
+
     const { status, order } = req.body;
     const ticket = await prisma.ticket.update({
       where: { id: req.params.id },

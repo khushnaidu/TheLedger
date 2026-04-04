@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, LogOut } from 'lucide-react';
 
 const navItems = [
   { to: '/', label: 'Dashboard' },
@@ -8,12 +8,12 @@ const navItems = [
   { to: '/canvas', label: 'Canvas LMS' },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ user, onLogout }) {
   const navigate = useNavigate();
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-[220px] bg-white flex flex-col z-50 border-r-[3px] border-black overflow-hidden">
-      {/* Logo art — large, dominant */}
+      {/* Logo art */}
       <div className="px-5 pt-6 pb-2 flex flex-col items-center">
         <img src="/art/ledgerlogo.jpg" alt="" className="w-[90px] mb-3 mix-blend-multiply" />
         <p className="text-[1.1rem] leading-[0.85] tracking-[-0.04em] uppercase text-center">
@@ -24,9 +24,10 @@ export default function Sidebar() {
       <div className="mx-5 mt-3 rule-4 mb-1" />
       <div className="mx-5 rule" />
 
-      {/* Date */}
+      {/* User + date */}
       <div className="px-5 pt-3 pb-1">
-        <p className="t-label">
+        <p className="t-label">{user?.name}</p>
+        <p className="t-label mt-1" style={{ color: 'var(--ink-15)' }}>
           {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
         </p>
       </div>
@@ -59,14 +60,21 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* Bottom art — strong, fills the remaining space */}
-      <div className="relative mt-auto flex-1 min-h-[180px]">
+      {/* Bottom art */}
+      <div className="relative mt-auto flex-1 min-h-[140px]">
         <img
           src="/art/sidebarbottom.jpg"
           alt=""
           className="absolute bottom-0 left-0 w-full h-full object-cover object-top mix-blend-multiply opacity-90"
         />
         <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-white to-transparent" />
+      </div>
+
+      {/* Logout */}
+      <div className="px-4 py-3 border-t border-[var(--ink-08)]">
+        <button onClick={onLogout} className="btn-ghost w-full justify-center">
+          <LogOut className="w-3 h-3" /> Sign Out
+        </button>
       </div>
     </aside>
   );

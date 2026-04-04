@@ -3,53 +3,78 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  createdAt DateTime @default(now())
+
+  tickets    Ticket[]
+  categories Category[]
+  labels     Label[]
+  canvas     CanvasIntegration?
+}
+
 model Ticket {
-  id                 String   @id @default(uuid())
+  id                 String    @id @default(uuid())
   title              String
   description        String?
-  status             String   @default("BACKLOG")
-  priority           String   @default("MEDIUM")
-  category           Category @relation(fields: [categoryId], references: [id])
+  status             String    @default("BACKLOG")
+  priority           String    @default("MEDIUM")
+  category           Category  @relation(fields: [categoryId], references: [id])
   categoryId         String
   labels             Label[]
   dueDate            DateTime?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  order              Int      @default(0)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  order              Int       @default(0)
   canvasAssignmentId String?
   canvasCourseId     String?
+  user               User      @relation(fields: [userId], references: [id])
+  userId             String
 
   @@index([status])
   @@index([categoryId])
   @@index([priority])
+  @@index([userId])
   @@index([canvasAssignmentId])
+}
+
+model Category {
+  id      String   @id @default(uuid())
+  name    String
+  color   String   @default("#000000")
+  icon    String   @default("folder")
+  user    User     @relation(fields: [userId], references: [id])
+  userId  String
+  tickets Ticket[]
+
+  @@unique([name, userId])
+}
+
+model Label {
+  id      String   @id @default(uuid())
+  name    String
+  color   String   @default("#000000")
+  user    User     @relation(fields: [userId], references: [id])
+  userId  String
+  tickets Ticket[]
+
+  @@unique([name, userId])
 }
 
 model CanvasIntegration {
   id        String   @id @default(uuid())
   baseUrl   String
   apiToken  String
-  userId    String?
+  userId    String   @unique
   userName  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-model Category {
-  id      String   @id @default(uuid())
-  name    String   @unique
-  color   String   @default("#00f0ff")
-  icon    String   @default("folder")
-  tickets Ticket[]
-}
-
-model Label {
-  id      String   @id @default(uuid())
-  name    String   @unique
-  color   String   @default("#ff00ff")
-  tickets Ticket[]
+  user      User     @relation(fields: [userId], references: [id])
 }

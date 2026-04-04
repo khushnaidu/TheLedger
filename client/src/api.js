@@ -1,10 +1,31 @@
 const API_BASE = '/api';
 
+function getToken() {
+  return localStorage.getItem('ledger_token');
+}
+
+export function setToken(token) {
+  if (token) localStorage.setItem('ledger_token', token);
+  else localStorage.removeItem('ledger_token');
+}
+
+export function isAuthenticated() {
+  return !!getToken();
+}
+
 async function request(path, options = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
+  const token = getToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE}${path}`, { headers, ...options });
+
+  if (res.status === 401) {
+    setToken(null);
+    window.location.href = '/login';
+    throw new Error('Session expired');
+  }
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(err.error || 'Request failed');
@@ -13,6 +34,11 @@ async function request(path, options = {}) {
 }
 
 export const api = {
+  // Auth
+  register: (data) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+  login: (data) => request('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+  getMe: () => request('/auth/me'),
+
   // Tickets
   getTickets: (params = {}) => {
     const qs = new URLSearchParams(params).toString();

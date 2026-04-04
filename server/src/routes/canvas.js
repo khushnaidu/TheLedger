@@ -34,7 +34,6 @@ async function canvasRequestAll(baseUrl, token, path, params = {}) {
     const data = await res.json();
     all.push(...data);
 
-    // Parse Link header for next page
     const link = res.headers.get('Link');
     const next = link?.match(/<([^>]+)>;\s*rel="next"/);
     url = next ? next[1] : null;
@@ -43,23 +42,24 @@ async function canvasRequestAll(baseUrl, token, path, params = {}) {
   return all;
 }
 
-// GET /api/canvas/status — check if connected
+// GET /api/canvas/status
 router.get('/status', async (req, res) => {
   try {
-    const config = await prisma.canvasIntegration.findFirst();
+    const config = await prisma.canvasIntegration.findUnique({
+      where: { userId: req.user.id },
+    });
     if (!config) return res.json({ connected: false });
     res.json({
       connected: true,
       baseUrl: config.baseUrl,
       userName: config.userName,
-      userId: config.userId,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// POST /api/canvas/connect — save Canvas credentials & verify
+// POST /api/canvas/connect
 router.post('/connect', async (req, res) => {
   try {
     const { baseUrl, apiToken } = req.body;
@@ -67,41 +67,28 @@ router.post('/connect', async (req, res) => {
       return res.status(400).json({ error: 'baseUrl and apiToken are required' });
     }
 
-    // Normalize URL (remove trailing slash)
     const normalizedUrl = baseUrl.replace(/\/+$/, '');
+    const canvasUser = await canvasRequest(normalizedUrl, apiToken, '/users/self');
 
-    // Verify the token works by fetching current user
-    const user = await canvasRequest(normalizedUrl, apiToken, '/users/self');
-
-    // Upsert — only one integration at a time
-    const existing = await prisma.canvasIntegration.findFirst();
-    let config;
-    if (existing) {
-      config = await prisma.canvasIntegration.update({
-        where: { id: existing.id },
-        data: {
-          baseUrl: normalizedUrl,
-          apiToken,
-          userId: String(user.id),
-          userName: user.name || user.short_name,
-        },
-      });
-    } else {
-      config = await prisma.canvasIntegration.create({
-        data: {
-          baseUrl: normalizedUrl,
-          apiToken,
-          userId: String(user.id),
-          userName: user.name || user.short_name,
-        },
-      });
-    }
+    const config = await prisma.canvasIntegration.upsert({
+      where: { userId: req.user.id },
+      update: {
+        baseUrl: normalizedUrl,
+        apiToken,
+        userName: canvasUser.name || canvasUser.short_name,
+      },
+      create: {
+        baseUrl: normalizedUrl,
+        apiToken,
+        userId: req.user.id,
+        userName: canvasUser.name || canvasUser.short_name,
+      },
+    });
 
     res.json({
       connected: true,
       baseUrl: config.baseUrl,
       userName: config.userName,
-      userId: config.userId,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -111,20 +98,17 @@ router.post('/connect', async (req, res) => {
 // DELETE /api/canvas/disconnect
 router.delete('/disconnect', async (req, res) => {
   try {
-    const existing = await prisma.canvasIntegration.findFirst();
-    if (existing) {
-      await prisma.canvasIntegration.delete({ where: { id: existing.id } });
-    }
+    await prisma.canvasIntegration.deleteMany({ where: { userId: req.user.id } });
     res.json({ connected: false });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// GET /api/canvas/courses — list active courses
+// GET /api/canvas/courses
 router.get('/courses', async (req, res) => {
   try {
-    const config = await prisma.canvasIntegration.findFirst();
+    const config = await prisma.canvasIntegration.findUnique({ where: { userId: req.user.id } });
     if (!config) return res.status(400).json({ error: 'Canvas not connected' });
 
     const courses = await canvasRequestAll(config.baseUrl, config.apiToken, '/courses', {
@@ -132,7 +116,6 @@ router.get('/courses', async (req, res) => {
       include: ['term', 'total_students'],
     });
 
-    // Filter to current/active courses and sort by name
     const active = courses
       .filter((c) => c.workflow_state === 'available')
       .map((c) => ({
@@ -149,10 +132,10 @@ router.get('/courses', async (req, res) => {
   }
 });
 
-// GET /api/canvas/courses/:courseId/assignments — list assignments for a course
+// GET /api/canvas/courses/:courseId/assignments
 router.get('/courses/:courseId/assignments', async (req, res) => {
   try {
-    const config = await prisma.canvasIntegration.findFirst();
+    const config = await prisma.canvasIntegration.findUnique({ where: { userId: req.user.id } });
     if (!config) return res.status(400).json({ error: 'Canvas not connected' });
 
     const assignments = await canvasRequestAll(
@@ -162,10 +145,9 @@ router.get('/courses/:courseId/assignments', async (req, res) => {
       { order_by: 'due_at', include: ['submission'] }
     );
 
-    // Check which assignments are already imported
     const canvasIds = assignments.map((a) => String(a.id));
     const imported = await prisma.ticket.findMany({
-      where: { canvasAssignmentId: { in: canvasIds } },
+      where: { canvasAssignmentId: { in: canvasIds }, userId: req.user.id },
       select: { canvasAssignmentId: true, id: true },
     });
     const importedMap = Object.fromEntries(imported.map((t) => [t.canvasAssignmentId, t.id]));
@@ -191,7 +173,7 @@ router.get('/courses/:courseId/assignments', async (req, res) => {
   }
 });
 
-// POST /api/canvas/import — import selected assignments as tickets
+// POST /api/canvas/import
 router.post('/import', async (req, res) => {
   try {
     const { assignments, categoryId } = req.body;
@@ -202,16 +184,14 @@ router.post('/import', async (req, res) => {
     const skipped = [];
 
     for (const a of assignments) {
-      // Skip if already imported
       const existing = await prisma.ticket.findFirst({
-        where: { canvasAssignmentId: String(a.id) },
+        where: { canvasAssignmentId: String(a.id), userId: req.user.id },
       });
       if (existing) {
         skipped.push({ id: a.id, name: a.name, ticketId: existing.id });
         continue;
       }
 
-      // Determine priority based on due date proximity
       let priority = 'MEDIUM';
       if (a.dueAt) {
         const daysUntilDue = (new Date(a.dueAt) - new Date()) / (1000 * 60 * 60 * 24);
@@ -221,7 +201,6 @@ router.post('/import', async (req, res) => {
         else priority = 'LOW';
       }
 
-      // Determine status
       let status = 'TODO';
       if (a.submitted || a.graded) status = 'DONE';
 
@@ -240,6 +219,7 @@ router.post('/import', async (req, res) => {
           status,
           priority,
           categoryId,
+          userId: req.user.id,
           dueDate: a.dueAt ? new Date(a.dueAt) : null,
           canvasAssignmentId: String(a.id),
           canvasCourseId: String(a.courseId),
@@ -256,20 +236,18 @@ router.post('/import', async (req, res) => {
   }
 });
 
-// POST /api/canvas/sync — re-sync imported assignments (update due dates, status)
+// POST /api/canvas/sync
 router.post('/sync', async (req, res) => {
   try {
-    const config = await prisma.canvasIntegration.findFirst();
+    const config = await prisma.canvasIntegration.findUnique({ where: { userId: req.user.id } });
     if (!config) return res.status(400).json({ error: 'Canvas not connected' });
 
-    // Find all tickets with canvas assignment IDs
     const canvasTickets = await prisma.ticket.findMany({
-      where: { canvasAssignmentId: { not: null } },
+      where: { canvasAssignmentId: { not: null }, userId: req.user.id },
     });
 
     if (canvasTickets.length === 0) return res.json({ updated: 0 });
 
-    // Group by course
     const byCourse = {};
     for (const t of canvasTickets) {
       if (!t.canvasCourseId) continue;
@@ -298,7 +276,6 @@ router.post('/sync', async (req, res) => {
         if (a.name !== ticket.title) {
           data.title = a.name;
         }
-        // Auto-complete if submitted/graded and ticket isn't already done
         const isCompleted = a.submission?.workflow_state === 'submitted' || a.submission?.workflow_state === 'graded';
         if (isCompleted && ticket.status !== 'DONE') {
           data.status = 'DONE';
@@ -317,7 +294,6 @@ router.post('/sync', async (req, res) => {
   }
 });
 
-// Simple HTML tag stripper
 function stripHtml(html) {
   return html
     .replace(/<[^>]*>/g, '')

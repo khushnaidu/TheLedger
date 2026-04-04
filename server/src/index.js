@@ -4,6 +4,8 @@ const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
 
+const { authMiddleware } = require('./middleware/auth');
+const authRoutes = require('./routes/auth');
 const ticketRoutes = require('./routes/tickets');
 const categoryRoutes = require('./routes/categories');
 const labelRoutes = require('./routes/labels');
@@ -17,12 +19,15 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
-// API routes
-app.use('/api/tickets', ticketRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/api/labels', labelRoutes);
-app.use('/api/stats', statsRoutes);
-app.use('/api/canvas', canvasRoutes);
+// Public routes
+app.use('/api/auth', authRoutes);
+
+// Protected routes — require auth
+app.use('/api/tickets', authMiddleware, ticketRoutes);
+app.use('/api/categories', authMiddleware, categoryRoutes);
+app.use('/api/labels', authMiddleware, labelRoutes);
+app.use('/api/stats', authMiddleware, statsRoutes);
+app.use('/api/canvas', authMiddleware, canvasRoutes);
 
 // Serve static frontend in production
 if (process.env.NODE_ENV === 'production') {
@@ -33,5 +38,5 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 app.listen(PORT, () => {
-  console.log(`⚡ TaskManager server running on port ${PORT}`);
+  console.log(`The Ledger server running on port ${PORT}`);
 });
