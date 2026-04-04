@@ -288,6 +288,71 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   100% { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Entrance ─────────────────────────────── */
+
+.entrance-screen {
+  animation: entranceFade 0.6s ease-out;
+}
+
+.entrance-logo {
+  opacity: 0;
+  animation: entranceDrop 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+}
+
+.entrance-title {
+  opacity: 0;
+  animation: entranceDrop 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+}
+
+.entrance-subtitle {
+  opacity: 0;
+  animation: entranceDrop 0.6s ease-out 0.8s forwards;
+}
+
+.entrance-rule {
+  opacity: 0;
+  animation: entranceExpand 0.6s ease-out 1s forwards;
+}
+
+.entrance-welcome {
+  opacity: 0;
+  animation: entranceDrop 0.5s ease-out 1.2s forwards;
+}
+
+.entrance-buttons {
+  opacity: 0;
+  animation: entranceDrop 0.6s ease-out 1.5s forwards;
+}
+
+.entrance-stamp {
+  opacity: 0;
+  animation: entranceDrop 0.5s ease-out 1.8s forwards;
+}
+
+.entrance-exit {
+  animation: entranceOut 0.5s ease-in forwards;
+}
+
+@keyframes entranceFade {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes entranceDrop {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes entranceExpand {
+  0% { opacity: 0; width: 0; }
+  100% { opacity: 1; width: 200px; }
+}
+
+@keyframes entranceOut {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.02); }
+}
+
 /* ── Utility ───────────────────────────────── */
 
 .margin-line {
