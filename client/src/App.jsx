@@ -92,16 +92,21 @@ function App() {
         <div className="relative z-10 flex min-h-screen">
           <SoundToggle playing={playing} onToggle={toggleSound} />
           <Sidebar user={user} onLogout={handleLogout} />
-          <main className="flex-1 ml-[220px] px-10 py-8 overflow-auto">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/board" element={<Board />} />
-              <Route path="/list" element={<ListView />} />
-              <Route path="/tickets/new" element={<CreateTicket />} />
-              <Route path="/tickets/:id" element={<TicketDetail />} />
-              <Route path="/canvas" element={<Canvas />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
+          <main className="flex-1 ml-[220px] px-10 py-8 overflow-auto flex flex-col min-h-screen">
+            <div className="flex-1">
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/board" element={<Board />} />
+                <Route path="/list" element={<ListView />} />
+                <Route path="/tickets/new" element={<CreateTicket />} />
+                <Route path="/tickets/:id" element={<TicketDetail />} />
+                <Route path="/canvas" element={<Canvas />} />
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            </div>
+            <footer className="py-6 text-center t-label tracking-[0.2em]">
+              Made by Khush
+            </footer>
           </main>
         </div>
       </div>
