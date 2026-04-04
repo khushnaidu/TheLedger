@@ -1,16 +1,16 @@
 services:
   - type: web
-    name: nexus-taskmanager
+    name: the-ledger
     runtime: node
     plan: free
     buildCommand: npm install && npm run build
     startCommand: npm start
     disk:
-      name: nexus-data
+      name: ledger-data
       mountPath: /data
       sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        value: file:/data/nexus.db
+        value: file:/data/ledger.db
