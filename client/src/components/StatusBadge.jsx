@@ -3,12 +3,12 @@ import { STATUS_CONFIG } from '../constants';
 export default function StatusBadge({ status }) {
   const config = STATUS_CONFIG[status];
 
+  if (status === 'DONE') {
+    return <span className="stamp" style={{ color: '#2a7d4f', borderColor: '#2a7d4f' }}>{config.label}</span>;
+  }
+
   if (config.stamp) {
-    return (
-      <span className={`stamp ${status === 'DONE' ? 'stamp-black' : 'stamp-red'}`}>
-        {config.label}
-      </span>
-    );
+    return <span className="stamp stamp-red">{config.label}</span>;
   }
 
   return (

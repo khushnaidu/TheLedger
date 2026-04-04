@@ -29,9 +29,19 @@ export default function Board() {
 
   useEffect(() => { fetchTickets(); }, []);
 
+  // Auto-hide done tickets older than 3 days from the board
+  const threeDaysAgo = new Date();
+  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
   const columns = STATUSES.reduce((acc, s) => {
     acc[s] = tickets
-      .filter((t) => t.status === s && t.id !== pendingDelete?.id)
+      .filter((t) => {
+        if (t.id === pendingDelete?.id) return false;
+        if (t.status !== s) return false;
+        // Hide stale done tickets from board (they stay in archive)
+        if (s === 'DONE' && new Date(t.updatedAt) < threeDaysAgo) return false;
+        return true;
+      })
       .sort((a, b) => urgencyScore(a) - urgencyScore(b));
     return acc;
   }, {});
