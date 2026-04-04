@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Trash2 } from 'lucide-react';
 import { api } from '../api';
 import { STATUSES, STATUS_CONFIG } from '../constants';
 import TicketCard from '../components/TicketCard';
+import UndoToast from '../components/UndoToast';
 
 function urgencyScore(ticket) {
   if (!ticket.dueDate) {
@@ -17,8 +18,9 @@ export default function Board() {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dragging, setDragging] = useState(false);
-  const [trashHover, setTrashHover] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null); // { id, ticket }
+  const undoRef = useRef(null);
 
   const fetchTickets = () => {
     api.getTickets({ sortBy: 'urgency' })
@@ -29,7 +31,7 @@ export default function Board() {
 
   const columns = STATUSES.reduce((acc, s) => {
     acc[s] = tickets
-      .filter((t) => t.status === s)
+      .filter((t) => t.status === s && t.id !== pendingDelete?.id)
       .sort((a, b) => urgencyScore(a) - urgencyScore(b));
     return acc;
   }, {});
@@ -38,19 +40,17 @@ export default function Board() {
 
   const handleDragEnd = async (result) => {
     setDragging(false);
-    setTrashHover(false);
 
     if (!result.destination) return;
     const { draggableId, destination } = result;
 
     // Dropped on trash
     if (destination.droppableId === 'TRASH') {
+      const ticket = tickets.find((t) => t.id === draggableId);
       setDeletingId(draggableId);
-      // Animate out, then delete
-      setTimeout(async () => {
-        setTickets((prev) => prev.filter((t) => t.id !== draggableId));
+      setTimeout(() => {
         setDeletingId(null);
-        try { await api.deleteTicket(draggableId); } catch { fetchTickets(); }
+        setPendingDelete({ id: draggableId, ticket });
       }, 400);
       return;
     }
@@ -58,6 +58,19 @@ export default function Board() {
     // Normal column move
     setTickets((prev) => prev.map((t) => t.id === draggableId ? { ...t, status: destination.droppableId, order: destination.index } : t));
     try { await api.moveTicket(draggableId, { status: destination.droppableId, order: destination.index }); } catch { fetchTickets(); }
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    const { id } = pendingDelete;
+    setTickets((prev) => prev.filter((t) => t.id !== id));
+    setPendingDelete(null);
+    try { await api.deleteTicket(id); } catch { fetchTickets(); }
+  };
+
+  const undoDelete = () => {
+    setPendingDelete(null);
+    // Ticket is still in the tickets array, just hidden — removing pendingDelete shows it again
   };
 
   if (loading) return (
@@ -120,7 +133,7 @@ export default function Board() {
           })}
         </div>
 
-        {/* Trash drop zone — slides up when dragging */}
+        {/* Trash drop zone */}
         <div className={`fixed bottom-0 left-[220px] right-0 z-40 flex justify-center transition-all duration-300 ${
           dragging ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
         }`}>
@@ -130,15 +143,12 @@ export default function Board() {
               return (
                 <div ref={provided.innerRef} {...provided.droppableProps}
                   className={`w-full flex items-center justify-center gap-3 py-6 transition-all duration-150 ${
-                    isOver
-                      ? 'bg-[var(--stamp)] text-white'
-                      : 'bg-black text-white'
+                    isOver ? 'bg-[var(--stamp)] text-white' : 'bg-black text-white'
                   }`}>
                   <Trash2 className={`w-4 h-4 transition-transform duration-150 ${isOver ? 'scale-125' : ''}`} />
                   <span className="text-[0.625rem] tracking-[0.14em] uppercase">
                     {isOver ? 'Release to delete' : 'Drag here to delete'}
                   </span>
-                  {/* Hidden placeholder so droppable works */}
                   <div className="hidden">{provided.placeholder}</div>
                 </div>
               );
@@ -146,6 +156,15 @@ export default function Board() {
           </Droppable>
         </div>
       </DragDropContext>
+
+      {/* Undo toast */}
+      {pendingDelete && (
+        <UndoToast
+          message={`"${pendingDelete.ticket.title}" deleted`}
+          onUndo={undoDelete}
+          onExpire={confirmDelete}
+        />
+      )}
 
       <div className="rule mt-16 mb-10" />
     </div>

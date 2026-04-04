@@ -5,6 +5,16 @@ import { api } from '../api';
 import { STATUSES, PRIORITIES, STATUS_CONFIG, PRIORITY_CONFIG } from '../constants';
 import StatusBadge from '../components/StatusBadge';
 import PriorityBadge from '../components/PriorityBadge';
+import UndoToast from '../components/UndoToast';
+
+const TIME_FILTERS = [
+  { value: '', label: 'All Time' },
+  { value: '7', label: 'Last 7 Days' },
+  { value: '30', label: 'Last 30 Days' },
+  { value: '90', label: 'Last 3 Months' },
+  { value: '180', label: 'Last 6 Months' },
+  { value: 'older', label: 'Older Than 6 Months' },
+];
 
 export default function ListView() {
   const [tickets, setTickets] = useState([]);
@@ -14,10 +24,11 @@ export default function ListView() {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterPriority, setFilterPriority] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
+  const [filterTime, setFilterTime] = useState('');
   const [sortBy, setSortBy] = useState('urgency');
   const [sortOrder, setSortOrder] = useState('asc');
   const [selected, setSelected] = useState(new Set());
-  const [deleting, setDeleting] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(null);
   const navigate = useNavigate();
 
   const selectMode = selected.size > 0;
@@ -38,6 +49,19 @@ export default function ListView() {
   const handleSearch = (e) => { e.preventDefault(); setLoading(true); fetchData(); };
   const toggleSort = (f) => { if (sortBy === f) setSortOrder((o) => o === 'asc' ? 'desc' : 'asc'); else { setSortBy(f); setSortOrder('asc'); } setLoading(true); };
 
+  // Apply time filter client-side
+  const timeFiltered = tickets.filter((t) => {
+    if (!filterTime) return true;
+    const created = new Date(t.createdAt);
+    const now = new Date();
+    const daysAgo = (now - created) / (1000 * 60 * 60 * 24);
+    if (filterTime === 'older') return daysAgo > 180;
+    return daysAgo <= Number(filterTime);
+  });
+
+  // Hide pending deletes
+  const visibleTickets = timeFiltered.filter((t) => !pendingDelete?.ids.includes(t.id));
+
   const toggleSelect = (e, id) => {
     e.stopPropagation();
     setSelected((prev) => {
@@ -48,35 +72,41 @@ export default function ListView() {
   };
 
   const selectAll = () => {
-    if (selected.size === tickets.length) {
+    if (selected.size === visibleTickets.length) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(tickets.map((t) => t.id)));
+      setSelected(new Set(visibleTickets.map((t) => t.id)));
     }
   };
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     if (selected.size === 0) return;
-    setDeleting(true);
     const ids = [...selected];
-    // Animate out
-    setTickets((prev) => prev.map((t) => ids.includes(t.id) ? { ...t, _deleting: true } : t));
-    // Wait for animation
-    await new Promise((r) => setTimeout(r, 400));
-    // Delete from server
-    await Promise.all(ids.map((id) => api.deleteTicket(id).catch(() => {})));
-    setTickets((prev) => prev.filter((t) => !ids.includes(t.id)));
+    const deletedTickets = tickets.filter((t) => ids.includes(t.id));
+    setPendingDelete({ ids, tickets: deletedTickets });
     setSelected(new Set());
-    setDeleting(false);
   };
 
-  const handleSingleDelete = async (e, id) => {
+  const handleSingleDelete = (e, id) => {
     e.stopPropagation();
-    setTickets((prev) => prev.map((t) => t.id === id ? { ...t, _deleting: true } : t));
-    await new Promise((r) => setTimeout(r, 400));
-    await api.deleteTicket(id).catch(() => {});
-    setTickets((prev) => prev.filter((t) => t.id !== id));
+    const ticket = tickets.find((t) => t.id === id);
+    setPendingDelete({ ids: [id], tickets: [ticket] });
   };
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    await Promise.all(pendingDelete.ids.map((id) => api.deleteTicket(id).catch(() => {})));
+    setTickets((prev) => prev.filter((t) => !pendingDelete.ids.includes(t.id)));
+    setPendingDelete(null);
+  };
+
+  const undoDelete = () => setPendingDelete(null);
+
+  const deleteMsg = pendingDelete
+    ? pendingDelete.ids.length === 1
+      ? `"${pendingDelete.tickets[0].title}" deleted`
+      : `${pendingDelete.ids.length} entries deleted`
+    : '';
 
   return (
     <div className="max-w-[960px] mx-auto">
@@ -110,6 +140,9 @@ export default function ListView() {
           <option value="">All Categories</option>
           {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
+        <select value={filterTime} onChange={(e) => setFilterTime(e.target.value)} className="select-field">
+          {TIME_FILTERS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
+        </select>
       </div>
 
       {/* Bulk action bar */}
@@ -118,17 +151,17 @@ export default function ListView() {
           <div className="flex items-center gap-4">
             <span className="t-label text-black">{selected.size} selected</span>
             <button onClick={selectAll} className="btn-ghost text-[0.5rem]">
-              {selected.size === tickets.length ? 'Deselect All' : 'Select All'}
+              {selected.size === visibleTickets.length ? 'Deselect All' : 'Select All'}
             </button>
           </div>
           <div className="flex items-center gap-3">
             <button onClick={() => setSelected(new Set())} className="btn-ghost">
               <X className="w-3 h-3" /> Cancel
             </button>
-            <button onClick={handleBulkDelete} disabled={deleting}
-              className="btn-red py-2 px-4 text-[0.5rem] disabled:opacity-30">
+            <button onClick={handleBulkDelete}
+              className="btn-red py-2 px-4 text-[0.5rem]">
               <Trash2 className="w-3 h-3" strokeWidth={3} />
-              {deleting ? 'Deleting...' : `Delete ${selected.size}`}
+              Delete {selected.size}
             </button>
           </div>
         </div>
@@ -142,10 +175,10 @@ export default function ListView() {
               <th className="w-8 py-4 pr-2">
                 <button onClick={selectAll}
                   className={`w-4 h-4 border-2 flex items-center justify-center transition-all ${
-                    selected.size === tickets.length && tickets.length > 0
+                    selected.size === visibleTickets.length && visibleTickets.length > 0
                       ? 'border-black bg-black text-white' : 'border-[var(--ink-15)] hover:border-black'
                   }`}>
-                  {selected.size === tickets.length && tickets.length > 0 && <Check className="w-2.5 h-2.5" strokeWidth={3} />}
+                  {selected.size === visibleTickets.length && visibleTickets.length > 0 && <Check className="w-2.5 h-2.5" strokeWidth={3} />}
                 </button>
               </th>
               {[
@@ -172,19 +205,19 @@ export default function ListView() {
                   <p className="t-label">Loading entries...</p>
                 </div>
               </td></tr>
-            ) : tickets.length === 0 ? (
+            ) : visibleTickets.length === 0 ? (
               <tr>
                 <td colSpan={8} className="py-16 text-center">
                   <img src="/art/couchrandom.jpg" alt="" className="w-[100px] mx-auto mix-blend-multiply opacity-90 mb-4" />
                   <p className="t-small">No entries found</p>
                 </td>
               </tr>
-            ) : tickets.map((ticket) => (
+            ) : visibleTickets.map((ticket) => (
               <tr key={ticket.id}
                 onClick={() => !selectMode && navigate(`/tickets/${ticket.id}`)}
-                className={`transition-all border-b border-[var(--ink-08)] ${
-                  ticket._deleting ? 'trash-row' : 'cursor-pointer hover:bg-[var(--ink-04)]'
-                } ${selected.has(ticket.id) ? 'bg-[var(--ink-04)]' : ''}`}>
+                className={`transition-all border-b border-[var(--ink-08)] cursor-pointer hover:bg-[var(--ink-04)] ${
+                  selected.has(ticket.id) ? 'bg-[var(--ink-04)]' : ''
+                }`}>
                 <td className="py-4 pr-2">
                   <button onClick={(e) => toggleSelect(e, ticket.id)}
                     className={`w-4 h-4 border-2 flex items-center justify-center transition-all ${
@@ -210,6 +243,15 @@ export default function ListView() {
           </tbody>
         </table>
       </div>
+
+      {/* Undo toast */}
+      {pendingDelete && (
+        <UndoToast
+          message={deleteMsg}
+          onUndo={undoDelete}
+          onExpire={confirmDelete}
+        />
+      )}
 
       <div className="rule mt-16 mb-10" />
     </div>
