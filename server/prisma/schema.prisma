@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Ticket {
+  id                 String   @id @default(uuid())
+  title              String
+  description        String?
+  status             String   @default("BACKLOG")
+  priority           String   @default("MEDIUM")
+  category           Category @relation(fields: [categoryId], references: [id])
+  categoryId         String
+  labels             Label[]
+  dueDate            DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  order              Int      @default(0)
+  canvasAssignmentId String?
+  canvasCourseId     String?
+
+  @@index([status])
+  @@index([categoryId])
+  @@index([priority])
+  @@index([canvasAssignmentId])
+}
+
+model CanvasIntegration {
+  id        String   @id @default(uuid())
+  baseUrl   String
+  apiToken  String
+  userId    String?
+  userName  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id      String   @id @default(uuid())
+  name    String   @unique
+  color   String   @default("#00f0ff")
+  icon    String   @default("folder")
+  tickets Ticket[]
+}
+
+model Label {
+  id      String   @id @default(uuid())
+  name    String   @unique
+  color   String   @default("#ff00ff")
+  tickets Ticket[]
+}
