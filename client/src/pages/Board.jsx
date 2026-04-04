@@ -38,7 +38,15 @@ export default function Board() {
     try { await api.moveTicket(draggableId, { status: destination.droppableId, order: destination.index }); } catch { fetchTickets(); }
   };
 
-  if (loading) return <div className="rule-8 mb-20" />;
+  if (loading) return (
+    <div>
+      <div className="rule-8 mb-20" />
+      <div className="flex flex-col items-center justify-center py-32">
+        <div className="loader mb-6"><div className="loader-bar" /><div className="loader-bar" /><div className="loader-bar" /><div className="loader-bar" /></div>
+        <p className="t-label">Loading board...</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-full">

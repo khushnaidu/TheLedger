@@ -42,7 +42,15 @@ export default function Dashboard() {
     setSyncing(false);
   };
 
-  if (loading) return <div className="max-w-[960px] mx-auto pt-4"><div className="rule-8 mb-20" /></div>;
+  if (loading) return (
+    <div className="max-w-[960px] mx-auto pt-4">
+      <div className="rule-8 mb-20" />
+      <div className="flex flex-col items-center justify-center py-32">
+        <div className="loader mb-6"><div className="loader-bar" /><div className="loader-bar" /><div className="loader-bar" /><div className="loader-bar" /></div>
+        <p className="t-label">Loading ledger...</p>
+      </div>
+    </div>
+  );
   if (!stats) return <div className="t-label">Connection lost</div>;
 
   const done = stats.byStatus['DONE'] || 0;

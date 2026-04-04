@@ -92,7 +92,12 @@ export default function ListView() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7} className="py-20 text-center t-small">Loading...</td></tr>
+              <tr><td colSpan={7} className="py-20 text-center">
+                <div className="flex flex-col items-center">
+                  <div className="loader mb-4"><div className="loader-bar" /><div className="loader-bar" /><div className="loader-bar" /><div className="loader-bar" /></div>
+                  <p className="t-label">Loading entries...</p>
+                </div>
+              </td></tr>
             ) : tickets.length === 0 ? (
               <tr>
                 <td colSpan={7} className="py-16 text-center">

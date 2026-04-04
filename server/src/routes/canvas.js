@@ -297,10 +297,23 @@ router.post('/sync', async (req, res) => {
 
 // POST /api/canvas/auto-sync — silently import new assignments + update existing
 // Called on dashboard load. Imports from ALL active courses into School category.
+// Throttled to once per 15 minutes per user to avoid hammering Canvas API.
+const autoSyncLastRun = new Map();
+const AUTO_SYNC_THROTTLE = 15 * 60 * 1000;
+
 router.post('/auto-sync', async (req, res) => {
   try {
+    // Throttle check
+    const now = Date.now();
+    const last = autoSyncLastRun.get(req.user.id) || 0;
+    if (now - last < AUTO_SYNC_THROTTLE) {
+      return res.json({ imported: 0, updated: 0, throttled: true });
+    }
+
     const config = await prisma.canvasIntegration.findUnique({ where: { userId: req.user.id } });
     if (!config) return res.json({ imported: 0, updated: 0 });
+
+    autoSyncLastRun.set(req.user.id, now);
 
     // Find or create School category for this user
     let schoolCategory = await prisma.category.findFirst({
