@@ -9,6 +9,7 @@ import TicketDetail from './pages/TicketDetail';
 import CreateTicket from './pages/CreateTicket';
 import Canvas from './pages/Canvas';
 import Auth from './pages/Auth';
+import SoundToggle from './components/SoundToggle';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -48,6 +49,7 @@ function App() {
     <Router>
       <div className="relative min-h-screen bg-white">
         <div className="relative z-10 flex min-h-screen">
+          <SoundToggle />
           <Sidebar user={user} onLogout={handleLogout} />
           <main className="flex-1 ml-[220px] px-10 py-8 overflow-auto">
             <Routes>
