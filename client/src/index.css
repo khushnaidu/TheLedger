@@ -918,6 +918,29 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   font-size: 10px;
   line-height: 1.8;
   image-rendering: pixelated;
+  cursor: url('/cursors/tome/gauntlet.png') 6 2, auto;
+}
+
+[data-theme="tome"] a,
+[data-theme="tome"] button,
+[data-theme="tome"] [role="button"],
+[data-theme="tome"] input[type="submit"],
+[data-theme="tome"] select,
+[data-theme="tome"] .cursor-pointer {
+  cursor: url('/cursors/tome/gauntlet.png') 6 2, pointer;
+}
+
+[data-theme="tome"] :active {
+  cursor: url('/cursors/tome/gauntlet-press.png') 6 2, auto;
+}
+
+[data-theme="tome"] [data-rfd-draggable-id] {
+  cursor: url('/cursors/tome/gauntlet.png') 6 2, grab;
+}
+
+[data-theme="tome"] [data-rfd-draggable-id]:active,
+[data-theme="tome"] .is-dragging {
+  cursor: url('/cursors/tome/gauntlet-grab.png') 6 2, grabbing;
 }
 
 [data-theme="tome"] ::selection {
