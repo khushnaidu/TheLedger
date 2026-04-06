@@ -511,7 +511,7 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   border: 3px solid var(--ink);
   border-top: none;
   background: var(--ink-04);
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   transition: transform 0.2s ease;
 }
