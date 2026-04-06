@@ -443,23 +443,108 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
 
 /* ── Gus Assistant ───────────────────────── */
 
-.gus-toggle {
+/* Floating character button */
+.gus-character {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 100;
   display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 14px 16px;
-  background: var(--ink-04);
-  border: 2px dashed var(--ink-08);
-  font-family: var(--font);
-  text-transform: uppercase;
+  align-items: flex-end;
+  gap: 0;
+  background: none;
+  border: none;
   cursor: pointer;
-  transition: all 0.15s;
+  padding: 0;
+  font-family: var(--font);
 }
 
-.gus-toggle:hover {
-  border-color: var(--ink-15);
-  background: var(--ink-08);
+.gus-character-img {
+  width: 56px;
+  height: 56px;
+  border: 3px solid var(--ink);
+  background: #fff;
+  object-fit: cover;
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+
+.gus-character:hover .gus-character-img {
+  transform: scale(1.08);
+}
+
+.gus-character-bubble {
+  position: absolute;
+  bottom: 62px;
+  right: 0;
+  background: var(--ink);
+  color: #fff;
+  padding: 6px 10px;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: all 0.2s;
+  pointer-events: none;
+}
+
+.gus-character-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  right: 16px;
+  width: 8px;
+  height: 8px;
+  background: var(--ink);
+  transform: rotate(45deg);
+}
+
+.gus-character:hover .gus-character-bubble {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.gus-bounce {
+  animation: gusBounce 0.6s ease-in-out;
+}
+
+@keyframes gusBounce {
+  0%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-8px); }
+  50% { transform: translateY(-4px); }
+  70% { transform: translateY(-6px); }
+}
+
+/* Chat panel */
+.gus-chat-panel {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 100;
+  width: 380px;
+  max-height: 520px;
+  background: #fff;
+  border: 3px solid var(--ink);
+  display: flex;
+  flex-direction: column;
+  animation: gusSlideUp 0.25s ease-out;
+  box-shadow: 6px 6px 0 var(--ink);
+}
+
+@keyframes gusSlideUp {
+  0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.gus-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--ink);
+  background: var(--ink-04);
 }
 
 .gus-avatar {
@@ -470,20 +555,89 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   flex-shrink: 0;
 }
 
-.gus-panel {
-  border: 2px solid var(--ink);
-  padding: 20px;
-  background: #fff;
-  animation: up 0.25s ease-out;
+.gus-chat-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 380px;
+  min-height: 120px;
 }
 
-.gus-speech {
-  padding: 12px 16px;
+.gus-msg {
+  display: flex;
+  gap: 8px;
+  animation: up 0.2s ease-out;
+}
+
+.gus-msg-user {
+  justify-content: flex-end;
+}
+
+.gus-msg-avatar {
+  width: 22px;
+  height: 22px;
+  object-fit: cover;
+  border: 1.5px solid var(--ink);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.gus-msg-content {
+  max-width: 85%;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+
+.gus-msg-content-gus {
+  padding: 8px 12px;
   background: var(--ink-04);
-  border-left: 3px solid var(--ink-15);
-  min-height: 20px;
+  border: 1px solid var(--ink-08);
 }
 
+.gus-msg-content-user {
+  padding: 8px 12px;
+  background: var(--ink);
+  color: #fff;
+}
+
+/* Proposed tickets */
+.gus-proposed-ticket {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 5px 8px;
+  background: #fff;
+  border: 1px solid var(--ink-08);
+  font-size: 0.625rem;
+  line-height: 1.4;
+}
+
+/* Ticket cards in chat */
+.gus-ticket-card {
+  padding: 8px 10px;
+  background: #fff;
+  border: 2px solid var(--ink);
+}
+
+.gus-tag {
+  font-size: 0.4375rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border: 1px solid var(--ink-15);
+  color: var(--ink-50);
+}
+
+.gus-tag-label {
+  border-color: var(--stamp);
+  color: var(--stamp);
+}
+
+/* Typing indicator */
 .gus-typing {
   display: inline-flex;
   gap: 4px;
@@ -495,7 +649,6 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   width: 4px;
   height: 4px;
   background: var(--ink-30);
-  border-radius: 0;
   animation: gusTyping 1s ease-in-out infinite;
 }
 
@@ -507,35 +660,28 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   50% { opacity: 1; transform: scaleY(2); }
 }
 
-.gus-ticket-preview {
-  padding: 14px 16px;
-  border: 2px solid var(--ink);
-  background: var(--ink-04);
-}
-
-.gus-tag {
-  font-size: 0.5rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  padding: 2px 6px;
-  border: 1px solid var(--ink-15);
-  color: var(--ink-50);
+/* Chat input area */
+.gus-chat-input {
+  display: flex;
+  gap: 0;
+  align-items: flex-end;
+  padding: 8px 10px;
+  border-top: 2px solid var(--ink);
 }
 
 .gus-input {
   background: transparent;
   border: none;
-  border-bottom: 2px solid var(--ink);
   color: var(--ink);
-  padding: 8px 0;
+  padding: 6px 8px;
   font-family: var(--font);
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   outline: none;
   resize: none;
-  line-height: 1.6;
+  line-height: 1.5;
+  max-height: 80px;
 }
 
-.gus-input:focus { border-color: var(--stamp); }
 .gus-input::placeholder { color: var(--ink-15); }
 
 .gus-send {

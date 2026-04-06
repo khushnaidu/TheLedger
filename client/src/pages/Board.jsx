@@ -5,6 +5,7 @@ import { api } from '../api';
 import { STATUSES, STATUS_CONFIG } from '../constants';
 import TicketCard from '../components/TicketCard';
 import UndoToast from '../components/UndoToast';
+import GusAssistant from '../components/GusAssistant';
 
 function urgencyScore(ticket) {
   if (!ticket.dueDate) {
@@ -16,6 +17,8 @@ function urgencyScore(ticket) {
 
 export default function Board() {
   const [tickets, setTickets] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [labels, setLabels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dragging, setDragging] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
@@ -27,7 +30,13 @@ export default function Board() {
       .then(setTickets).catch(console.error).finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchTickets(); }, []);
+  const fetchMeta = () => {
+    Promise.all([api.getCategories(), api.getLabels()])
+      .then(([c, l]) => { setCategories(c); setLabels(l); })
+      .catch(console.error);
+  };
+
+  useEffect(() => { fetchTickets(); fetchMeta(); }, []);
 
   // Auto-hide done tickets older than 3 days from the board
   const threeDaysAgo = new Date();
@@ -181,6 +190,13 @@ export default function Board() {
       )}
 
       <div className="rule mt-16 mb-10" />
+
+      {/* Gus AI Assistant */}
+      <GusAssistant
+        categories={categories}
+        labels={labels}
+        onTicketsCreated={() => { fetchTickets(); fetchMeta(); }}
+      />
     </div>
   );
 }

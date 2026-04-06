@@ -67,6 +67,7 @@ export const api = {
 
   // AI Assistant
   generateTicket: (data) => request('/ai/generate-ticket', { method: 'POST', body: JSON.stringify(data) }),
+  createTicketsFromGus: (data) => request('/ai/create-tickets', { method: 'POST', body: JSON.stringify(data) }),
 
   // Canvas LMS
   getCanvasStatus: () => request('/canvas/status'),

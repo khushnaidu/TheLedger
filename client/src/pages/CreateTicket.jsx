@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { api } from '../api';
 import { STATUSES, PRIORITIES, STATUS_CONFIG, PRIORITY_CONFIG } from '../constants';
-import GusAssistant from '../components/GusAssistant';
 
 export default function CreateTicket() {
   const navigate = useNavigate();
@@ -23,22 +22,10 @@ export default function CreateTicket() {
     e.preventDefault();
     if (!form.title.trim() || !form.categoryId) return;
     setSaving(true);
-    try { const t = await api.createTicket(form); navigate(`/tickets/${t.id}`); } catch (e) { console.error(e); setSaving(false); }
+    try { await api.createTicket(form); navigate('/board'); } catch (e) { console.error(e); setSaving(false); }
   };
 
   const toggleLabel = (lid) => { setForm((f) => ({ ...f, labelIds: f.labelIds.includes(lid) ? f.labelIds.filter((x) => x !== lid) : [...f.labelIds, lid] })); };
-
-  const handleGusApply = (ticket) => {
-    setForm((f) => ({
-      ...f,
-      title: ticket.title || f.title,
-      description: ticket.description || f.description,
-      status: ticket.status || f.status,
-      priority: ticket.priority || f.priority,
-      categoryId: ticket.categoryId || f.categoryId,
-      dueDate: ticket.dueDate || f.dueDate,
-    }));
-  };
 
   return (
     <div className="max-w-[640px] mx-auto">
@@ -56,11 +43,6 @@ export default function CreateTicket() {
           <div className="rule-4" style={{ background: 'var(--stamp)', width: '60px' }} />
         </div>
         <img src="/art/handblack.jpg" alt="" className="w-[140px] mix-blend-multiply opacity-90 flex-shrink-0 -mt-4" />
-      </div>
-
-      {/* Gus AI Assistant */}
-      <div className="mb-12">
-        <GusAssistant categories={categories} onApply={handleGusApply} />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-10 margin-line">
