@@ -7,6 +7,7 @@ import TicketCard from '../components/TicketCard';
 import UndoToast from '../components/UndoToast';
 import { awardXP } from '../lib/xp';
 import { updateQuestProgress } from '../lib/quests';
+import { useTheme } from '../lib/ThemeContext';
 
 function urgencyScore(ticket) {
   if (!ticket.dueDate) {
@@ -17,6 +18,7 @@ function urgencyScore(ticket) {
 }
 
 export default function Board() {
+  const { theme, assets, statusLabels } = useTheme();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dragging, setDragging] = useState(false);
@@ -138,8 +140,8 @@ export default function Board() {
   return (
     <div className="max-w-full">
       <div className="rule-8 mb-16" />
-      <p className="t-label mb-6">Workflow</p>
-      <h1 className="t-display text-[2.5rem] mb-16">Board</h1>
+      <p className="t-label mb-6">{theme === 'tome' ? 'Battle Map' : 'Workflow'}</p>
+      <h1 className="t-display text-[2.5rem] mb-16">{theme === 'tome' ? 'Quest Board' : 'Board'}</h1>
 
       <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {/* Columns — fixed height, internal scroll */}
@@ -153,7 +155,7 @@ export default function Board() {
               <div key={status} className="flex-shrink-0 w-[240px] flex flex-col">
                 <div className={`mb-6 ${isActive ? 'rule-4' : 'rule-2'}`} style={isActive ? { background: 'var(--stamp)' } : {}} />
                 <div className="flex items-center justify-between mb-6">
-                  <span className={`t-label ${isActive ? 'text-[var(--stamp)]' : ''}`}>{config.label}</span>
+                  <span className={`t-label ${isActive ? 'text-[var(--stamp)]' : ''}`}>{statusLabels[status] || config.label}</span>
                   <span className="t-small">{colTickets.length}</span>
                 </div>
 
@@ -169,7 +171,7 @@ export default function Board() {
                               <TicketCard ticket={ticket} isDragging={snap.isDragging} />
                               {stampingId === ticket.id && (
                                 <div className="done-stamp-overlay">
-                                  <span className="done-stamp">Done</span>
+                                  <span className="done-stamp">{theme === 'tome' ? 'Slain' : 'Done'}</span>
                                 </div>
                               )}
                             </div>
@@ -179,7 +181,7 @@ export default function Board() {
                       {provided.placeholder}
                       {colTickets.length === 0 && !snapshot.isDraggingOver && (
                         <div className="pt-6 text-center">
-                          <img src="/art/couchrandom.jpg" alt="" className="w-[70px] mx-auto mix-blend-multiply opacity-90 mb-2" />
+                          <img src={assets.emptyColumn} alt="" className="w-[70px] mx-auto mix-blend-multiply opacity-90 mb-2" />
                           <span className="t-small">Empty</span>
                         </div>
                       )}

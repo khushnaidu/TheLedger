@@ -3,118 +3,23 @@ import { useLocation } from 'react-router-dom';
 import { Send, Check, ChevronDown, FileText, Loader2 } from 'lucide-react';
 import { api } from '../api';
 import { getDailyQuest, updateQuestProgress } from '../lib/quests';
-
-const GUS_FACES = {
-  idle: '/gus/idle.png',
-  blinking: '/gus/blinking.png',
-  thinking: '/gus/thinking.png',
-  smiling: '/gus/smiling.png',
-  curious: '/gus/curious.png',
-};
-
-// Preload all images
-Object.values(GUS_FACES).forEach(src => {
-  const img = new Image();
-  img.src = src;
-});
-
-const PAGE_QUOTES = {
-  '/': [
-    "Reviewing the daily ledger...",
-    "The numbers look good today.",
-    "Your dashboard awaits, boss.",
-    "Gus keeps the books balanced.",
-  ],
-  '/board': [
-    "The filing cabinet awaits...",
-    "Need something organized?",
-    "Drag, drop, conquer.",
-    "Paperwork never sleeps.",
-  ],
-  '/list': [
-    "The full archives, at your service.",
-    "Every entry, accounted for.",
-    "Need to find something specific?",
-    "The records don't lie.",
-  ],
-  '/canvas': [
-    "Ah, the academic wing...",
-    "School assignments incoming?",
-    "Canvas sync standing by.",
-    "I'll file those assignments for you.",
-  ],
-  '/tickets/new': [
-    "Filing a new one by hand? Respect.",
-    "I could do that for you, y'know.",
-    "Manual entry — old school. I like it.",
-    "The pen is mightier than the keyboard.",
-  ],
-};
-
-const DEFAULT_QUOTES = [
-  "Gus is on standby.",
-  "Click to summon the clerk.",
-  "Need something filed?",
-];
-
-const GUS_GREETING = [
-  "Right-o! Gus at your service. What needs filing today?",
-  "The clerk is IN. Describe what you're working on and I'll sort the paperwork.",
-  "Augustus reporting. Tell me about your task — or dump a whole project on me, I can handle it.",
-  "Ah, a customer! What've we got today? Single task or a full operation?",
-];
-
-function getPageQuote(pathname) {
-  // Match exact or prefix
-  const quotes = PAGE_QUOTES[pathname]
-    || (pathname.startsWith('/tickets/') ? PAGE_QUOTES['/tickets/new'] : null)
-    || DEFAULT_QUOTES;
-  return quotes[Math.floor(Math.random() * quotes.length)];
-}
-
-const MOVE_QUOTES = {
-  DONE: [
-    "Another one bites the dust!",
-    "STAMPED. Filed. Beautiful.",
-    "And THAT'S how it's done.",
-    "Consider that entry closed, boss.",
-    "The archives welcome another victory.",
-  ],
-  IN_PROGRESS: [
-    "Now we're cooking with gas!",
-    "Promoted to active duty. Excellent.",
-    "In the trenches now. Good luck.",
-    "Rolling up the sleeves on this one.",
-  ],
-  TODO: [
-    "Queued up and ready to go.",
-    "Added to the docket.",
-    "On the list. It'll get its turn.",
-  ],
-  REVIEW: [
-    "Under inspection. Very thorough.",
-    "Sent for review — dotting the i's.",
-    "Quality control in progress.",
-  ],
-  BACKLOG: [
-    "Back to the pile it goes.",
-    "Filed under 'later'. Classic.",
-    "The backlog grows ever patient.",
-  ],
-  TRASH: [
-    "Into the shredder! Goodbye.",
-    "Incinerated. The paperwork gods demand sacrifice.",
-    "Gone. Reduced to confetti.",
-    "You won't be needing THAT anymore.",
-  ],
-};
+import { useTheme } from '../lib/ThemeContext';
 
 function getRandomQuote(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+function getPageQuote(pathname, quotes) {
+  const pool = quotes.pageQuotes[pathname]
+    || (pathname.startsWith('/tickets/') ? quotes.pageQuotes['/tickets/new'] : null)
+    || quotes.defaultQuotes;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 export default function GusAssistant({ onTicketsCreated }) {
   const location = useLocation();
+  const { theme, gusFaces, gusPersona, gusQuotes } = useTheme();
+
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [apiMessages, setApiMessages] = useState([]);
@@ -124,18 +29,25 @@ export default function GusAssistant({ onTicketsCreated }) {
   const [face, setFace] = useState('idle');
   const [categories, setCategories] = useState([]);
   const [labels, setLabels] = useState([]);
-  const [idleQuote, setIdleQuote] = useState(() => getPageQuote('/'));
-  const [greeting] = useState(() => GUS_GREETING[Math.floor(Math.random() * GUS_GREETING.length)]);
+  const [idleQuote, setIdleQuote] = useState(() => getPageQuote('/', gusQuotes));
+  const [greeting] = useState(() => getRandomQuote(gusQuotes.greetings));
   const [voiceLine, setVoiceLine] = useState(null);
   const voiceTimerRef = useRef(null);
   const chatRef = useRef(null);
   const inputRef = useRef(null);
   const blinkTimerRef = useRef(null);
 
-  // Fetch categories, labels, and board health for Gus
   const [boardMood, setBoardMood] = useState('idle');
   const [weeklyCount, setWeeklyCount] = useState(0);
   const [quest, setQuest] = useState(() => getDailyQuest());
+
+  // Preload face images
+  useEffect(() => {
+    Object.values(gusFaces).forEach(src => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, [gusFaces]);
 
   useEffect(() => {
     Promise.all([api.getCategories(), api.getLabels()])
@@ -145,7 +57,6 @@ export default function GusAssistant({ onTicketsCreated }) {
     checkWeeklyStreak();
   }, []);
 
-  // Re-check board health when page changes or tickets are created
   useEffect(() => { checkBoardHealth(); }, [location.pathname]);
   useEffect(() => {
     const handler = () => checkBoardHealth();
@@ -184,25 +95,13 @@ export default function GusAssistant({ onTicketsCreated }) {
   // Update idle quote when page changes or mood changes
   useEffect(() => {
     if (boardMood === 'worried') {
-      const worriedQuotes = [
-        "You've got overdue entries...",
-        "The deadlines aren't looking great.",
-        "Boss, we need to talk about those overdue items.",
-        "Some entries are past due. Just saying.",
-      ];
-      setIdleQuote(worriedQuotes[Math.floor(Math.random() * worriedQuotes.length)]);
+      setIdleQuote(getRandomQuote(gusQuotes.worriedQuotes));
     } else if (boardMood === 'smiling') {
-      const happyQuotes = [
-        "All clear! Inbox zero!",
-        "The ledger is spotless. Beautiful.",
-        "Not a single active entry. Magnificent.",
-        "Everything's filed and done. I could cry.",
-      ];
-      setIdleQuote(happyQuotes[Math.floor(Math.random() * happyQuotes.length)]);
+      setIdleQuote(getRandomQuote(gusQuotes.happyQuotes));
     } else {
-      setIdleQuote(getPageQuote(location.pathname));
+      setIdleQuote(getPageQuote(location.pathname, gusQuotes));
     }
-  }, [location.pathname, boardMood]);
+  }, [location.pathname, boardMood, gusQuotes]);
 
   // Listen for quest completion
   useEffect(() => {
@@ -210,16 +109,15 @@ export default function GusAssistant({ onTicketsCreated }) {
       setQuest(getDailyQuest());
       setTimeout(() => {
         if (voiceTimerRef.current) clearTimeout(voiceTimerRef.current);
-        setVoiceLine("QUEST COMPLETE! Well done, boss!");
+        setVoiceLine(theme === 'tome' ? "QUEST ACHIEVED! Glory!" : "QUEST COMPLETE! Well done, boss!");
         flashFace('smiling', 4000);
         voiceTimerRef.current = setTimeout(() => setVoiceLine(null), 4000);
       }, 3500);
     };
     window.addEventListener('gus-quest-complete', handler);
     return () => window.removeEventListener('gus-quest-complete', handler);
-  }, []);
+  }, [theme]);
 
-  // Refresh quest display on ticket moves
   useEffect(() => {
     const handler = () => setQuest(getDailyQuest());
     window.addEventListener('gus-ticket-moved', handler);
@@ -232,46 +130,42 @@ export default function GusAssistant({ onTicketsCreated }) {
       const { earned, leveledUp, level } = e.detail;
       if (leveledUp) {
         if (voiceTimerRef.current) clearTimeout(voiceTimerRef.current);
-        setVoiceLine(`LEVEL UP! You're now a ${level.title}!`);
+        setVoiceLine(`LEVEL UP! ${level.title}!`);
         flashFace('smiling', 4000);
         voiceTimerRef.current = setTimeout(() => setVoiceLine(null), 4000);
       } else if (!voiceLine) {
-        // Only show XP toast if no voice line active (don't override move quotes)
         setTimeout(() => {
           if (voiceTimerRef.current) clearTimeout(voiceTimerRef.current);
           setVoiceLine(`+${earned} XP`);
           voiceTimerRef.current = setTimeout(() => setVoiceLine(null), 2000);
-        }, 3200); // show after the move quote fades
+        }, 3200);
       }
     };
     window.addEventListener('gus-xp-gained', handler);
     return () => window.removeEventListener('gus-xp-gained', handler);
   }, [voiceLine]);
 
-  // Listen for ticket moves (drag-drop voice lines)
+  // Listen for ticket moves
   useEffect(() => {
     const handler = (e) => {
       const { to } = e.detail;
-      const quotes = MOVE_QUOTES[to];
+      const quotes = gusQuotes.moveQuotes[to];
       if (!quotes) return;
 
-      // Flash appropriate face
       if (to === 'DONE') flashFace('smiling', 2500);
       else if (to === 'TRASH') flashFace('curious', 2000);
       else flashFace('curious', 1500);
 
-      // Show voice line
       if (voiceTimerRef.current) clearTimeout(voiceTimerRef.current);
       setVoiceLine(getRandomQuote(quotes));
       voiceTimerRef.current = setTimeout(() => setVoiceLine(null), 3000);
 
-      // Re-check board health and streak
       checkBoardHealth();
       checkWeeklyStreak();
     };
     window.addEventListener('gus-ticket-moved', handler);
     return () => window.removeEventListener('gus-ticket-moved', handler);
-  }, []);
+  }, [gusQuotes]);
 
   // Idle blink loop
   const startBlinkLoop = useCallback(() => {
@@ -289,7 +183,7 @@ export default function GusAssistant({ onTicketsCreated }) {
     };
     setFace(boardMood === 'idle' ? 'idle' : boardMood);
     scheduleBlink();
-  }, []);
+  }, [boardMood]);
 
   const stopBlinkLoop = () => {
     if (blinkTimerRef.current) {
@@ -343,7 +237,6 @@ export default function GusAssistant({ onTicketsCreated }) {
     setInput('');
 
     setMessages(prev => [...prev, { role: 'user', text: userText }]);
-
     const newApiMessages = [...apiMessages, { role: 'user', content: userText }];
     setApiMessages(newApiMessages);
 
@@ -359,9 +252,7 @@ export default function GusAssistant({ onTicketsCreated }) {
 
       if (data.type === 'question') {
         setMessages(prev => [...prev, {
-          role: 'gus',
-          text: data.message,
-          proposedTickets: data.proposedTickets,
+          role: 'gus', text: data.message, proposedTickets: data.proposedTickets,
         }]);
         setApiMessages(prev => [
           ...prev,
@@ -371,9 +262,7 @@ export default function GusAssistant({ onTicketsCreated }) {
         flashFace('curious', 2000);
       } else if (data.type === 'tickets') {
         setMessages(prev => [...prev, {
-          role: 'gus',
-          text: data.message,
-          tickets: data.tickets,
+          role: 'gus', text: data.message, tickets: data.tickets,
         }]);
         setApiMessages(prev => [
           ...prev,
@@ -396,12 +285,11 @@ export default function GusAssistant({ onTicketsCreated }) {
     try {
       await api.createTicketsFromGus({ tickets });
       const count = tickets.length;
-      setMessages(prev => [
-        ...prev,
-        { role: 'gus', text: `Consider it done! ${count} ${count === 1 ? 'entry' : 'entries'} filed and stamped. The archives grow ever richer.` },
-      ]);
+      const doneMsg = theme === 'tome'
+        ? `It is done! ${count} ${count === 1 ? 'quest' : 'quests'} inscribed upon the scrolls. The chronicles grow!`
+        : `Consider it done! ${count} ${count === 1 ? 'entry' : 'entries'} filed and stamped. The archives grow ever richer.`;
+      setMessages(prev => [...prev, { role: 'gus', text: doneMsg }]);
       flashFace('smiling', 3000);
-      // Track quest progress for creates
       for (let i = 0; i < count; i++) {
         const qs = updateQuestProgress('create');
         if (qs.completed) {
@@ -409,13 +297,12 @@ export default function GusAssistant({ onTicketsCreated }) {
         }
       }
       setQuest(getDailyQuest());
-      // Refresh categories/labels in case new ones were created
       Promise.all([api.getCategories(), api.getLabels()])
         .then(([c, l]) => { setCategories(c); setLabels(l); })
         .catch(() => {});
       onTicketsCreated?.();
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'gus', text: `Filing error: ${err.message}. The bureaucracy strikes back.` }]);
+      setMessages(prev => [...prev, { role: 'gus', text: `Filing error: ${err.message}` }]);
       flashFace('curious', 1500);
     } finally {
       setCreating(false);
@@ -423,10 +310,7 @@ export default function GusAssistant({ onTicketsCreated }) {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
   const handleNewConversation = () => {
@@ -442,24 +326,18 @@ export default function GusAssistant({ onTicketsCreated }) {
       <div className="gus-board-character" onClick={handleOpen}>
         <div className="gus-window">
           <div className="gus-face-container">
-            <img src={GUS_FACES[face]} alt="Gus" className="gus-face" />
+            <img src={gusFaces[face]} alt="Gus" className="gus-face" />
           </div>
-          {/* Hover bubble */}
           {!voiceLine && (
-            <div className="gus-window-bubble">
-              <span>{idleQuote}</span>
-            </div>
+            <div className="gus-window-bubble"><span>{idleQuote}</span></div>
           )}
-          {/* Voice line (always visible, auto-fades) */}
           {voiceLine && (
-            <div className="gus-voice-line">
-              <span>{voiceLine}</span>
-            </div>
+            <div className="gus-voice-line"><span>{voiceLine}</span></div>
           )}
         </div>
         <div className="gus-nameplate">
           <span className="gus-status-dot" />
-          Augustus
+          {gusPersona.nameplate}
           {weeklyCount > 0 && (
             <span className="gus-streak">{weeklyCount} this week</span>
           )}
@@ -467,12 +345,10 @@ export default function GusAssistant({ onTicketsCreated }) {
         {quest.quest && (
           <div className={`gus-quest-bar ${quest.completed ? 'gus-quest-done' : ''}`}>
             <span className="gus-quest-text">
-              {quest.completed ? 'Quest Complete!' : quest.quest.text}
+              {quest.completed ? (theme === 'tome' ? 'Quest Achieved!' : 'Quest Complete!') : quest.quest.text}
             </span>
             {!quest.completed && (
-              <span className="gus-quest-progress">
-                {quest.progress}/{quest.quest.target}
-              </span>
+              <span className="gus-quest-progress">{quest.progress}/{quest.quest.target}</span>
             )}
           </div>
         )}
@@ -483,18 +359,17 @@ export default function GusAssistant({ onTicketsCreated }) {
   // Expanded chat panel
   return (
     <div className="gus-chat-panel">
-      {/* Header — large animated face */}
       <div className="gus-chat-header">
         <div className="gus-chat-face-wrap">
-          <img src={GUS_FACES[face]} alt="Gus" className="gus-chat-face" />
+          <img src={gusFaces[face]} alt="Gus" className="gus-chat-face" />
         </div>
         <div className="gus-chat-header-info">
           <div className="flex-1">
             <span className="block text-[0.6875rem] tracking-[0.14em]">
-              Augustus &ldquo;Gus&rdquo;
+              {gusPersona.name}
             </span>
             <span className="block text-[0.5rem] tracking-[0.18em] text-[var(--ink-30)]">
-              Filing Clerk &middot; On Duty
+              {gusPersona.role} &middot; {gusPersona.status}
             </span>
           </div>
           <button type="button" onClick={handleNewConversation} className="btn-ghost text-[0.5rem] mr-2" title="New conversation">
@@ -506,12 +381,11 @@ export default function GusAssistant({ onTicketsCreated }) {
         </div>
       </div>
 
-      {/* Chat messages */}
       <div ref={chatRef} className="gus-chat-body">
         {messages.map((msg, i) => (
           <div key={i} className={`gus-msg ${msg.role === 'user' ? 'gus-msg-user' : 'gus-msg-gus'}`}>
             {msg.role === 'gus' && (
-              <img src={GUS_FACES.idle} alt="" className="gus-msg-avatar" />
+              <img src={gusFaces.idle} alt="" className="gus-msg-avatar" />
             )}
             <div className={`gus-msg-content ${msg.role === 'user' ? 'gus-msg-content-user' : 'gus-msg-content-gus'}`}>
               <p style={{ textTransform: 'none' }}>{msg.text}</p>
@@ -519,7 +393,7 @@ export default function GusAssistant({ onTicketsCreated }) {
               {msg.proposedTickets?.length > 0 && (
                 <div className="mt-3 space-y-1.5">
                   <p className="text-[0.5rem] tracking-[0.18em] text-[var(--ink-30)] uppercase">
-                    Proposed Entries ({msg.proposedTickets.length})
+                    {theme === 'tome' ? 'Proposed Quests' : 'Proposed Entries'} ({msg.proposedTickets.length})
                   </p>
                   {msg.proposedTickets.map((t, j) => (
                     <div key={j} className="gus-proposed-ticket">
@@ -534,7 +408,7 @@ export default function GusAssistant({ onTicketsCreated }) {
               {msg.tickets?.length > 0 && (
                 <div className="mt-3">
                   <p className="text-[0.5rem] tracking-[0.18em] text-[var(--ink-30)] uppercase mb-2">
-                    Ready to File ({msg.tickets.length})
+                    {theme === 'tome' ? 'Ready to Inscribe' : 'Ready to File'} ({msg.tickets.length})
                   </p>
                   <div className="space-y-2">
                     {msg.tickets.map((t, j) => (
@@ -563,9 +437,9 @@ export default function GusAssistant({ onTicketsCreated }) {
                     className="btn-black w-full mt-3 text-[0.5625rem] py-2.5 justify-center disabled:opacity-40"
                   >
                     {creating ? (
-                      <><Loader2 className="w-3 h-3 animate-spin" /> Filing...</>
+                      <><Loader2 className="w-3 h-3 animate-spin" /> {theme === 'tome' ? 'Inscribing...' : 'Filing...'}</>
                     ) : (
-                      <><Check className="w-2.5 h-2.5" strokeWidth={3} /> File {msg.tickets.length} {msg.tickets.length === 1 ? 'Entry' : 'Entries'}</>
+                      <><Check className="w-2.5 h-2.5" strokeWidth={3} /> {theme === 'tome' ? 'Inscribe' : 'File'} {msg.tickets.length} {msg.tickets.length === 1 ? (theme === 'tome' ? 'Quest' : 'Entry') : (theme === 'tome' ? 'Quests' : 'Entries')}</>
                     )}
                   </button>
                 </div>
@@ -576,7 +450,7 @@ export default function GusAssistant({ onTicketsCreated }) {
 
         {loading && (
           <div className="gus-msg gus-msg-gus">
-            <img src={GUS_FACES.thinking} alt="" className="gus-msg-avatar" />
+            <img src={gusFaces.thinking} alt="" className="gus-msg-avatar" />
             <div className="gus-msg-content gus-msg-content-gus">
               <span className="gus-typing"><span /><span /><span /></span>
             </div>
@@ -584,7 +458,6 @@ export default function GusAssistant({ onTicketsCreated }) {
         )}
       </div>
 
-      {/* Input */}
       <div className="gus-chat-input">
         <textarea
           ref={inputRef}
@@ -592,7 +465,7 @@ export default function GusAssistant({ onTicketsCreated }) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           rows={1}
-          placeholder="Describe a task or project..."
+          placeholder={theme === 'tome' ? 'Describe your quest...' : 'Describe a task or project...'}
           className="gus-input flex-1"
           disabled={loading || creating}
           style={{ textTransform: 'none' }}

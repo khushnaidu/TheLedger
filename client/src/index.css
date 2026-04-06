@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -894,4 +895,310 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
 }
 
 .gus-send:hover { opacity: 0.75; }
+
+/* ============================================
+   THE TOME — Fantasy RPG Theme
+   ============================================ */
+
+[data-theme="tome"] {
+  --ink: #e8d5b0;
+  --ink-50: rgba(232,213,176,0.65);
+  --ink-30: rgba(232,213,176,0.45);
+  --ink-15: rgba(232,213,176,0.22);
+  --ink-08: rgba(232,213,176,0.08);
+  --ink-04: rgba(232,213,176,0.04);
+  --stamp: #b83232;
+  --font: 'Press Start 2P', 'Space Mono', monospace;
+}
+
+/* ── Tome: Body & globals ─────────────────── */
+
+[data-theme="tome"] body {
+  background: #1a1008;
+  font-size: 10px;
+  line-height: 1.8;
+  image-rendering: pixelated;
+}
+
+[data-theme="tome"] ::selection {
+  background: var(--stamp);
+  color: #1a1008;
+}
+
+[data-theme="tome"] ::-webkit-scrollbar-thumb {
+  background: rgba(232,213,176,0.15);
+}
+
+/* Override Tailwind bg-white and border-black globally */
+[data-theme="tome"] .bg-white { background: #1a1008; }
+[data-theme="tome"] .border-black { border-color: var(--ink-30); }
+[data-theme="tome"] .border-r-\[3px\] { border-color: var(--ink-30); }
+[data-theme="tome"] .bg-black { background: var(--ink); }
+[data-theme="tome"] .text-white { color: #1a1008; }
+[data-theme="tome"] .border-2.border-dashed { border-color: var(--ink-15); }
+
+/* ── Tome: Typography ─────────────────────── */
+
+[data-theme="tome"] .t-display {
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
+[data-theme="tome"] .t-title {
+  font-size: 1rem;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+[data-theme="tome"] .t-heading {
+  font-size: 0.75rem;
+  letter-spacing: 0;
+}
+
+[data-theme="tome"] .t-body {
+  font-size: 0.625rem;
+}
+
+[data-theme="tome"] .t-label {
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+}
+
+[data-theme="tome"] .t-stat {
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+[data-theme="tome"] .t-small {
+  font-size: 0.5rem;
+}
+
+/* ── Tome: Panels & Cards ─────────────────── */
+
+[data-theme="tome"] .panel {
+  border-color: var(--ink-30);
+  background: rgba(232,213,176,0.03);
+}
+
+[data-theme="tome"] .panel:hover {
+  box-shadow: 4px 4px 0 var(--stamp);
+}
+
+/* ── Tome: Rules ──────────────────────────── */
+
+[data-theme="tome"] .rule,
+[data-theme="tome"] .rule-2,
+[data-theme="tome"] .rule-4,
+[data-theme="tome"] .rule-8 {
+  background: var(--ink-30);
+}
+
+[data-theme="tome"] .rule-light {
+  background: var(--ink-08);
+}
+
+/* ── Tome: Buttons ────────────────────────── */
+
+[data-theme="tome"] .btn-black {
+  background: var(--ink);
+  color: #1a1008;
+}
+
+[data-theme="tome"] .btn-outline {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+[data-theme="tome"] .btn-outline:hover {
+  background: var(--ink);
+  color: #1a1008;
+}
+
+[data-theme="tome"] .btn-red:hover {
+  background: var(--stamp);
+  color: #1a1008;
+}
+
+[data-theme="tome"] .btn-ghost {
+  color: var(--ink-30);
+}
+
+[data-theme="tome"] .btn-ghost:hover {
+  color: var(--ink);
+}
+
+/* ── Tome: Inputs ─────────────────────────── */
+
+[data-theme="tome"] .input-field {
+  border-bottom-color: var(--ink-30);
+  color: var(--ink);
+}
+
+[data-theme="tome"] .input-field::placeholder { color: var(--ink-15); }
+[data-theme="tome"] .input-field:focus { border-color: var(--stamp); }
+
+[data-theme="tome"] .textarea-field {
+  background: rgba(232,213,176,0.04);
+  border-color: var(--ink-30);
+  color: var(--ink);
+}
+
+[data-theme="tome"] .textarea-field::placeholder { color: var(--ink-15); }
+[data-theme="tome"] .textarea-field:focus { border-color: var(--stamp); }
+
+[data-theme="tome"] .select-field {
+  background: rgba(232,213,176,0.04);
+  border-color: var(--ink-30);
+  color: var(--ink);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' fill='%23e8d5b0' viewBox='0 0 16 16'%3E%3Cpath d='M8 12L2 6h12z'/%3E%3C/svg%3E");
+}
+
+[data-theme="tome"] .select-field:focus { border-color: var(--stamp); }
+
+/* ── Tome: Stamps ─────────────────────────── */
+
+[data-theme="tome"] .stamp-red { color: var(--stamp); }
+[data-theme="tome"] .stamp-black { color: var(--ink); }
+
+[data-theme="tome"] .done-stamp {
+  color: #22c55e;
+  border-color: #22c55e;
+}
+
+/* ── Tome: Margin Line ────────────────────── */
+
+[data-theme="tome"] .margin-line {
+  border-left-color: var(--stamp);
+}
+
+/* ── Tome: Sidebar ────────────────────────── */
+
+[data-theme="tome"] aside {
+  background: #0d0804;
+  border-right-color: var(--ink-30) !important;
+}
+
+[data-theme="tome"] .bg-black.text-white {
+  background: var(--stamp);
+  color: #1a1008;
+}
+
+/* Active nav in tome */
+[data-theme="tome"] nav a.bg-black {
+  background: var(--stamp);
+}
+
+/* ── Tome: Gus ────────────────────────────── */
+
+[data-theme="tome"] .gus-window {
+  border-color: var(--ink-30);
+  background: rgba(232,213,176,0.06);
+}
+
+[data-theme="tome"] .gus-face,
+[data-theme="tome"] .gus-face-sm,
+[data-theme="tome"] .gus-chat-face,
+[data-theme="tome"] .gus-msg-avatar {
+  mix-blend-mode: normal;
+  background: transparent;
+}
+
+[data-theme="tome"] .gus-nameplate {
+  background: var(--stamp);
+  border-color: var(--stamp);
+}
+
+[data-theme="tome"] .gus-quest-bar {
+  background: rgba(232,213,176,0.04);
+  border-color: var(--ink-15);
+}
+
+[data-theme="tome"] .gus-quest-done {
+  background: var(--stamp);
+  border-color: var(--stamp);
+}
+
+[data-theme="tome"] .gus-chat-panel {
+  background: #1a1008;
+  border-color: var(--ink-30);
+  box-shadow: 6px 6px 0 var(--stamp);
+}
+
+[data-theme="tome"] .gus-chat-header {
+  border-bottom-color: var(--ink-30);
+  background: rgba(232,213,176,0.04);
+}
+
+[data-theme="tome"] .gus-chat-face-wrap {
+  background: #0d0804;
+  border-bottom-color: var(--ink-08);
+}
+
+[data-theme="tome"] .gus-msg-content-gus {
+  background: rgba(232,213,176,0.06);
+  border-color: var(--ink-08);
+}
+
+[data-theme="tome"] .gus-msg-content-user {
+  background: var(--stamp);
+  color: #fff;
+}
+
+[data-theme="tome"] .gus-chat-input {
+  border-top-color: var(--ink-30);
+}
+
+[data-theme="tome"] .gus-input {
+  color: var(--ink);
+}
+
+[data-theme="tome"] .gus-input::placeholder { color: var(--ink-15); }
+
+[data-theme="tome"] .gus-send {
+  background: var(--stamp);
+}
+
+[data-theme="tome"] .gus-ticket-card {
+  border-color: var(--ink-30);
+  background: rgba(232,213,176,0.04);
+}
+
+[data-theme="tome"] .gus-proposed-ticket {
+  background: rgba(232,213,176,0.04);
+  border-color: var(--ink-08);
+}
+
+[data-theme="tome"] .gus-tag {
+  border-color: var(--ink-15);
+  color: var(--ink-50);
+}
+
+[data-theme="tome"] .gus-tag-label {
+  border-color: var(--stamp);
+  color: var(--stamp);
+}
+
+/* ── Tome: Ticket cards ───────────────────── */
+
+[data-theme="tome"] .border-\[var\(--ink-08\)\] { border-color: var(--ink-08); }
+
+/* ── Tome: Entrance ───────────────────────── */
+
+[data-theme="tome"] .entrance-screen {
+  background: #1a1008;
+}
+
+/* ── Tome: Undo toast ─────────────────────── */
+
+[data-theme="tome"] .undo-toast {
+  background: #1a1008;
+  border-color: var(--ink-30);
+}
+
+/* ── Tome: Decorative images ──────────────── */
+
+[data-theme="tome"] img.mix-blend-multiply {
+  mix-blend-mode: normal;
+  opacity: 0.7;
+}
 

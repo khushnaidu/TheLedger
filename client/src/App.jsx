@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { api, isAuthenticated, setToken } from './api';
+import { ThemeProvider } from './lib/ThemeContext';
+import { getTheme } from './lib/theme';
 import Sidebar from './components/Sidebar';
 import SoundToggle from './components/SoundToggle';
 import Entrance from './components/Entrance';
@@ -12,6 +14,7 @@ import TicketDetail from './pages/TicketDetail';
 import CreateTicket from './pages/CreateTicket';
 import Canvas from './pages/Canvas';
 import Auth from './pages/Auth';
+import { THEME_ASSETS } from './lib/theme';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -22,7 +25,11 @@ function App() {
   const audioRef = useRef(null);
 
   useEffect(() => {
-    const audio = new Audio('/audio/soundtrack.mp3');
+    // Set theme on initial load
+    document.documentElement.setAttribute('data-theme', getTheme());
+
+    const theme = getTheme();
+    const audio = new Audio(THEME_ASSETS[theme].soundtrack);
     audio.loop = true;
     audio.volume = 0.3;
     audioRef.current = audio;
@@ -70,52 +77,57 @@ function App() {
 
   if (!user) {
     return (
-      <Router>
-        <Routes>
-          <Route path="*" element={<Auth onLogin={handleLogin} />} />
-        </Routes>
-      </Router>
+      <ThemeProvider>
+        <Router>
+          <Routes>
+            <Route path="*" element={<Auth onLogin={handleLogin} />} />
+          </Routes>
+        </Router>
+      </ThemeProvider>
     );
   }
 
   // Show entrance screen before entering the app
   if (!entered) {
     return (
-      <div className={exiting ? 'entrance-exit' : ''}>
-        <Entrance userName={user.name} onEnter={handleEnter} />
-      </div>
+      <ThemeProvider>
+        <div className={exiting ? 'entrance-exit' : ''}>
+          <Entrance userName={user.name} onEnter={handleEnter} />
+        </div>
+      </ThemeProvider>
     );
   }
 
   return (
-    <Router>
-      <div className="relative min-h-screen bg-white">
-        <div className="relative z-10 flex min-h-screen">
-          <SoundToggle playing={playing} onToggle={toggleSound} />
-          <Sidebar user={user} onLogout={handleLogout} />
-          <main className="flex-1 ml-[220px] px-10 py-8 overflow-auto flex flex-col min-h-screen">
-            <div className="flex-1">
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/board" element={<Board />} />
-                <Route path="/list" element={<ListView />} />
-                <Route path="/tickets/new" element={<CreateTicket />} />
-                <Route path="/tickets/:id" element={<TicketDetail />} />
-                <Route path="/canvas" element={<Canvas />} />
-                <Route path="*" element={<Navigate to="/" />} />
-              </Routes>
-            </div>
-            <footer className="py-6 text-center t-label tracking-[0.2em]">
-              Made by Khush
-            </footer>
-          </main>
-          <GusAssistant onTicketsCreated={() => {
-            // Dispatch event so any active page can refresh its data
-            window.dispatchEvent(new Event('gus-tickets-created'));
-          }} />
+    <ThemeProvider>
+      <Router>
+        <div className="relative min-h-screen bg-white">
+          <div className="relative z-10 flex min-h-screen">
+            <SoundToggle playing={playing} onToggle={toggleSound} />
+            <Sidebar user={user} onLogout={handleLogout} />
+            <main className="flex-1 ml-[220px] px-10 py-8 overflow-auto flex flex-col min-h-screen">
+              <div className="flex-1">
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/board" element={<Board />} />
+                  <Route path="/list" element={<ListView />} />
+                  <Route path="/tickets/new" element={<CreateTicket />} />
+                  <Route path="/tickets/:id" element={<TicketDetail />} />
+                  <Route path="/canvas" element={<Canvas />} />
+                  <Route path="*" element={<Navigate to="/" />} />
+                </Routes>
+              </div>
+              <footer className="py-6 text-center t-label tracking-[0.2em]">
+                Made by Khush
+              </footer>
+            </main>
+            <GusAssistant onTicketsCreated={() => {
+              window.dispatchEvent(new Event('gus-tickets-created'));
+            }} />
+          </div>
         </div>
-      </div>
-    </Router>
+      </Router>
+    </ThemeProvider>
   );
 }
 
