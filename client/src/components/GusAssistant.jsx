@@ -202,17 +202,21 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
     flashFace('curious', 1200);
   };
 
-  // Collapsed — top-right character
+  // Collapsed — clerk window top-right
   if (!open) {
     return (
-      <div className="gus-board-character group" onClick={handleOpen}>
-        <div className="gus-face-container">
-          <img src={GUS_FACES[face]} alt="Gus" className="gus-face" />
-          <div className="gus-status-dot" />
+      <div className="gus-board-character" onClick={handleOpen}>
+        <div className="gus-window">
+          <div className="gus-face-container">
+            <img src={GUS_FACES[face]} alt="Gus" className="gus-face" />
+          </div>
+          <div className="gus-window-bubble">
+            <span>{idleQuote}</span>
+          </div>
         </div>
-        <div className="gus-board-label">
-          <span className="block text-[0.5625rem] tracking-[0.14em]">Gus</span>
-          <span className="block text-[0.4375rem] tracking-[0.12em] text-[var(--ink-30)]">{idleQuote}</span>
+        <div className="gus-nameplate">
+          <span className="gus-status-dot" />
+          Augustus
         </div>
       </div>
     );
