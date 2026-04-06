@@ -897,28 +897,55 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
 .gus-send:hover { opacity: 0.75; }
 
 /* ============================================
-   THE TOME — Fantasy RPG Theme
+   THE TOME — 16-bit Gothic Fantasy RPG Theme
+   Inspired by Castlevania / LOTR pixel art
    ============================================ */
 
 [data-theme="tome"] {
-  --ink: #e8d5b0;
-  --ink-50: rgba(232,213,176,0.65);
-  --ink-30: rgba(232,213,176,0.45);
-  --ink-15: rgba(232,213,176,0.22);
-  --ink-08: rgba(232,213,176,0.08);
-  --ink-04: rgba(232,213,176,0.04);
-  --stamp: #b83232;
+  --ink: #c8b8a0;
+  --ink-50: rgba(200,184,160,0.7);
+  --ink-30: rgba(200,184,160,0.45);
+  --ink-15: rgba(200,184,160,0.22);
+  --ink-08: rgba(200,184,160,0.1);
+  --ink-04: rgba(200,184,160,0.05);
+  --stamp: #c850c8;  /* magenta/purple accent like the reference */
+  --bg: #0c0814;     /* deep night blue-black */
+  --bg-stone: #161020;
+  --bg-brick: #1c1228;
+  --gold: #d4a844;
   --font: 'Press Start 2P', 'Space Mono', monospace;
 }
 
 /* ── Tome: Body & globals ─────────────────── */
 
 [data-theme="tome"] body {
-  background: #1a1008;
+  background: var(--bg);
   font-size: 10px;
   line-height: 1.8;
   image-rendering: pixelated;
   cursor: url('/cursors/tome/gauntlet.png') 6 2, auto;
+}
+
+/* Animated twinkling stars background on main content */
+[data-theme="tome"] main {
+  background:
+    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 25% 8%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 40% 22%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 55% 5%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(1px 1px at 65% 18%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 78% 12%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 85% 25%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 92% 6%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(1.5px 1.5px at 15% 30%, rgba(200,180,255,0.5), transparent),
+    radial-gradient(1.5px 1.5px at 50% 28%, rgba(200,180,255,0.4), transparent),
+    radial-gradient(1.5px 1.5px at 70% 32%, rgba(200,180,255,0.5), transparent);
+  animation: tomeStarsTwinkle 4s ease-in-out infinite alternate;
+}
+
+@keyframes tomeStarsTwinkle {
+  0% { background-position: 0 0; }
+  100% { background-position: 2px -1px; }
 }
 
 [data-theme="tome"] a,
@@ -945,20 +972,20 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
 
 [data-theme="tome"] ::selection {
   background: var(--stamp);
-  color: #1a1008;
+  color: var(--bg);
 }
 
 [data-theme="tome"] ::-webkit-scrollbar-thumb {
-  background: rgba(232,213,176,0.15);
+  background: rgba(200,80,200,0.25);
 }
 
-/* Override Tailwind bg-white and border-black globally */
-[data-theme="tome"] .bg-white { background: #1a1008; }
-[data-theme="tome"] .border-black { border-color: var(--ink-30); }
-[data-theme="tome"] .border-r-\[3px\] { border-color: var(--ink-30); }
-[data-theme="tome"] .bg-black { background: var(--ink); }
-[data-theme="tome"] .text-white { color: #1a1008; }
-[data-theme="tome"] .border-2.border-dashed { border-color: var(--ink-15); }
+/* Override Tailwind globals */
+[data-theme="tome"] .bg-white { background: var(--bg); }
+[data-theme="tome"] .border-black { border-color: var(--stamp); }
+[data-theme="tome"] .border-r-\[3px\] { border-color: #2a1838; }
+[data-theme="tome"] .bg-black { background: var(--stamp); }
+[data-theme="tome"] .text-white { color: var(--bg); }
+[data-theme="tome"] .border-2.border-dashed { border-color: var(--stamp); border-style: solid; }
 
 /* ── Tome: Typography ─────────────────────── */
 
@@ -966,12 +993,15 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   font-size: clamp(1.5rem, 3vw, 2.5rem);
   line-height: 1.1;
   letter-spacing: 0;
+  color: var(--gold);
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.8), 0 0 10px rgba(212,168,68,0.3);
 }
 
 [data-theme="tome"] .t-title {
   font-size: 1rem;
   line-height: 1.2;
   letter-spacing: 0;
+  color: var(--gold);
 }
 
 [data-theme="tome"] .t-heading {
@@ -986,60 +1016,102 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
 [data-theme="tome"] .t-label {
   font-size: 0.5rem;
   letter-spacing: 0.12em;
+  color: var(--stamp);
 }
 
 [data-theme="tome"] .t-stat {
   font-size: clamp(1.5rem, 3vw, 2.5rem);
+  color: var(--gold);
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.8);
 }
 
 [data-theme="tome"] .t-small {
   font-size: 0.5rem;
+  color: var(--ink-30);
 }
 
-/* ── Tome: Panels & Cards ─────────────────── */
+/* ── Tome: Panels — Stone brick look ──────── */
 
 [data-theme="tome"] .panel {
-  border-color: var(--ink-30);
-  background: rgba(232,213,176,0.03);
+  border: 3px solid #2a1838;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 11px,
+      rgba(200,80,200,0.06) 11px,
+      rgba(200,80,200,0.06) 12px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 23px,
+      rgba(200,80,200,0.04) 23px,
+      rgba(200,80,200,0.04) 24px
+    ),
+    var(--bg-brick);
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
 }
 
 [data-theme="tome"] .panel:hover {
-  box-shadow: 4px 4px 0 var(--stamp);
+  box-shadow: 4px 4px 0 var(--stamp), inset 0 0 20px rgba(0,0,0,0.4), 0 0 12px rgba(200,80,200,0.15);
+  border-color: var(--stamp);
 }
 
-/* ── Tome: Rules ──────────────────────────── */
+/* ── Tome: Rules — glowing purple lines ───── */
 
 [data-theme="tome"] .rule,
-[data-theme="tome"] .rule-2,
+[data-theme="tome"] .rule-2 {
+  background: linear-gradient(90deg, transparent, var(--stamp), transparent);
+  opacity: 0.4;
+}
+
 [data-theme="tome"] .rule-4,
 [data-theme="tome"] .rule-8 {
-  background: var(--ink-30);
+  background: linear-gradient(90deg, transparent, var(--stamp), var(--gold), var(--stamp), transparent);
+  box-shadow: 0 0 8px rgba(200,80,200,0.3);
 }
 
 [data-theme="tome"] .rule-light {
-  background: var(--ink-08);
+  background: rgba(200,80,200,0.1);
 }
 
-/* ── Tome: Buttons ────────────────────────── */
+/* ── Tome: Buttons — stone/gem style ──────── */
 
 [data-theme="tome"] .btn-black {
-  background: var(--ink);
-  color: #1a1008;
+  background: linear-gradient(180deg, #3a2048, #1c1028);
+  color: var(--gold);
+  border: 2px solid var(--stamp);
+  box-shadow: 0 2px 0 #0a0610, inset 0 1px 0 rgba(200,80,200,0.2);
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
+}
+
+[data-theme="tome"] .btn-black:hover {
+  background: linear-gradient(180deg, #4a2858, #2c1838);
+  box-shadow: 0 2px 0 #0a0610, inset 0 1px 0 rgba(200,80,200,0.3), 0 0 10px rgba(200,80,200,0.2);
+  opacity: 1;
 }
 
 [data-theme="tome"] .btn-outline {
-  border-color: var(--ink);
-  color: var(--ink);
+  border-color: var(--stamp);
+  color: var(--stamp);
+  background: transparent;
 }
 
 [data-theme="tome"] .btn-outline:hover {
-  background: var(--ink);
-  color: #1a1008;
+  background: rgba(200,80,200,0.15);
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+[data-theme="tome"] .btn-red {
+  border-color: #c83030;
+  color: #c83030;
 }
 
 [data-theme="tome"] .btn-red:hover {
-  background: var(--stamp);
-  color: #1a1008;
+  background: #c83030;
+  color: var(--bg);
 }
 
 [data-theme="tome"] .btn-ghost {
@@ -1047,75 +1119,121 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
 }
 
 [data-theme="tome"] .btn-ghost:hover {
-  color: var(--ink);
+  color: var(--stamp);
 }
 
-/* ── Tome: Inputs ─────────────────────────── */
+/* ── Tome: Inputs — parchment scroll feel ─── */
 
 [data-theme="tome"] .input-field {
-  border-bottom-color: var(--ink-30);
+  border-bottom: 2px solid #2a1838;
   color: var(--ink);
 }
 
-[data-theme="tome"] .input-field::placeholder { color: var(--ink-15); }
-[data-theme="tome"] .input-field:focus { border-color: var(--stamp); }
+[data-theme="tome"] .input-field::placeholder { color: rgba(200,80,200,0.25); }
+[data-theme="tome"] .input-field:focus { border-color: var(--stamp); box-shadow: 0 2px 8px rgba(200,80,200,0.15); }
 
 [data-theme="tome"] .textarea-field {
-  background: rgba(232,213,176,0.04);
-  border-color: var(--ink-30);
+  background: rgba(200,80,200,0.04);
+  border: 2px solid #2a1838;
   color: var(--ink);
 }
 
-[data-theme="tome"] .textarea-field::placeholder { color: var(--ink-15); }
-[data-theme="tome"] .textarea-field:focus { border-color: var(--stamp); }
+[data-theme="tome"] .textarea-field::placeholder { color: rgba(200,80,200,0.25); }
+[data-theme="tome"] .textarea-field:focus { border-color: var(--stamp); box-shadow: 0 0 10px rgba(200,80,200,0.15); }
 
 [data-theme="tome"] .select-field {
-  background: rgba(232,213,176,0.04);
-  border-color: var(--ink-30);
+  background: rgba(200,80,200,0.04);
+  border: 2px solid #2a1838;
   color: var(--ink);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' fill='%23e8d5b0' viewBox='0 0 16 16'%3E%3Cpath d='M8 12L2 6h12z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' fill='%23c850c8' viewBox='0 0 16 16'%3E%3Cpath d='M8 12L2 6h12z'/%3E%3C/svg%3E");
 }
 
 [data-theme="tome"] .select-field:focus { border-color: var(--stamp); }
 
-/* ── Tome: Stamps ─────────────────────────── */
+/* ── Tome: Stamps — glowing rune badges ───── */
 
-[data-theme="tome"] .stamp-red { color: var(--stamp); }
-[data-theme="tome"] .stamp-black { color: var(--ink); }
-
-[data-theme="tome"] .done-stamp {
-  color: #22c55e;
-  border-color: #22c55e;
+[data-theme="tome"] .stamp {
+  border-color: var(--stamp);
+  color: var(--stamp);
+  box-shadow: 0 0 6px rgba(200,80,200,0.3);
 }
 
-/* ── Tome: Margin Line ────────────────────── */
+[data-theme="tome"] .stamp-red { color: var(--stamp); }
+[data-theme="tome"] .stamp-black { color: var(--gold); }
+
+[data-theme="tome"] .done-stamp {
+  color: #44dd44;
+  border-color: #44dd44;
+  text-shadow: 0 0 8px rgba(68,221,68,0.5);
+  box-shadow: 0 0 12px rgba(68,221,68,0.3);
+}
+
+/* ── Tome: Margin Line — torch glow ──────── */
 
 [data-theme="tome"] .margin-line {
   border-left-color: var(--stamp);
+  box-shadow: -4px 0 12px rgba(200,80,200,0.1);
 }
 
-/* ── Tome: Sidebar ────────────────────────── */
+/* ── Tome: Sidebar — dark cathedral wall ──── */
 
 [data-theme="tome"] aside {
-  background: #0d0804;
-  border-right-color: var(--ink-30) !important;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 15px,
+      rgba(200,80,200,0.03) 15px,
+      rgba(200,80,200,0.03) 16px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 31px,
+      rgba(200,80,200,0.02) 31px,
+      rgba(200,80,200,0.02) 32px
+    ),
+    linear-gradient(180deg, #0c0814, #100a1c, #0c0814);
+  border-right-color: #2a1838 !important;
+}
+
+/* Sidebar gradient overlay — fade from dark at top */
+[data-theme="tome"] aside .bg-gradient-to-b {
+  background: linear-gradient(to bottom, var(--bg), transparent) !important;
 }
 
 [data-theme="tome"] .bg-black.text-white {
   background: var(--stamp);
-  color: #1a1008;
+  color: var(--bg);
 }
 
-/* Active nav in tome */
+/* Active nav — glowing purple */
 [data-theme="tome"] nav a.bg-black {
-  background: var(--stamp);
+  background: linear-gradient(90deg, var(--stamp), #a040a0);
+  box-shadow: 0 0 10px rgba(200,80,200,0.3);
 }
 
-/* ── Tome: Gus ────────────────────────────── */
+/* XP bar in sidebar */
+[data-theme="tome"] .bg-\[var\(--ink-08\)\] {
+  background: #1c1228;
+}
+
+[data-theme="tome"] .bg-\[var\(--ink\)\] {
+  background: linear-gradient(90deg, var(--stamp), var(--gold)) !important;
+  box-shadow: 0 0 6px rgba(200,80,200,0.4);
+}
+
+/* ── Tome: Gus — wizard window ────────────── */
 
 [data-theme="tome"] .gus-window {
-  border-color: var(--ink-30);
-  background: rgba(232,213,176,0.06);
+  border-color: #2a1838;
+  background: var(--bg-brick);
+  box-shadow: 0 0 15px rgba(200,80,200,0.1);
+}
+
+[data-theme="tome"] .gus-board-character:hover .gus-window {
+  box-shadow: 0 0 20px rgba(200,80,200,0.25);
+  border-color: var(--stamp);
 }
 
 [data-theme="tome"] .gus-face,
@@ -1127,101 +1245,162 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
 }
 
 [data-theme="tome"] .gus-nameplate {
-  background: var(--stamp);
-  border-color: var(--stamp);
+  background: linear-gradient(90deg, #2a1838, var(--stamp), #2a1838);
+  border-color: #2a1838;
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
+}
+
+[data-theme="tome"] .gus-status-dot {
+  background: #44dd44;
+  box-shadow: 0 0 4px rgba(68,221,68,0.6);
 }
 
 [data-theme="tome"] .gus-quest-bar {
-  background: rgba(232,213,176,0.04);
-  border-color: var(--ink-15);
+  background: var(--bg-stone);
+  border-color: #2a1838;
 }
 
+[data-theme="tome"] .gus-quest-text { color: var(--stamp); }
+
 [data-theme="tome"] .gus-quest-done {
-  background: var(--stamp);
+  background: linear-gradient(90deg, #2a1838, var(--stamp), #2a1838);
   border-color: var(--stamp);
 }
 
+[data-theme="tome"] .gus-quest-done .gus-quest-text { color: var(--bg); }
+
+[data-theme="tome"] .gus-voice-line,
+[data-theme="tome"] .gus-window-bubble {
+  background: linear-gradient(135deg, #2a1838, #1c1028);
+  border: 1px solid var(--stamp);
+  color: var(--gold);
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
+  box-shadow: 0 0 10px rgba(200,80,200,0.2);
+}
+
+[data-theme="tome"] .gus-voice-line::after,
+[data-theme="tome"] .gus-window-bubble::after {
+  background: #2a1838;
+  border-right: 1px solid var(--stamp);
+  border-bottom: 1px solid var(--stamp);
+}
+
 [data-theme="tome"] .gus-chat-panel {
-  background: #1a1008;
-  border-color: var(--ink-30);
-  box-shadow: 6px 6px 0 var(--stamp);
+  background: var(--bg);
+  border: 3px solid #2a1838;
+  box-shadow: 6px 6px 0 rgba(200,80,200,0.3), 0 0 20px rgba(200,80,200,0.1);
 }
 
 [data-theme="tome"] .gus-chat-header {
-  border-bottom-color: var(--ink-30);
-  background: rgba(232,213,176,0.04);
+  border-bottom-color: #2a1838;
+  background: var(--bg-stone);
 }
 
 [data-theme="tome"] .gus-chat-face-wrap {
-  background: #0d0804;
-  border-bottom-color: var(--ink-08);
+  background: #0a0610;
+  border-bottom-color: #2a1838;
 }
 
 [data-theme="tome"] .gus-msg-content-gus {
-  background: rgba(232,213,176,0.06);
-  border-color: var(--ink-08);
+  background: rgba(200,80,200,0.06);
+  border: 1px solid #2a1838;
 }
 
 [data-theme="tome"] .gus-msg-content-user {
-  background: var(--stamp);
+  background: linear-gradient(135deg, var(--stamp), #a040a0);
   color: #fff;
 }
 
 [data-theme="tome"] .gus-chat-input {
-  border-top-color: var(--ink-30);
+  border-top-color: #2a1838;
+  background: var(--bg-stone);
 }
 
 [data-theme="tome"] .gus-input {
   color: var(--ink);
 }
 
-[data-theme="tome"] .gus-input::placeholder { color: var(--ink-15); }
+[data-theme="tome"] .gus-input::placeholder { color: rgba(200,80,200,0.3); }
 
 [data-theme="tome"] .gus-send {
-  background: var(--stamp);
+  background: linear-gradient(180deg, var(--stamp), #a040a0);
+  box-shadow: 0 0 6px rgba(200,80,200,0.3);
 }
 
 [data-theme="tome"] .gus-ticket-card {
-  border-color: var(--ink-30);
-  background: rgba(232,213,176,0.04);
+  border: 2px solid #2a1838;
+  background: rgba(200,80,200,0.04);
 }
 
 [data-theme="tome"] .gus-proposed-ticket {
-  background: rgba(232,213,176,0.04);
-  border-color: var(--ink-08);
+  background: rgba(200,80,200,0.04);
+  border-color: #2a1838;
 }
 
 [data-theme="tome"] .gus-tag {
-  border-color: var(--ink-15);
-  color: var(--ink-50);
+  border-color: #2a1838;
+  color: var(--stamp);
 }
 
 [data-theme="tome"] .gus-tag-label {
-  border-color: var(--stamp);
-  color: var(--stamp);
+  border-color: var(--gold);
+  color: var(--gold);
 }
 
 /* ── Tome: Ticket cards ───────────────────── */
 
-[data-theme="tome"] .border-\[var\(--ink-08\)\] { border-color: var(--ink-08); }
+[data-theme="tome"] .border-\[var\(--ink-08\)\] { border-color: #2a1838; }
 
 /* ── Tome: Entrance ───────────────────────── */
 
 [data-theme="tome"] .entrance-screen {
-  background: #1a1008;
+  background: var(--bg);
 }
 
 /* ── Tome: Undo toast ─────────────────────── */
 
 [data-theme="tome"] .undo-toast {
-  background: #1a1008;
-  border-color: var(--ink-30);
+  background: var(--bg-stone);
+  border: 2px solid var(--stamp);
+  box-shadow: 0 0 10px rgba(200,80,200,0.2);
 }
 
 /* ── Tome: Decorative images ──────────────── */
 
 [data-theme="tome"] img.mix-blend-multiply {
   mix-blend-mode: normal;
-  opacity: 0.7;
+  opacity: 0.6;
+  filter: hue-rotate(270deg) saturate(0.5) brightness(0.8);
+}
+
+/* ── Tome: Loader — purple pulse ──────────── */
+
+[data-theme="tome"] .loader-bar {
+  background: var(--stamp);
+}
+
+/* ── Tome: Scrollbar glow ─────────────────── */
+
+[data-theme="tome"] * {
+  scrollbar-color: rgba(200,80,200,0.2) transparent;
+}
+
+/* ── Tome: Done stamp — green glow ────────── */
+
+[data-theme="tome"] .done-stamp-overlay {
+  filter: drop-shadow(0 0 12px rgba(68,221,68,0.4));
+}
+
+/* ── Tome: Trash zone — fire portal ──────── */
+
+[data-theme="tome"] .border-\[var\(--stamp\)\] {
+  border-color: var(--stamp);
+  box-shadow: 0 0 15px rgba(200,80,200,0.3);
+}
+
+/* ── Tome: Footer ─────────────────────────── */
+
+[data-theme="tome"] footer {
+  color: rgba(200,80,200,0.25);
 }
 
