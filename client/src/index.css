@@ -443,98 +443,97 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
 
 /* ── Gus Assistant ───────────────────────── */
 
-/* Floating character button */
-.gus-character {
+/* Board-integrated character (top-right) */
+.gus-board-character {
   position: fixed;
-  bottom: 24px;
+  top: 20px;
   right: 24px;
   z-index: 100;
   display: flex;
-  align-items: flex-end;
-  gap: 0;
-  background: none;
-  border: none;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 6px;
+  background: #fff;
+  border: 2px solid var(--ink);
   cursor: pointer;
-  padding: 0;
   font-family: var(--font);
+  text-transform: uppercase;
+  transition: all 0.15s;
 }
 
-.gus-character-img {
-  width: 56px;
-  height: 56px;
-  border: 3px solid var(--ink);
-  background: #fff;
-  object-fit: cover;
-  transition: transform 0.15s;
+.gus-board-character:hover {
+  box-shadow: 4px 4px 0 var(--ink);
+  transform: translate(-2px, -2px);
+}
+
+/* Face containers */
+.gus-face-container {
+  position: relative;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
 }
 
-.gus-character:hover .gus-character-img {
-  transform: scale(1.08);
+.gus-face {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 2px solid var(--ink);
+  background: #fff;
+  mix-blend-mode: multiply;
+  transition: opacity 0.1s ease;
 }
 
-.gus-character-bubble {
+.gus-status-dot {
   position: absolute;
-  bottom: 62px;
-  right: 0;
-  background: var(--ink);
-  color: #fff;
-  padding: 6px 10px;
-  font-size: 0.5rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  opacity: 0;
-  transform: translateY(4px);
-  transition: all 0.2s;
-  pointer-events: none;
-}
-
-.gus-character-bubble::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  right: 16px;
+  bottom: -1px;
+  right: -1px;
   width: 8px;
   height: 8px;
-  background: var(--ink);
-  transform: rotate(45deg);
+  background: #22c55e;
+  border: 2px solid #fff;
 }
 
-.gus-character:hover .gus-character-bubble {
-  opacity: 1;
-  transform: translateY(0);
+.gus-face-container-sm {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
 }
 
-.gus-bounce {
-  animation: gusBounce 0.6s ease-in-out;
+.gus-face-sm {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 2px solid var(--ink);
+  background: #fff;
+  mix-blend-mode: multiply;
+  transition: opacity 0.1s ease;
 }
 
-@keyframes gusBounce {
-  0%, 100% { transform: translateY(0); }
-  30% { transform: translateY(-8px); }
-  50% { transform: translateY(-4px); }
-  70% { transform: translateY(-6px); }
+.gus-board-label {
+  text-align: left;
+  line-height: 1.3;
 }
 
-/* Chat panel */
+/* Chat panel — anchored top-right */
 .gus-chat-panel {
   position: fixed;
-  bottom: 24px;
+  top: 20px;
   right: 24px;
   z-index: 100;
   width: 380px;
-  max-height: 520px;
+  max-height: min(560px, calc(100vh - 60px));
   background: #fff;
   border: 3px solid var(--ink);
   display: flex;
   flex-direction: column;
-  animation: gusSlideUp 0.25s ease-out;
+  animation: gusSlideDown 0.25s ease-out;
   box-shadow: 6px 6px 0 var(--ink);
 }
 
-@keyframes gusSlideUp {
-  0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+@keyframes gusSlideDown {
+  0% { opacity: 0; transform: translateY(-10px) scale(0.97); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
@@ -547,13 +546,7 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   background: var(--ink-04);
 }
 
-.gus-avatar {
-  width: 32px;
-  height: 32px;
-  object-fit: cover;
-  border: 2px solid var(--ink);
-  flex-shrink: 0;
-}
+/* legacy avatar class — no longer used, kept for safety */
 
 .gus-chat-body {
   flex: 1;
@@ -581,6 +574,8 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   height: 22px;
   object-fit: cover;
   border: 1.5px solid var(--ink);
+  background: #fff;
+  mix-blend-mode: multiply;
   flex-shrink: 0;
   margin-top: 2px;
 }

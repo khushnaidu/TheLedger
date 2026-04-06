@@ -1,6 +1,20 @@
-import { useState, useRef, useEffect } from 'react';
-import { Send, Check, X, ChevronDown, FileText, Loader2 } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Send, Check, ChevronDown, FileText, Loader2 } from 'lucide-react';
 import { api } from '../api';
+
+const GUS_FACES = {
+  idle: '/gus/idle.png',
+  blinking: '/gus/blinking.png',
+  thinking: '/gus/thinking.png',
+  smiling: '/gus/smiling.png',
+  curious: '/gus/curious.png',
+};
+
+// Preload all images
+Object.values(GUS_FACES).forEach(src => {
+  const img = new Image();
+  img.src = src;
+});
 
 const GUS_IDLE_QUOTES = [
   "The filing cabinet awaits...",
@@ -19,26 +33,57 @@ const GUS_GREETING = [
 
 export default function GusAssistant({ categories, labels, onTicketsCreated }) {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([]); // { role: 'user'|'gus', text, tickets?, proposedTickets? }
-  const [apiMessages, setApiMessages] = useState([]); // messages for Claude API
+  const [messages, setMessages] = useState([]);
+  const [apiMessages, setApiMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [face, setFace] = useState('idle');
   const [idleQuote] = useState(() => GUS_IDLE_QUOTES[Math.floor(Math.random() * GUS_IDLE_QUOTES.length)]);
   const [greeting] = useState(() => GUS_GREETING[Math.floor(Math.random() * GUS_GREETING.length)]);
-  const [bounce, setBounce] = useState(false);
   const chatRef = useRef(null);
   const inputRef = useRef(null);
+  const blinkTimerRef = useRef(null);
 
-  // Periodic idle bounce
+  // Idle blink loop — plays when not loading/creating
+  const startBlinkLoop = useCallback(() => {
+    if (blinkTimerRef.current) clearTimeout(blinkTimerRef.current);
+
+    const scheduleBlink = () => {
+      const delay = 2500 + Math.random() * 4000; // blink every 2.5–6.5s
+      blinkTimerRef.current = setTimeout(() => {
+        setFace('blinking');
+        setTimeout(() => {
+          setFace('idle');
+          scheduleBlink();
+        }, 250); // blink duration
+      }, delay);
+    };
+    scheduleBlink();
+  }, []);
+
+  const stopBlinkLoop = () => {
+    if (blinkTimerRef.current) {
+      clearTimeout(blinkTimerRef.current);
+      blinkTimerRef.current = null;
+    }
+  };
+
+  // Start blink when idle
   useEffect(() => {
-    if (open) return;
-    const interval = setInterval(() => {
-      setBounce(true);
-      setTimeout(() => setBounce(false), 600);
-    }, 8000);
-    return () => clearInterval(interval);
-  }, [open]);
+    if (!loading && !creating) {
+      startBlinkLoop();
+    } else {
+      stopBlinkLoop();
+    }
+    return () => stopBlinkLoop();
+  }, [loading, creating, startBlinkLoop]);
+
+  // Set face based on state
+  useEffect(() => {
+    if (loading) setFace('thinking');
+    else if (creating) setFace('thinking');
+  }, [loading, creating]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -50,8 +95,18 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
     if (open && inputRef.current) inputRef.current.focus();
   }, [open]);
 
+  const flashFace = (expression, duration = 2000) => {
+    stopBlinkLoop();
+    setFace(expression);
+    setTimeout(() => {
+      setFace('idle');
+      startBlinkLoop();
+    }, duration);
+  };
+
   const handleOpen = () => {
     setOpen(true);
+    flashFace('curious', 1500);
     if (messages.length === 0) {
       setMessages([{ role: 'gus', text: greeting }]);
     }
@@ -69,6 +124,8 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
     setApiMessages(newApiMessages);
 
     setLoading(true);
+    setFace('thinking');
+
     try {
       const data = await api.generateTicket({
         messages: newApiMessages,
@@ -83,12 +140,12 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
           proposedTickets: data.proposedTickets,
         };
         setMessages(prev => [...prev, gusMsg]);
-        // Add assistant response to API messages for context continuity
         setApiMessages(prev => [
           ...prev,
           { role: 'assistant', content: [{ type: 'tool_use', id: 'q', name: 'ask_question', input: { message: data.message, proposed_tickets: data.proposedTickets } }] },
           { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'q', content: 'User is viewing the question.' }] },
         ]);
+        flashFace('curious', 2000);
       } else if (data.type === 'tickets') {
         const gusMsg = {
           role: 'gus',
@@ -101,9 +158,11 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
           { role: 'assistant', content: [{ type: 'tool_use', id: 't', name: 'create_tickets', input: { message: data.message, tickets: data.tickets } }] },
           { role: 'user', content: [{ type: 'tool_result', tool_use_id: 't', content: 'Tickets shown to user for approval.' }] },
         ]);
+        flashFace('smiling', 2500);
       }
     } catch (err) {
       setMessages(prev => [...prev, { role: 'gus', text: `Blast — hit a snag: ${err.message}` }]);
+      flashFace('curious', 1500);
     } finally {
       setLoading(false);
     }
@@ -111,6 +170,7 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
 
   const handleFileTickets = async (tickets) => {
     setCreating(true);
+    setFace('thinking');
     try {
       await api.createTicketsFromGus({ tickets });
       const count = tickets.length;
@@ -118,9 +178,11 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
         ...prev,
         { role: 'gus', text: `Consider it done! ${count} ${count === 1 ? 'entry' : 'entries'} filed and stamped. The archives grow ever richer.` },
       ]);
+      flashFace('smiling', 3000);
       onTicketsCreated();
     } catch (err) {
       setMessages(prev => [...prev, { role: 'gus', text: `Filing error: ${err.message}. The bureaucracy strikes back.` }]);
+      flashFace('curious', 1500);
     } finally {
       setCreating(false);
     }
@@ -133,39 +195,37 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
     }
   };
 
-  const handleClose = () => {
-    setOpen(false);
-  };
-
   const handleNewConversation = () => {
     setMessages([{ role: 'gus', text: greeting }]);
     setApiMessages([]);
     setInput('');
+    flashFace('curious', 1200);
   };
 
-  // Floating Gus character (collapsed)
+  // Collapsed — top-right character
   if (!open) {
     return (
-      <button
-        type="button"
-        onClick={handleOpen}
-        className={`gus-character group ${bounce ? 'gus-bounce' : ''}`}
-        title="Summon Gus"
-      >
-        <img src="/gus.jpg" alt="Gus" className="gus-character-img" />
-        <div className="gus-character-bubble">
-          <span>{idleQuote}</span>
+      <div className="gus-board-character group" onClick={handleOpen}>
+        <div className="gus-face-container">
+          <img src={GUS_FACES[face]} alt="Gus" className="gus-face" />
+          <div className="gus-status-dot" />
         </div>
-      </button>
+        <div className="gus-board-label">
+          <span className="block text-[0.5625rem] tracking-[0.14em]">Gus</span>
+          <span className="block text-[0.4375rem] tracking-[0.12em] text-[var(--ink-30)]">{idleQuote}</span>
+        </div>
+      </div>
     );
   }
 
-  // Expanded chat panel
+  // Expanded chat panel — anchored top-right
   return (
     <div className="gus-chat-panel">
       {/* Header */}
       <div className="gus-chat-header">
-        <img src="/gus.jpg" alt="Gus" className="gus-avatar" />
+        <div className="gus-face-container-sm">
+          <img src={GUS_FACES[face]} alt="Gus" className="gus-face-sm" />
+        </div>
         <div className="flex-1">
           <span className="block text-[0.6875rem] tracking-[0.14em]">
             Augustus &ldquo;Gus&rdquo;
@@ -177,7 +237,7 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
         <button type="button" onClick={handleNewConversation} className="btn-ghost text-[0.5rem] mr-2" title="New conversation">
           New
         </button>
-        <button type="button" onClick={handleClose} className="btn-ghost p-1">
+        <button type="button" onClick={() => setOpen(false)} className="btn-ghost p-1">
           <ChevronDown className="w-3 h-3" />
         </button>
       </div>
@@ -187,7 +247,7 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
         {messages.map((msg, i) => (
           <div key={i} className={`gus-msg ${msg.role === 'user' ? 'gus-msg-user' : 'gus-msg-gus'}`}>
             {msg.role === 'gus' && (
-              <img src="/gus.jpg" alt="" className="gus-msg-avatar" />
+              <img src={GUS_FACES.idle} alt="" className="gus-msg-avatar" />
             )}
             <div className={`gus-msg-content ${msg.role === 'user' ? 'gus-msg-content-user' : 'gus-msg-content-gus'}`}>
               <p style={{ textTransform: 'none' }}>{msg.text}</p>
@@ -255,7 +315,7 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
         {/* Typing indicator */}
         {loading && (
           <div className="gus-msg gus-msg-gus">
-            <img src="/gus.jpg" alt="" className="gus-msg-avatar" />
+            <img src={GUS_FACES.thinking} alt="" className="gus-msg-avatar" />
             <div className="gus-msg-content gus-msg-content-gus">
               <span className="gus-typing"><span /><span /><span /></span>
             </div>
