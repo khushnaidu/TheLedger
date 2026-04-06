@@ -587,12 +587,34 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
 }
 
 .gus-chat-header {
+  border-bottom: 2px solid var(--ink);
+  background: var(--ink-04);
+}
+
+.gus-chat-face-wrap {
+  width: 100%;
+  height: 100px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-bottom: 2px solid var(--ink-08);
+}
+
+.gus-chat-face {
+  height: 110px;
+  width: auto;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  transition: opacity 0.1s ease;
+}
+
+.gus-chat-header-info {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 14px;
-  border-bottom: 2px solid var(--ink);
-  background: var(--ink-04);
+  padding: 8px 14px;
 }
 
 /* legacy avatar class — no longer used, kept for safety */

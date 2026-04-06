@@ -225,25 +225,27 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
   // Expanded chat panel — anchored top-right
   return (
     <div className="gus-chat-panel">
-      {/* Header */}
+      {/* Header — large animated face */}
       <div className="gus-chat-header">
-        <div className="gus-face-container-sm">
-          <img src={GUS_FACES[face]} alt="Gus" className="gus-face-sm" />
+        <div className="gus-chat-face-wrap">
+          <img src={GUS_FACES[face]} alt="Gus" className="gus-chat-face" />
         </div>
-        <div className="flex-1">
-          <span className="block text-[0.6875rem] tracking-[0.14em]">
-            Augustus &ldquo;Gus&rdquo;
-          </span>
-          <span className="block text-[0.5rem] tracking-[0.18em] text-[var(--ink-30)]">
-            Filing Clerk &middot; On Duty
-          </span>
+        <div className="gus-chat-header-info">
+          <div className="flex-1">
+            <span className="block text-[0.6875rem] tracking-[0.14em]">
+              Augustus &ldquo;Gus&rdquo;
+            </span>
+            <span className="block text-[0.5rem] tracking-[0.18em] text-[var(--ink-30)]">
+              Filing Clerk &middot; On Duty
+            </span>
+          </div>
+          <button type="button" onClick={handleNewConversation} className="btn-ghost text-[0.5rem] mr-2" title="New conversation">
+            New
+          </button>
+          <button type="button" onClick={() => setOpen(false)} className="btn-ghost p-1">
+            <ChevronDown className="w-3 h-3" />
+          </button>
         </div>
-        <button type="button" onClick={handleNewConversation} className="btn-ghost text-[0.5rem] mr-2" title="New conversation">
-          New
-        </button>
-        <button type="button" onClick={() => setOpen(false)} className="btn-ghost p-1">
-          <ChevronDown className="w-3 h-3" />
-        </button>
       </div>
 
       {/* Chat messages */}
