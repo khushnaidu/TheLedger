@@ -88,17 +88,62 @@ export default function GusAssistant({ onTicketsCreated }) {
   const inputRef = useRef(null);
   const blinkTimerRef = useRef(null);
 
-  // Fetch categories and labels for Gus
+  // Fetch categories, labels, and board health for Gus
+  const [boardMood, setBoardMood] = useState('idle'); // idle, worried, smiling
+
   useEffect(() => {
     Promise.all([api.getCategories(), api.getLabels()])
       .then(([c, l]) => { setCategories(c); setLabels(l); })
       .catch(() => {});
+    checkBoardHealth();
   }, []);
 
-  // Update idle quote when page changes
+  // Re-check board health when page changes or tickets are created
+  useEffect(() => { checkBoardHealth(); }, [location.pathname]);
   useEffect(() => {
-    setIdleQuote(getPageQuote(location.pathname));
-  }, [location.pathname]);
+    const handler = () => checkBoardHealth();
+    window.addEventListener('gus-tickets-created', handler);
+    return () => window.removeEventListener('gus-tickets-created', handler);
+  }, []);
+
+  function checkBoardHealth() {
+    api.getTickets({}).then(tickets => {
+      const now = new Date();
+      const overdue = tickets.filter(t =>
+        t.dueDate && new Date(t.dueDate) < now && t.status !== 'DONE'
+      );
+      const active = tickets.filter(t => t.status !== 'DONE');
+      const done = tickets.filter(t => t.status === 'DONE');
+
+      if (overdue.length >= 3) setBoardMood('worried');
+      else if (active.length === 0 && done.length > 0) setBoardMood('smiling');
+      else if (overdue.length > 0) setBoardMood('curious');
+      else setBoardMood('idle');
+    }).catch(() => {});
+  }
+
+  // Update idle quote when page changes or mood changes
+  useEffect(() => {
+    if (boardMood === 'worried') {
+      const worriedQuotes = [
+        "You've got overdue entries...",
+        "The deadlines aren't looking great.",
+        "Boss, we need to talk about those overdue items.",
+        "Some entries are past due. Just saying.",
+      ];
+      setIdleQuote(worriedQuotes[Math.floor(Math.random() * worriedQuotes.length)]);
+    } else if (boardMood === 'smiling') {
+      const happyQuotes = [
+        "All clear! Inbox zero!",
+        "The ledger is spotless. Beautiful.",
+        "Not a single active entry. Magnificent.",
+        "Everything's filed and done. I could cry.",
+      ];
+      setIdleQuote(happyQuotes[Math.floor(Math.random() * happyQuotes.length)]);
+    } else {
+      setIdleQuote(getPageQuote(location.pathname));
+    }
+  }, [location.pathname, boardMood]);
 
   // Idle blink loop
   const startBlinkLoop = useCallback(() => {
@@ -109,11 +154,12 @@ export default function GusAssistant({ onTicketsCreated }) {
       blinkTimerRef.current = setTimeout(() => {
         setFace('blinking');
         setTimeout(() => {
-          setFace('idle');
+          setFace(boardMood === 'idle' ? 'idle' : boardMood);
           scheduleBlink();
         }, 250);
       }, delay);
     };
+    setFace(boardMood === 'idle' ? 'idle' : boardMood);
     scheduleBlink();
   }, []);
 
@@ -131,7 +177,7 @@ export default function GusAssistant({ onTicketsCreated }) {
       stopBlinkLoop();
     }
     return () => stopBlinkLoop();
-  }, [loading, creating, startBlinkLoop]);
+  }, [loading, creating, startBlinkLoop, boardMood]);
 
   useEffect(() => {
     if (loading) setFace('thinking');
@@ -150,7 +196,7 @@ export default function GusAssistant({ onTicketsCreated }) {
     stopBlinkLoop();
     setFace(expression);
     setTimeout(() => {
-      setFace('idle');
+      setFace(boardMood === 'idle' ? 'idle' : boardMood);
       startBlinkLoop();
     }, duration);
   };
