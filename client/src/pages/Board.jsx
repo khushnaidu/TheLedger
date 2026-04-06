@@ -6,6 +6,7 @@ import { STATUSES, STATUS_CONFIG } from '../constants';
 import TicketCard from '../components/TicketCard';
 import UndoToast from '../components/UndoToast';
 import { awardXP } from '../lib/xp';
+import { updateQuestProgress } from '../lib/quests';
 
 function urgencyScore(ticket) {
   if (!ticket.dueDate) {
@@ -87,6 +88,18 @@ export default function Board() {
       const result = awardXP(ticket.id, ticket.priority);
       if (result) {
         window.dispatchEvent(new CustomEvent('gus-xp-gained', { detail: result }));
+      }
+      const questState = updateQuestProgress('complete', ticket.priority);
+      if (questState.completed) {
+        window.dispatchEvent(new CustomEvent('gus-quest-complete', { detail: questState }));
+      }
+    }
+
+    // Track moves for quest progress
+    if (destination.droppableId !== fromStatus) {
+      updateQuestProgress('move');
+      if (fromStatus === 'BACKLOG' && destination.droppableId !== 'BACKLOG') {
+        updateQuestProgress('clear_backlog');
       }
     }
 

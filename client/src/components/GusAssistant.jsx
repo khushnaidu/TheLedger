@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Send, Check, ChevronDown, FileText, Loader2 } from 'lucide-react';
 import { api } from '../api';
+import { getDailyQuest, updateQuestProgress } from '../lib/quests';
 
 const GUS_FACES = {
   idle: '/gus/idle.png',
@@ -134,6 +135,7 @@ export default function GusAssistant({ onTicketsCreated }) {
   // Fetch categories, labels, and board health for Gus
   const [boardMood, setBoardMood] = useState('idle');
   const [weeklyCount, setWeeklyCount] = useState(0);
+  const [quest, setQuest] = useState(() => getDailyQuest());
 
   useEffect(() => {
     Promise.all([api.getCategories(), api.getLabels()])
@@ -201,6 +203,28 @@ export default function GusAssistant({ onTicketsCreated }) {
       setIdleQuote(getPageQuote(location.pathname));
     }
   }, [location.pathname, boardMood]);
+
+  // Listen for quest completion
+  useEffect(() => {
+    const handler = () => {
+      setQuest(getDailyQuest());
+      setTimeout(() => {
+        if (voiceTimerRef.current) clearTimeout(voiceTimerRef.current);
+        setVoiceLine("QUEST COMPLETE! Well done, boss!");
+        flashFace('smiling', 4000);
+        voiceTimerRef.current = setTimeout(() => setVoiceLine(null), 4000);
+      }, 3500);
+    };
+    window.addEventListener('gus-quest-complete', handler);
+    return () => window.removeEventListener('gus-quest-complete', handler);
+  }, []);
+
+  // Refresh quest display on ticket moves
+  useEffect(() => {
+    const handler = () => setQuest(getDailyQuest());
+    window.addEventListener('gus-ticket-moved', handler);
+    return () => window.removeEventListener('gus-ticket-moved', handler);
+  }, []);
 
   // Listen for XP gains
   useEffect(() => {
@@ -377,6 +401,14 @@ export default function GusAssistant({ onTicketsCreated }) {
         { role: 'gus', text: `Consider it done! ${count} ${count === 1 ? 'entry' : 'entries'} filed and stamped. The archives grow ever richer.` },
       ]);
       flashFace('smiling', 3000);
+      // Track quest progress for creates
+      for (let i = 0; i < count; i++) {
+        const qs = updateQuestProgress('create');
+        if (qs.completed) {
+          window.dispatchEvent(new CustomEvent('gus-quest-complete', { detail: qs }));
+        }
+      }
+      setQuest(getDailyQuest());
       // Refresh categories/labels in case new ones were created
       Promise.all([api.getCategories(), api.getLabels()])
         .then(([c, l]) => { setCategories(c); setLabels(l); })
@@ -432,6 +464,18 @@ export default function GusAssistant({ onTicketsCreated }) {
             <span className="gus-streak">{weeklyCount} this week</span>
           )}
         </div>
+        {quest.quest && (
+          <div className={`gus-quest-bar ${quest.completed ? 'gus-quest-done' : ''}`}>
+            <span className="gus-quest-text">
+              {quest.completed ? 'Quest Complete!' : quest.quest.text}
+            </span>
+            {!quest.completed && (
+              <span className="gus-quest-progress">
+                {quest.progress}/{quest.quest.target}
+              </span>
+            )}
+          </div>
+        )}
       </div>
     );
   }

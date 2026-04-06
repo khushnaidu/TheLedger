@@ -512,6 +512,45 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   vertical-align: middle;
 }
 
+/* Quest bar under nameplate */
+.gus-quest-bar {
+  width: 120px;
+  padding: 4px 8px;
+  background: var(--ink-04);
+  border: 2px solid var(--ink-08);
+  border-top: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.gus-quest-done {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.gus-quest-text {
+  font-size: 0.375rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-50);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gus-quest-done .gus-quest-text {
+  color: #fff;
+}
+
+.gus-quest-progress {
+  font-size: 0.375rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-30);
+  flex-shrink: 0;
+}
+
 .gus-streak {
   display: block;
   font-size: 0.4375rem;
