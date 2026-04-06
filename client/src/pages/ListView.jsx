@@ -46,6 +46,14 @@ export default function ListView() {
   };
 
   useEffect(() => { fetchData(); }, [filterStatus, filterPriority, filterCategory, sortBy, sortOrder]);
+
+  // Refresh when Gus creates tickets
+  useEffect(() => {
+    const handler = () => fetchData();
+    window.addEventListener('gus-tickets-created', handler);
+    return () => window.removeEventListener('gus-tickets-created', handler);
+  }, []);
+
   const handleSearch = (e) => { e.preventDefault(); setLoading(true); fetchData(); };
   const toggleSort = (f) => { if (sortBy === f) setSortOrder((o) => o === 'asc' ? 'desc' : 'asc'); else { setSortBy(f); setSortOrder('asc'); } setLoading(true); };
 

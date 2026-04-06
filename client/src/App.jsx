@@ -4,6 +4,7 @@ import { api, isAuthenticated, setToken } from './api';
 import Sidebar from './components/Sidebar';
 import SoundToggle from './components/SoundToggle';
 import Entrance from './components/Entrance';
+import GusAssistant from './components/GusAssistant';
 import Dashboard from './pages/Dashboard';
 import Board from './pages/Board';
 import ListView from './pages/ListView';
@@ -108,6 +109,10 @@ function App() {
               Made by Khush
             </footer>
           </main>
+          <GusAssistant onTicketsCreated={() => {
+            // Dispatch event so any active page can refresh its data
+            window.dispatchEvent(new Event('gus-tickets-created'));
+          }} />
         </div>
       </div>
     </Router>

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Send, Check, ChevronDown, FileText, Loader2 } from 'lucide-react';
 import { api } from '../api';
 
@@ -16,12 +17,43 @@ Object.values(GUS_FACES).forEach(src => {
   img.src = src;
 });
 
-const GUS_IDLE_QUOTES = [
-  "The filing cabinet awaits...",
-  "Need something organized?",
+const PAGE_QUOTES = {
+  '/': [
+    "Reviewing the daily ledger...",
+    "The numbers look good today.",
+    "Your dashboard awaits, boss.",
+    "Gus keeps the books balanced.",
+  ],
+  '/board': [
+    "The filing cabinet awaits...",
+    "Need something organized?",
+    "Drag, drop, conquer.",
+    "Paperwork never sleeps.",
+  ],
+  '/list': [
+    "The full archives, at your service.",
+    "Every entry, accounted for.",
+    "Need to find something specific?",
+    "The records don't lie.",
+  ],
+  '/canvas': [
+    "Ah, the academic wing...",
+    "School assignments incoming?",
+    "Canvas sync standing by.",
+    "I'll file those assignments for you.",
+  ],
+  '/tickets/new': [
+    "Filing a new one by hand? Respect.",
+    "I could do that for you, y'know.",
+    "Manual entry — old school. I like it.",
+    "The pen is mightier than the keyboard.",
+  ],
+};
+
+const DEFAULT_QUOTES = [
   "Gus is on standby.",
-  "Paperwork never sleeps.",
   "Click to summon the clerk.",
+  "Need something filed?",
 ];
 
 const GUS_GREETING = [
@@ -31,7 +63,16 @@ const GUS_GREETING = [
   "Ah, a customer! What've we got today? Single task or a full operation?",
 ];
 
-export default function GusAssistant({ categories, labels, onTicketsCreated }) {
+function getPageQuote(pathname) {
+  // Match exact or prefix
+  const quotes = PAGE_QUOTES[pathname]
+    || (pathname.startsWith('/tickets/') ? PAGE_QUOTES['/tickets/new'] : null)
+    || DEFAULT_QUOTES;
+  return quotes[Math.floor(Math.random() * quotes.length)];
+}
+
+export default function GusAssistant({ onTicketsCreated }) {
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [apiMessages, setApiMessages] = useState([]);
@@ -39,24 +80,38 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [face, setFace] = useState('idle');
-  const [idleQuote] = useState(() => GUS_IDLE_QUOTES[Math.floor(Math.random() * GUS_IDLE_QUOTES.length)]);
+  const [categories, setCategories] = useState([]);
+  const [labels, setLabels] = useState([]);
+  const [idleQuote, setIdleQuote] = useState(() => getPageQuote('/'));
   const [greeting] = useState(() => GUS_GREETING[Math.floor(Math.random() * GUS_GREETING.length)]);
   const chatRef = useRef(null);
   const inputRef = useRef(null);
   const blinkTimerRef = useRef(null);
 
-  // Idle blink loop — plays when not loading/creating
+  // Fetch categories and labels for Gus
+  useEffect(() => {
+    Promise.all([api.getCategories(), api.getLabels()])
+      .then(([c, l]) => { setCategories(c); setLabels(l); })
+      .catch(() => {});
+  }, []);
+
+  // Update idle quote when page changes
+  useEffect(() => {
+    setIdleQuote(getPageQuote(location.pathname));
+  }, [location.pathname]);
+
+  // Idle blink loop
   const startBlinkLoop = useCallback(() => {
     if (blinkTimerRef.current) clearTimeout(blinkTimerRef.current);
 
     const scheduleBlink = () => {
-      const delay = 2500 + Math.random() * 4000; // blink every 2.5–6.5s
+      const delay = 2500 + Math.random() * 4000;
       blinkTimerRef.current = setTimeout(() => {
         setFace('blinking');
         setTimeout(() => {
           setFace('idle');
           scheduleBlink();
-        }, 250); // blink duration
+        }, 250);
       }, delay);
     };
     scheduleBlink();
@@ -69,7 +124,6 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
     }
   };
 
-  // Start blink when idle
   useEffect(() => {
     if (!loading && !creating) {
       startBlinkLoop();
@@ -79,18 +133,15 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
     return () => stopBlinkLoop();
   }, [loading, creating, startBlinkLoop]);
 
-  // Set face based on state
   useEffect(() => {
     if (loading) setFace('thinking');
     else if (creating) setFace('thinking');
   }, [loading, creating]);
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
   }, [messages, loading]);
 
-  // Focus input when opened
   useEffect(() => {
     if (open && inputRef.current) inputRef.current.focus();
   }, [open]);
@@ -117,8 +168,7 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
     const userText = input.trim();
     setInput('');
 
-    const newUserMsg = { role: 'user', text: userText };
-    setMessages(prev => [...prev, newUserMsg]);
+    setMessages(prev => [...prev, { role: 'user', text: userText }]);
 
     const newApiMessages = [...apiMessages, { role: 'user', content: userText }];
     setApiMessages(newApiMessages);
@@ -134,12 +184,11 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
       });
 
       if (data.type === 'question') {
-        const gusMsg = {
+        setMessages(prev => [...prev, {
           role: 'gus',
           text: data.message,
           proposedTickets: data.proposedTickets,
-        };
-        setMessages(prev => [...prev, gusMsg]);
+        }]);
         setApiMessages(prev => [
           ...prev,
           { role: 'assistant', content: [{ type: 'tool_use', id: 'q', name: 'ask_question', input: { message: data.message, proposed_tickets: data.proposedTickets } }] },
@@ -147,12 +196,11 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
         ]);
         flashFace('curious', 2000);
       } else if (data.type === 'tickets') {
-        const gusMsg = {
+        setMessages(prev => [...prev, {
           role: 'gus',
           text: data.message,
           tickets: data.tickets,
-        };
-        setMessages(prev => [...prev, gusMsg]);
+        }]);
         setApiMessages(prev => [
           ...prev,
           { role: 'assistant', content: [{ type: 'tool_use', id: 't', name: 'create_tickets', input: { message: data.message, tickets: data.tickets } }] },
@@ -179,7 +227,11 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
         { role: 'gus', text: `Consider it done! ${count} ${count === 1 ? 'entry' : 'entries'} filed and stamped. The archives grow ever richer.` },
       ]);
       flashFace('smiling', 3000);
-      onTicketsCreated();
+      // Refresh categories/labels in case new ones were created
+      Promise.all([api.getCategories(), api.getLabels()])
+        .then(([c, l]) => { setCategories(c); setLabels(l); })
+        .catch(() => {});
+      onTicketsCreated?.();
     } catch (err) {
       setMessages(prev => [...prev, { role: 'gus', text: `Filing error: ${err.message}. The bureaucracy strikes back.` }]);
       flashFace('curious', 1500);
@@ -222,7 +274,7 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
     );
   }
 
-  // Expanded chat panel — anchored top-right
+  // Expanded chat panel
   return (
     <div className="gus-chat-panel">
       {/* Header — large animated face */}
@@ -258,7 +310,6 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
             <div className={`gus-msg-content ${msg.role === 'user' ? 'gus-msg-content-user' : 'gus-msg-content-gus'}`}>
               <p style={{ textTransform: 'none' }}>{msg.text}</p>
 
-              {/* Proposed ticket previews */}
               {msg.proposedTickets?.length > 0 && (
                 <div className="mt-3 space-y-1.5">
                   <p className="text-[0.5rem] tracking-[0.18em] text-[var(--ink-30)] uppercase">
@@ -274,7 +325,6 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
                 </div>
               )}
 
-              {/* Ready-to-file tickets */}
               {msg.tickets?.length > 0 && (
                 <div className="mt-3">
                   <p className="text-[0.5rem] tracking-[0.18em] text-[var(--ink-30)] uppercase mb-2">
@@ -318,7 +368,6 @@ export default function GusAssistant({ categories, labels, onTicketsCreated }) {
           </div>
         ))}
 
-        {/* Typing indicator */}
         {loading && (
           <div className="gus-msg gus-msg-gus">
             <img src={GUS_FACES.thinking} alt="" className="gus-msg-avatar" />

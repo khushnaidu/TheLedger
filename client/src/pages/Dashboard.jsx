@@ -31,6 +31,13 @@ export default function Dashboard() {
 
   useEffect(() => { loadDashboard(); }, []);
 
+  // Refresh when Gus creates tickets
+  useEffect(() => {
+    const handler = () => { api.getStats().then(setStats).catch(console.error); };
+    window.addEventListener('gus-tickets-created', handler);
+    return () => window.removeEventListener('gus-tickets-created', handler);
+  }, []);
+
   const manualSync = async () => {
     setSyncing(true);
     try {
