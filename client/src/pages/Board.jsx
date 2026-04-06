@@ -21,6 +21,7 @@ export default function Board() {
   const [loading, setLoading] = useState(true);
   const [dragging, setDragging] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [stampingId, setStampingId] = useState(null);
   const [pendingDelete, setPendingDelete] = useState(null); // { id, ticket }
   const undoRef = useRef(null);
 
@@ -83,8 +84,10 @@ export default function Board() {
     setTickets((prev) => prev.map((t) => t.id === draggableId ? { ...t, status: destination.droppableId, order: destination.index } : t));
     try { await api.moveTicket(draggableId, { status: destination.droppableId, order: destination.index }); } catch { fetchTickets(); }
 
-    // Award XP if moved to DONE
+    // Stamp animation + award XP if moved to DONE
     if (destination.droppableId === 'DONE' && ticket) {
+      setStampingId(draggableId);
+      setTimeout(() => setStampingId(null), 1200);
       const result = awardXP(ticket.id, ticket.priority);
       if (result) {
         window.dispatchEvent(new CustomEvent('gus-xp-gained', { detail: result }));
@@ -162,8 +165,13 @@ export default function Board() {
                         <Draggable key={ticket.id} draggableId={ticket.id} index={index}>
                           {(prov, snap) => (
                             <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps}
-                              className={deletingId === ticket.id ? 'trash-crumple' : ''}>
+                              className={`relative ${deletingId === ticket.id ? 'trash-crumple' : ''}`}>
                               <TicketCard ticket={ticket} isDragging={snap.isDragging} />
+                              {stampingId === ticket.id && (
+                                <div className="done-stamp-overlay">
+                                  <span className="done-stamp">Done</span>
+                                </div>
+                              )}
                             </div>
                           )}
                         </Draggable>
