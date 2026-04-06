@@ -899,6 +899,7 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
 /* ============================================
    THE TOME — 16-bit Gothic Fantasy RPG Theme
    Inspired by Castlevania / LOTR pixel art
+   Uses NES.css-style pixel border-image technique
    ============================================ */
 
 [data-theme="tome"] {
@@ -908,12 +909,19 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   --ink-15: rgba(200,184,160,0.22);
   --ink-08: rgba(200,184,160,0.1);
   --ink-04: rgba(200,184,160,0.05);
-  --stamp: #c850c8;  /* magenta/purple accent like the reference */
-  --bg: #0c0814;     /* deep night blue-black */
+  --stamp: #c850c8;
+  --bg: #0c0814;
   --bg-stone: #161020;
   --bg-brick: #1c1228;
   --gold: #d4a844;
   --font: 'Press Start 2P', 'Space Mono', monospace;
+
+  /* Pixel border SVGs (NES.css technique, recolored) */
+  --pixel-border-purple: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><path d="M3 1h1v1H3zM4 1h1v1H4zM2 2h1v1H2zM5 2h1v1H5zM1 3h1v1H1zM6 3h1v1H6zM1 4h1v1H1zM6 4h1v1H6zM2 5h1v1H2zM5 5h1v1H5zM3 6h1v1H3zM4 6h1v1H4z" fill="%23c850c8"/></svg>');
+  --pixel-border-gold: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><path d="M3 1h1v1H3zM4 1h1v1H4zM2 2h1v1H2zM5 2h1v1H5zM1 3h1v1H1zM6 3h1v1H6zM1 4h1v1H1zM6 4h1v1H6zM2 5h1v1H2zM5 5h1v1H5zM3 6h1v1H3zM4 6h1v1H4z" fill="%23d4a844"/></svg>');
+  --pixel-border-light: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><path d="M3 1h1v1H3zM4 1h1v1H4zM2 2h1v1H2zM5 2h1v1H5zM1 3h1v1H1zM6 3h1v1H6zM1 4h1v1H1zM6 4h1v1H6zM2 5h1v1H2zM5 5h1v1H5zM3 6h1v1H3zM4 6h1v1H4z" fill="%23c8b8a0"/></svg>');
+  --pixel-border-btn: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="5" height="5"><path d="M2 1h1v1H2zM1 2h1v1H1zM3 2h1v1H3zM2 3h1v1H2z" fill="%23c850c8"/></svg>');
+  --pixel-border-btn-gold: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="5" height="5"><path d="M2 1h1v1H2zM1 2h1v1H1zM3 2h1v1H3zM2 3h1v1H2z" fill="%23d4a844"/></svg>');
 }
 
 /* ── Tome: Body & globals ─────────────────── */
@@ -926,26 +934,45 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   cursor: url('/cursors/tome/gauntlet.png') 6 2, auto;
 }
 
-/* Animated twinkling stars background on main content */
-[data-theme="tome"] main {
-  background:
-    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.6), transparent),
-    radial-gradient(1px 1px at 25% 8%, rgba(255,255,255,0.4), transparent),
-    radial-gradient(1px 1px at 40% 22%, rgba(255,255,255,0.5), transparent),
-    radial-gradient(1px 1px at 55% 5%, rgba(255,255,255,0.3), transparent),
-    radial-gradient(1px 1px at 65% 18%, rgba(255,255,255,0.6), transparent),
-    radial-gradient(1px 1px at 78% 12%, rgba(255,255,255,0.4), transparent),
-    radial-gradient(1px 1px at 85% 25%, rgba(255,255,255,0.5), transparent),
-    radial-gradient(1px 1px at 92% 6%, rgba(255,255,255,0.3), transparent),
-    radial-gradient(1.5px 1.5px at 15% 30%, rgba(200,180,255,0.5), transparent),
-    radial-gradient(1.5px 1.5px at 50% 28%, rgba(200,180,255,0.4), transparent),
-    radial-gradient(1.5px 1.5px at 70% 32%, rgba(200,180,255,0.5), transparent);
-  animation: tomeStarsTwinkle 4s ease-in-out infinite alternate;
+/* Pixel star field — fixed dots like a retro night sky */
+[data-theme="tome"] main::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 220px;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect x="12" y="8" width="2" height="2" fill="white" opacity="0.7"/><rect x="67" y="23" width="2" height="2" fill="white" opacity="0.4"/><rect x="134" y="11" width="2" height="2" fill="white" opacity="0.6"/><rect x="178" y="34" width="2" height="2" fill="white" opacity="0.3"/><rect x="45" y="56" width="2" height="2" fill="%23c8b0ff" opacity="0.5"/><rect x="98" y="45" width="2" height="2" fill="white" opacity="0.5"/><rect x="156" y="67" width="2" height="2" fill="white" opacity="0.4"/><rect x="23" y="89" width="2" height="2" fill="%23c8b0ff" opacity="0.6"/><rect x="78" y="78" width="2" height="2" fill="white" opacity="0.3"/><rect x="112" y="95" width="2" height="2" fill="white" opacity="0.7"/><rect x="167" y="112" width="2" height="2" fill="%23c8b0ff" opacity="0.4"/><rect x="34" y="134" width="2" height="2" fill="white" opacity="0.5"/><rect x="89" y="123" width="2" height="2" fill="white" opacity="0.6"/><rect x="145" y="145" width="2" height="2" fill="white" opacity="0.3"/><rect x="56" y="167" width="2" height="2" fill="%23c8b0ff" opacity="0.5"/><rect x="123" y="178" width="2" height="2" fill="white" opacity="0.4"/><rect x="189" y="156" width="2" height="2" fill="white" opacity="0.6"/><rect x="8" y="189" width="2" height="2" fill="white" opacity="0.3"/></svg>');
+  animation: tomeStarsTwinkle 3s steps(2) infinite alternate;
+}
+
+/* A second layer of stars that blinks offset */
+[data-theme="tome"] main::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 220px;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180"><rect x="45" y="12" width="2" height="2" fill="white" opacity="0.5"/><rect x="123" y="34" width="2" height="2" fill="%23c8b0ff" opacity="0.6"/><rect x="67" y="67" width="2" height="2" fill="white" opacity="0.4"/><rect x="156" y="89" width="2" height="2" fill="white" opacity="0.3"/><rect x="23" y="112" width="2" height="2" fill="%23c8b0ff" opacity="0.5"/><rect x="89" y="145" width="2" height="2" fill="white" opacity="0.6"/><rect x="145" y="167" width="2" height="2" fill="white" opacity="0.4"/></svg>');
+  animation: tomeStarsTwinkle 3s steps(2) infinite alternate-reverse;
 }
 
 @keyframes tomeStarsTwinkle {
-  0% { background-position: 0 0; }
-  100% { background-position: 2px -1px; }
+  0% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+/* Ensure main content sits above stars */
+[data-theme="tome"] main > * {
+  position: relative;
+  z-index: 1;
 }
 
 [data-theme="tome"] a,
@@ -1030,87 +1057,113 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   color: var(--ink-30);
 }
 
-/* ── Tome: Panels — Stone brick look ──────── */
+/* ── Tome: Panels — pixel-bordered RPG containers ── */
 
 [data-theme="tome"] .panel {
-  border: 3px solid #2a1838;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 11px,
-      rgba(200,80,200,0.06) 11px,
-      rgba(200,80,200,0.06) 12px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 23px,
-      rgba(200,80,200,0.04) 23px,
-      rgba(200,80,200,0.04) 24px
-    ),
-    var(--bg-brick);
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
+  border-style: solid;
+  border-width: 4px;
+  border-image-slice: 3;
+  border-image-width: 3;
+  border-image-repeat: stretch;
+  border-image-source: var(--pixel-border-purple);
+  border-image-outset: 2;
+  background: var(--bg-brick);
+  box-shadow: 0 0 0 4px var(--bg-brick);
+  transform: none;
 }
 
 [data-theme="tome"] .panel:hover {
-  box-shadow: 4px 4px 0 var(--stamp), inset 0 0 20px rgba(0,0,0,0.4), 0 0 12px rgba(200,80,200,0.15);
-  border-color: var(--stamp);
+  border-image-source: var(--pixel-border-gold);
+  box-shadow: 0 0 0 4px var(--bg-brick), 0 0 12px rgba(200,80,200,0.2);
+  transform: none;
 }
 
-/* ── Tome: Rules — glowing purple lines ───── */
+/* ── Tome: Rules — dithered pixel lines ───── */
 
 [data-theme="tome"] .rule,
 [data-theme="tome"] .rule-2 {
-  background: linear-gradient(90deg, transparent, var(--stamp), transparent);
-  opacity: 0.4;
+  background: var(--stamp);
+  image-rendering: pixelated;
 }
 
-[data-theme="tome"] .rule-4,
+[data-theme="tome"] .rule-4 {
+  background: var(--stamp);
+  box-shadow: 0 2px 0 var(--gold);
+}
+
 [data-theme="tome"] .rule-8 {
-  background: linear-gradient(90deg, transparent, var(--stamp), var(--gold), var(--stamp), transparent);
-  box-shadow: 0 0 8px rgba(200,80,200,0.3);
+  background: var(--gold);
+  box-shadow: 0 2px 0 var(--stamp), 0 4px 0 var(--gold);
 }
 
 [data-theme="tome"] .rule-light {
-  background: rgba(200,80,200,0.1);
+  background: #2a1838;
 }
 
-/* ── Tome: Buttons — stone/gem style ──────── */
+/* ── Tome: Buttons — NES-style pixel borders ── */
 
 [data-theme="tome"] .btn-black {
-  background: linear-gradient(180deg, #3a2048, #1c1028);
-  color: var(--gold);
-  border: 2px solid var(--stamp);
-  box-shadow: 0 2px 0 #0a0610, inset 0 1px 0 rgba(200,80,200,0.2);
-  text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
+  position: relative;
+  border-style: solid;
+  border-width: 4px;
+  border-image-slice: 2;
+  border-image-width: 2;
+  border-image-repeat: stretch;
+  border-image-source: var(--pixel-border-btn);
+  border-image-outset: 2;
+  background: var(--stamp);
+  color: #fff;
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.6);
+}
+
+[data-theme="tome"] .btn-black::after {
+  content: '';
+  position: absolute;
+  top: -4px; right: -4px; bottom: -4px; left: -4px;
+  box-shadow: inset -4px -4px #8a308a;
+  pointer-events: none;
 }
 
 [data-theme="tome"] .btn-black:hover {
-  background: linear-gradient(180deg, #4a2858, #2c1838);
-  box-shadow: 0 2px 0 #0a0610, inset 0 1px 0 rgba(200,80,200,0.3), 0 0 10px rgba(200,80,200,0.2);
+  background: #d860d8;
   opacity: 1;
 }
 
+[data-theme="tome"] .btn-black:active::after {
+  box-shadow: inset 4px 4px #8a308a;
+}
+
 [data-theme="tome"] .btn-outline {
-  border-color: var(--stamp);
-  color: var(--stamp);
+  position: relative;
+  border-style: solid;
+  border-width: 4px;
+  border-image-slice: 2;
+  border-image-width: 2;
+  border-image-repeat: stretch;
+  border-image-source: var(--pixel-border-btn-gold);
+  border-image-outset: 2;
   background: transparent;
+  color: var(--gold);
 }
 
 [data-theme="tome"] .btn-outline:hover {
-  background: rgba(200,80,200,0.15);
+  background: rgba(212,168,68,0.15);
   color: var(--gold);
-  border-color: var(--gold);
 }
 
 [data-theme="tome"] .btn-red {
-  border-color: #c83030;
-  color: #c83030;
+  border-style: solid;
+  border-width: 4px;
+  border-image-slice: 2;
+  border-image-width: 2;
+  border-image-repeat: stretch;
+  border-image-source: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="5" height="5"><path d="M2 1h1v1H2zM1 2h1v1H1zM3 2h1v1H3zM2 3h1v1H2z" fill="%23e76e55"/></svg>');
+  border-image-outset: 2;
+  color: #e76e55;
 }
 
 [data-theme="tome"] .btn-red:hover {
-  background: #c83030;
+  background: #e76e55;
   color: var(--bg);
 }
 
@@ -1122,33 +1175,46 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   color: var(--stamp);
 }
 
-/* ── Tome: Inputs — parchment scroll feel ─── */
+/* ── Tome: Inputs — pixel bordered ─────────── */
 
 [data-theme="tome"] .input-field {
-  border-bottom: 2px solid #2a1838;
+  border-bottom: 3px solid var(--stamp);
   color: var(--ink);
 }
 
-[data-theme="tome"] .input-field::placeholder { color: rgba(200,80,200,0.25); }
-[data-theme="tome"] .input-field:focus { border-color: var(--stamp); box-shadow: 0 2px 8px rgba(200,80,200,0.15); }
+[data-theme="tome"] .input-field::placeholder { color: rgba(200,80,200,0.3); }
+[data-theme="tome"] .input-field:focus { border-color: var(--gold); }
 
 [data-theme="tome"] .textarea-field {
-  background: rgba(200,80,200,0.04);
-  border: 2px solid #2a1838;
+  background: var(--bg-stone);
+  border-style: solid;
+  border-width: 4px;
+  border-image-slice: 3;
+  border-image-width: 3;
+  border-image-repeat: stretch;
+  border-image-source: var(--pixel-border-purple);
+  border-image-outset: 2;
   color: var(--ink);
+  box-shadow: 0 0 0 4px var(--bg-stone);
 }
 
-[data-theme="tome"] .textarea-field::placeholder { color: rgba(200,80,200,0.25); }
-[data-theme="tome"] .textarea-field:focus { border-color: var(--stamp); box-shadow: 0 0 10px rgba(200,80,200,0.15); }
+[data-theme="tome"] .textarea-field::placeholder { color: rgba(200,80,200,0.3); }
+[data-theme="tome"] .textarea-field:focus { border-image-source: var(--pixel-border-gold); }
 
 [data-theme="tome"] .select-field {
-  background: rgba(200,80,200,0.04);
-  border: 2px solid #2a1838;
+  background: var(--bg-stone);
+  border-style: solid;
+  border-width: 4px;
+  border-image-slice: 2;
+  border-image-width: 2;
+  border-image-repeat: stretch;
+  border-image-source: var(--pixel-border-btn);
+  border-image-outset: 2;
   color: var(--ink);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' fill='%23c850c8' viewBox='0 0 16 16'%3E%3Cpath d='M8 12L2 6h12z'/%3E%3C/svg%3E");
 }
 
-[data-theme="tome"] .select-field:focus { border-color: var(--stamp); }
+[data-theme="tome"] .select-field:focus { border-image-source: var(--pixel-border-btn-gold); }
 
 /* ── Tome: Stamps — glowing rune badges ───── */
 
@@ -1162,10 +1228,9 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
 [data-theme="tome"] .stamp-black { color: var(--gold); }
 
 [data-theme="tome"] .done-stamp {
-  color: #44dd44;
-  border-color: #44dd44;
-  text-shadow: 0 0 8px rgba(68,221,68,0.5);
-  box-shadow: 0 0 12px rgba(68,221,68,0.3);
+  color: var(--gold);
+  border: 4px solid var(--gold);
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.8);
 }
 
 /* ── Tome: Margin Line — torch glow ──────── */
@@ -1175,31 +1240,16 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   box-shadow: -4px 0 12px rgba(200,80,200,0.1);
 }
 
-/* ── Tome: Sidebar — dark cathedral wall ──── */
+/* ── Tome: Sidebar — dungeon stone wall ───── */
 
 [data-theme="tome"] aside {
   background:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 15px,
-      rgba(200,80,200,0.03) 15px,
-      rgba(200,80,200,0.03) 16px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 31px,
-      rgba(200,80,200,0.02) 31px,
-      rgba(200,80,200,0.02) 32px
-    ),
-    linear-gradient(180deg, #0c0814, #100a1c, #0c0814);
-  border-right-color: #2a1838 !important;
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none"><rect width="32" height="16" fill="%23140c20"/><rect y="16" width="32" height="16" fill="%23100818"/><rect x="15" width="2" height="16" fill="%230c0614" opacity="0.5"/><rect x="0" y="15" width="32" height="2" fill="%230c0614" opacity="0.5"/><rect y="31" width="32" height="1" fill="%230c0614" opacity="0.5"/><rect x="7" y="16" width="2" height="16" fill="%230c0614" opacity="0.4"/><rect x="24" y="16" width="2" height="16" fill="%230c0614" opacity="0.4"/></svg>');
+  border-right: 3px solid var(--stamp) !important;
 }
 
-/* Sidebar gradient overlay — fade from dark at top */
 [data-theme="tome"] aside .bg-gradient-to-b {
-  background: linear-gradient(to bottom, var(--bg), transparent) !important;
+  background: linear-gradient(to bottom, #0c0814, transparent) !important;
 }
 
 [data-theme="tome"] .bg-black.text-white {
@@ -1207,33 +1257,45 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   color: var(--bg);
 }
 
-/* Active nav — glowing purple */
+/* Active nav — solid purple bar */
 [data-theme="tome"] nav a.bg-black {
-  background: linear-gradient(90deg, var(--stamp), #a040a0);
-  box-shadow: 0 0 10px rgba(200,80,200,0.3);
+  background: var(--stamp);
 }
 
-/* XP bar in sidebar */
+/* XP bar — RPG health/mana bar style */
 [data-theme="tome"] .bg-\[var\(--ink-08\)\] {
   background: #1c1228;
+  border: 2px solid #2a1838;
+  height: 8px !important;
 }
 
 [data-theme="tome"] .bg-\[var\(--ink\)\] {
-  background: linear-gradient(90deg, var(--stamp), var(--gold)) !important;
-  box-shadow: 0 0 6px rgba(200,80,200,0.4);
+  background: var(--stamp) !important;
 }
 
-/* ── Tome: Gus — wizard window ────────────── */
+/* XP bar inner glow pattern */
+[data-theme="tome"] .h-full.bg-\[var\(--ink\)\] {
+  background:
+    repeating-linear-gradient(90deg, var(--stamp), var(--stamp) 4px, #a040a0 4px, #a040a0 8px) !important;
+}
+
+/* ── Tome: Gus — pixel-bordered wizard window ── */
 
 [data-theme="tome"] .gus-window {
-  border-color: #2a1838;
+  border-style: solid;
+  border-width: 4px;
+  border-image-slice: 3;
+  border-image-width: 3;
+  border-image-repeat: stretch;
+  border-image-source: var(--pixel-border-purple);
+  border-image-outset: 2;
+  border-top: none;
   background: var(--bg-brick);
-  box-shadow: 0 0 15px rgba(200,80,200,0.1);
+  box-shadow: 0 0 0 4px var(--bg-brick);
 }
 
 [data-theme="tome"] .gus-board-character:hover .gus-window {
-  box-shadow: 0 0 20px rgba(200,80,200,0.25);
-  border-color: var(--stamp);
+  border-image-source: var(--pixel-border-gold);
 }
 
 [data-theme="tome"] .gus-face,
@@ -1245,14 +1307,17 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
 }
 
 [data-theme="tome"] .gus-nameplate {
-  background: linear-gradient(90deg, #2a1838, var(--stamp), #2a1838);
-  border-color: #2a1838;
-  text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
+  background: var(--stamp);
+  border: 2px solid #8a308a;
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.6);
+  box-shadow: inset -2px -2px #8a308a;
 }
 
 [data-theme="tome"] .gus-status-dot {
   background: #44dd44;
-  box-shadow: 0 0 4px rgba(68,221,68,0.6);
+  border: none;
+  width: 6px;
+  height: 6px;
 }
 
 [data-theme="tome"] .gus-quest-bar {
@@ -1271,24 +1336,34 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
 
 [data-theme="tome"] .gus-voice-line,
 [data-theme="tome"] .gus-window-bubble {
-  background: linear-gradient(135deg, #2a1838, #1c1028);
-  border: 1px solid var(--stamp);
-  color: var(--gold);
-  text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
-  box-shadow: 0 0 10px rgba(200,80,200,0.2);
+  background: var(--bg-stone);
+  border-style: solid;
+  border-width: 4px;
+  border-image-slice: 3;
+  border-image-width: 3;
+  border-image-repeat: stretch;
+  border-image-source: var(--pixel-border-light);
+  border-image-outset: 2;
+  color: var(--ink);
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.6);
+  box-shadow: 0 0 0 4px var(--bg-stone);
 }
 
 [data-theme="tome"] .gus-voice-line::after,
 [data-theme="tome"] .gus-window-bubble::after {
-  background: #2a1838;
-  border-right: 1px solid var(--stamp);
-  border-bottom: 1px solid var(--stamp);
+  display: none;
 }
 
 [data-theme="tome"] .gus-chat-panel {
   background: var(--bg);
-  border: 3px solid #2a1838;
-  box-shadow: 6px 6px 0 rgba(200,80,200,0.3), 0 0 20px rgba(200,80,200,0.1);
+  border-style: solid;
+  border-width: 4px;
+  border-image-slice: 3;
+  border-image-width: 3;
+  border-image-repeat: stretch;
+  border-image-source: var(--pixel-border-purple);
+  border-image-outset: 2;
+  box-shadow: 0 0 0 4px var(--bg);
 }
 
 [data-theme="tome"] .gus-chat-header {
@@ -1307,7 +1382,7 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
 }
 
 [data-theme="tome"] .gus-msg-content-user {
-  background: linear-gradient(135deg, var(--stamp), #a040a0);
+  background: var(--stamp);
   color: #fff;
 }
 
@@ -1323,13 +1398,20 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
 [data-theme="tome"] .gus-input::placeholder { color: rgba(200,80,200,0.3); }
 
 [data-theme="tome"] .gus-send {
-  background: linear-gradient(180deg, var(--stamp), #a040a0);
-  box-shadow: 0 0 6px rgba(200,80,200,0.3);
+  background: var(--stamp);
+  box-shadow: inset -2px -2px #8a308a;
 }
 
 [data-theme="tome"] .gus-ticket-card {
-  border: 2px solid #2a1838;
-  background: rgba(200,80,200,0.04);
+  border-style: solid;
+  border-width: 4px;
+  border-image-slice: 3;
+  border-image-width: 3;
+  border-image-repeat: stretch;
+  border-image-source: var(--pixel-border-purple);
+  border-image-outset: 1;
+  background: var(--bg-stone);
+  box-shadow: 0 0 0 2px var(--bg-stone);
 }
 
 [data-theme="tome"] .gus-proposed-ticket {
@@ -1361,16 +1443,21 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
 
 [data-theme="tome"] .undo-toast {
   background: var(--bg-stone);
-  border: 2px solid var(--stamp);
-  box-shadow: 0 0 10px rgba(200,80,200,0.2);
+  border-style: solid;
+  border-width: 4px;
+  border-image-slice: 3;
+  border-image-width: 3;
+  border-image-repeat: stretch;
+  border-image-source: var(--pixel-border-purple);
+  border-image-outset: 2;
+  box-shadow: 0 0 0 4px var(--bg-stone);
 }
 
 /* ── Tome: Decorative images ──────────────── */
 
 [data-theme="tome"] img.mix-blend-multiply {
   mix-blend-mode: normal;
-  opacity: 0.6;
-  filter: hue-rotate(270deg) saturate(0.5) brightness(0.8);
+  opacity: 0.7;
 }
 
 /* ── Tome: Loader — purple pulse ──────────── */
@@ -1379,28 +1466,27 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   background: var(--stamp);
 }
 
-/* ── Tome: Scrollbar glow ─────────────────── */
+/* ── Tome: Scrollbar ──────────────────────── */
 
 [data-theme="tome"] * {
-  scrollbar-color: rgba(200,80,200,0.2) transparent;
+  scrollbar-color: rgba(200,80,200,0.2) var(--bg);
 }
 
-/* ── Tome: Done stamp — green glow ────────── */
-
-[data-theme="tome"] .done-stamp-overlay {
-  filter: drop-shadow(0 0 12px rgba(68,221,68,0.4));
-}
-
-/* ── Tome: Trash zone — fire portal ──────── */
+/* ── Tome: Trash zone ─────────────────────── */
 
 [data-theme="tome"] .border-\[var\(--stamp\)\] {
   border-color: var(--stamp);
-  box-shadow: 0 0 15px rgba(200,80,200,0.3);
 }
 
 /* ── Tome: Footer ─────────────────────────── */
 
 [data-theme="tome"] footer {
-  color: rgba(200,80,200,0.25);
+  color: rgba(200,80,200,0.3);
+}
+
+/* ── Tome: Typing indicator ───────────────── */
+
+[data-theme="tome"] .gus-typing span {
+  background: var(--stamp);
 }
 
