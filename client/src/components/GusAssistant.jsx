@@ -202,6 +202,28 @@ export default function GusAssistant({ onTicketsCreated }) {
     }
   }, [location.pathname, boardMood]);
 
+  // Listen for XP gains
+  useEffect(() => {
+    const handler = (e) => {
+      const { earned, leveledUp, level } = e.detail;
+      if (leveledUp) {
+        if (voiceTimerRef.current) clearTimeout(voiceTimerRef.current);
+        setVoiceLine(`LEVEL UP! You're now a ${level.title}!`);
+        flashFace('smiling', 4000);
+        voiceTimerRef.current = setTimeout(() => setVoiceLine(null), 4000);
+      } else if (!voiceLine) {
+        // Only show XP toast if no voice line active (don't override move quotes)
+        setTimeout(() => {
+          if (voiceTimerRef.current) clearTimeout(voiceTimerRef.current);
+          setVoiceLine(`+${earned} XP`);
+          voiceTimerRef.current = setTimeout(() => setVoiceLine(null), 2000);
+        }, 3200); // show after the move quote fades
+      }
+    };
+    window.addEventListener('gus-xp-gained', handler);
+    return () => window.removeEventListener('gus-xp-gained', handler);
+  }, [voiceLine]);
+
   // Listen for ticket moves (drag-drop voice lines)
   useEffect(() => {
     const handler = (e) => {

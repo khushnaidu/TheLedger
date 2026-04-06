@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Plus, LogOut } from 'lucide-react';
+import { getLevelInfo, getTotalXP } from '../lib/xp';
 
 const navItems = [
   { to: '/', label: 'Dashboard' },
@@ -10,6 +12,16 @@ const navItems = [
 
 export default function Sidebar({ user, onLogout }) {
   const navigate = useNavigate();
+  const [levelInfo, setLevelInfo] = useState(() => getLevelInfo(getTotalXP()));
+
+  // Listen for XP changes
+  useEffect(() => {
+    const handler = (e) => {
+      setLevelInfo(e.detail.level);
+    };
+    window.addEventListener('gus-xp-gained', handler);
+    return () => window.removeEventListener('gus-xp-gained', handler);
+  }, []);
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-[220px] bg-white flex flex-col z-50 border-r-[3px] border-black overflow-hidden">
@@ -29,6 +41,27 @@ export default function Sidebar({ user, onLogout }) {
         <p className="t-label">{user?.name}</p>
         <p className="t-label mt-1" style={{ color: 'var(--ink-15)' }}>
           {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+        </p>
+      </div>
+
+      {/* XP Level badge */}
+      <div className="mx-5 mt-2 mb-1">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[0.5rem] tracking-[0.16em] text-[var(--ink-30)] uppercase">
+            Lvl {levelInfo.level}
+          </span>
+          <span className="text-[0.5rem] tracking-[0.16em] text-[var(--ink-30)] uppercase">
+            {levelInfo.xp} XP
+          </span>
+        </div>
+        <div className="w-full h-[3px] bg-[var(--ink-08)]">
+          <div
+            className="h-full bg-[var(--ink)] transition-all duration-500"
+            style={{ width: `${Math.min(levelInfo.progress * 100, 100)}%` }}
+          />
+        </div>
+        <p className="text-[0.4375rem] tracking-[0.14em] text-[var(--ink-15)] uppercase mt-1">
+          {levelInfo.title}
         </p>
       </div>
 

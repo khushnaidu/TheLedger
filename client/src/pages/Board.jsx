@@ -5,6 +5,7 @@ import { api } from '../api';
 import { STATUSES, STATUS_CONFIG } from '../constants';
 import TicketCard from '../components/TicketCard';
 import UndoToast from '../components/UndoToast';
+import { awardXP } from '../lib/xp';
 
 function urgencyScore(ticket) {
   if (!ticket.dueDate) {
@@ -80,6 +81,14 @@ export default function Board() {
     const fromStatus = ticket?.status;
     setTickets((prev) => prev.map((t) => t.id === draggableId ? { ...t, status: destination.droppableId, order: destination.index } : t));
     try { await api.moveTicket(draggableId, { status: destination.droppableId, order: destination.index }); } catch { fetchTickets(); }
+
+    // Award XP if moved to DONE
+    if (destination.droppableId === 'DONE' && ticket) {
+      const result = awardXP(ticket.id, ticket.priority);
+      if (result) {
+        window.dispatchEvent(new CustomEvent('gus-xp-gained', { detail: result }));
+      }
+    }
 
     // Notify Gus about the move
     window.dispatchEvent(new CustomEvent('gus-ticket-moved', {
