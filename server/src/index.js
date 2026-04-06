@@ -11,6 +11,7 @@ const categoryRoutes = require('./routes/categories');
 const labelRoutes = require('./routes/labels');
 const statsRoutes = require('./routes/stats');
 const canvasRoutes = require('./routes/canvas');
+const aiRoutes = require('./routes/ai');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -28,15 +29,21 @@ app.use('/api/categories', authMiddleware, categoryRoutes);
 app.use('/api/labels', authMiddleware, labelRoutes);
 app.use('/api/stats', authMiddleware, statsRoutes);
 app.use('/api/canvas', authMiddleware, canvasRoutes);
+app.use('/api/ai', authMiddleware, aiRoutes);
 
-// Serve static frontend in production
-if (process.env.NODE_ENV === 'production') {
+// Serve static frontend in production (non-Vercel)
+if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
   app.use(express.static(path.join(__dirname, '../../client/dist')));
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`The Ledger server running on port ${PORT}`);
-});
+// Export for Vercel serverless, listen for standalone
+if (process.env.VERCEL) {
+  module.exports = app;
+} else {
+  app.listen(PORT, () => {
+    console.log(`The Ledger server running on port ${PORT}`);
+  });
+}
