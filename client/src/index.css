@@ -441,3 +441,116 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   padding-left: 28px;
 }
 
+/* ── Gus Assistant ───────────────────────── */
+
+.gus-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--ink-04);
+  border: 2px dashed var(--ink-08);
+  font-family: var(--font);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.gus-toggle:hover {
+  border-color: var(--ink-15);
+  background: var(--ink-08);
+}
+
+.gus-avatar {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border: 2px solid var(--ink);
+  flex-shrink: 0;
+}
+
+.gus-panel {
+  border: 2px solid var(--ink);
+  padding: 20px;
+  background: #fff;
+  animation: up 0.25s ease-out;
+}
+
+.gus-speech {
+  padding: 12px 16px;
+  background: var(--ink-04);
+  border-left: 3px solid var(--ink-15);
+  min-height: 20px;
+}
+
+.gus-typing {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  height: 16px;
+}
+
+.gus-typing span {
+  width: 4px;
+  height: 4px;
+  background: var(--ink-30);
+  border-radius: 0;
+  animation: gusTyping 1s ease-in-out infinite;
+}
+
+.gus-typing span:nth-child(2) { animation-delay: 0.15s; }
+.gus-typing span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes gusTyping {
+  0%, 100% { opacity: 0.2; transform: scaleY(1); }
+  50% { opacity: 1; transform: scaleY(2); }
+}
+
+.gus-ticket-preview {
+  padding: 14px 16px;
+  border: 2px solid var(--ink);
+  background: var(--ink-04);
+}
+
+.gus-tag {
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border: 1px solid var(--ink-15);
+  color: var(--ink-50);
+}
+
+.gus-input {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--ink);
+  color: var(--ink);
+  padding: 8px 0;
+  font-family: var(--font);
+  font-size: 0.75rem;
+  outline: none;
+  resize: none;
+  line-height: 1.6;
+}
+
+.gus-input:focus { border-color: var(--stamp); }
+.gus-input::placeholder { color: var(--ink-15); }
+
+.gus-send {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+
+.gus-send:hover { opacity: 0.75; }
+

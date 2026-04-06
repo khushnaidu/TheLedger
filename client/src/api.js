@@ -65,6 +65,9 @@ export const api = {
   // Stats
   getStats: () => request('/stats'),
 
+  // AI Assistant
+  generateTicket: (data) => request('/ai/generate-ticket', { method: 'POST', body: JSON.stringify(data) }),
+
   // Canvas LMS
   getCanvasStatus: () => request('/canvas/status'),
   connectCanvas: (data) => request('/canvas/connect', { method: 'POST', body: JSON.stringify(data) }),
