@@ -69,12 +69,22 @@ export default function Board() {
         setDeletingId(null);
         setPendingDelete({ id: draggableId, ticket });
       }, 400);
+      window.dispatchEvent(new CustomEvent('gus-ticket-moved', {
+        detail: { from: ticket?.status, to: 'TRASH', title: ticket?.title },
+      }));
       return;
     }
 
     // Normal column move
+    const ticket = tickets.find((t) => t.id === draggableId);
+    const fromStatus = ticket?.status;
     setTickets((prev) => prev.map((t) => t.id === draggableId ? { ...t, status: destination.droppableId, order: destination.index } : t));
     try { await api.moveTicket(draggableId, { status: destination.droppableId, order: destination.index }); } catch { fetchTickets(); }
+
+    // Notify Gus about the move
+    window.dispatchEvent(new CustomEvent('gus-ticket-moved', {
+      detail: { from: fromStatus, to: destination.droppableId, title: ticket?.title },
+    }));
   };
 
   const confirmDelete = async () => {

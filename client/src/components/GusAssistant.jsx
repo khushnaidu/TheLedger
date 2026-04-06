@@ -71,6 +71,47 @@ function getPageQuote(pathname) {
   return quotes[Math.floor(Math.random() * quotes.length)];
 }
 
+const MOVE_QUOTES = {
+  DONE: [
+    "Another one bites the dust!",
+    "STAMPED. Filed. Beautiful.",
+    "And THAT'S how it's done.",
+    "Consider that entry closed, boss.",
+    "The archives welcome another victory.",
+  ],
+  IN_PROGRESS: [
+    "Now we're cooking with gas!",
+    "Promoted to active duty. Excellent.",
+    "In the trenches now. Good luck.",
+    "Rolling up the sleeves on this one.",
+  ],
+  TODO: [
+    "Queued up and ready to go.",
+    "Added to the docket.",
+    "On the list. It'll get its turn.",
+  ],
+  REVIEW: [
+    "Under inspection. Very thorough.",
+    "Sent for review — dotting the i's.",
+    "Quality control in progress.",
+  ],
+  BACKLOG: [
+    "Back to the pile it goes.",
+    "Filed under 'later'. Classic.",
+    "The backlog grows ever patient.",
+  ],
+  TRASH: [
+    "Into the shredder! Goodbye.",
+    "Incinerated. The paperwork gods demand sacrifice.",
+    "Gone. Reduced to confetti.",
+    "You won't be needing THAT anymore.",
+  ],
+};
+
+function getRandomQuote(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
 export default function GusAssistant({ onTicketsCreated }) {
   const location = useLocation();
   const [open, setOpen] = useState(false);
@@ -84,6 +125,8 @@ export default function GusAssistant({ onTicketsCreated }) {
   const [labels, setLabels] = useState([]);
   const [idleQuote, setIdleQuote] = useState(() => getPageQuote('/'));
   const [greeting] = useState(() => GUS_GREETING[Math.floor(Math.random() * GUS_GREETING.length)]);
+  const [voiceLine, setVoiceLine] = useState(null);
+  const voiceTimerRef = useRef(null);
   const chatRef = useRef(null);
   const inputRef = useRef(null);
   const blinkTimerRef = useRef(null);
@@ -144,6 +187,30 @@ export default function GusAssistant({ onTicketsCreated }) {
       setIdleQuote(getPageQuote(location.pathname));
     }
   }, [location.pathname, boardMood]);
+
+  // Listen for ticket moves (drag-drop voice lines)
+  useEffect(() => {
+    const handler = (e) => {
+      const { to } = e.detail;
+      const quotes = MOVE_QUOTES[to];
+      if (!quotes) return;
+
+      // Flash appropriate face
+      if (to === 'DONE') flashFace('smiling', 2500);
+      else if (to === 'TRASH') flashFace('curious', 2000);
+      else flashFace('curious', 1500);
+
+      // Show voice line
+      if (voiceTimerRef.current) clearTimeout(voiceTimerRef.current);
+      setVoiceLine(getRandomQuote(quotes));
+      voiceTimerRef.current = setTimeout(() => setVoiceLine(null), 3000);
+
+      // Re-check board health
+      checkBoardHealth();
+    };
+    window.addEventListener('gus-ticket-moved', handler);
+    return () => window.removeEventListener('gus-ticket-moved', handler);
+  }, []);
 
   // Idle blink loop
   const startBlinkLoop = useCallback(() => {
@@ -308,9 +375,18 @@ export default function GusAssistant({ onTicketsCreated }) {
           <div className="gus-face-container">
             <img src={GUS_FACES[face]} alt="Gus" className="gus-face" />
           </div>
-          <div className="gus-window-bubble">
-            <span>{idleQuote}</span>
-          </div>
+          {/* Hover bubble */}
+          {!voiceLine && (
+            <div className="gus-window-bubble">
+              <span>{idleQuote}</span>
+            </div>
+          )}
+          {/* Voice line (always visible, auto-fades) */}
+          {voiceLine && (
+            <div className="gus-voice-line">
+              <span>{voiceLine}</span>
+            </div>
+          )}
         </div>
         <div className="gus-nameplate">
           <span className="gus-status-dot" />

@@ -547,6 +547,39 @@ h1, h2, h3, h4, h5, h6, b, strong, th {
   transform: translateX(0);
 }
 
+/* Voice line — visible speech bubble on drag-drop */
+.gus-voice-line {
+  position: absolute;
+  bottom: -8px;
+  right: 128px;
+  background: var(--ink);
+  color: #fff;
+  padding: 8px 12px;
+  font-size: 0.5625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  animation: gusVoiceIn 0.25s ease-out;
+  pointer-events: none;
+}
+
+.gus-voice-line::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  margin-top: -4px;
+  width: 8px;
+  height: 8px;
+  background: var(--ink);
+  transform: rotate(45deg);
+}
+
+@keyframes gusVoiceIn {
+  0% { opacity: 0; transform: translateX(6px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
 /* Small face in chat header */
 .gus-face-container-sm {
   position: relative;
