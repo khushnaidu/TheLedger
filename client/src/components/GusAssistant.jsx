@@ -132,13 +132,15 @@ export default function GusAssistant({ onTicketsCreated }) {
   const blinkTimerRef = useRef(null);
 
   // Fetch categories, labels, and board health for Gus
-  const [boardMood, setBoardMood] = useState('idle'); // idle, worried, smiling
+  const [boardMood, setBoardMood] = useState('idle');
+  const [weeklyCount, setWeeklyCount] = useState(0);
 
   useEffect(() => {
     Promise.all([api.getCategories(), api.getLabels()])
       .then(([c, l]) => { setCategories(c); setLabels(l); })
       .catch(() => {});
     checkBoardHealth();
+    checkWeeklyStreak();
   }, []);
 
   // Re-check board health when page changes or tickets are created
@@ -148,6 +150,18 @@ export default function GusAssistant({ onTicketsCreated }) {
     window.addEventListener('gus-tickets-created', handler);
     return () => window.removeEventListener('gus-tickets-created', handler);
   }, []);
+
+  function checkWeeklyStreak() {
+    api.getTickets({}).then(tickets => {
+      const now = new Date();
+      const weekAgo = new Date(now);
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      const completedThisWeek = tickets.filter(t =>
+        t.status === 'DONE' && new Date(t.updatedAt) >= weekAgo
+      ).length;
+      setWeeklyCount(completedThisWeek);
+    }).catch(() => {});
+  }
 
   function checkBoardHealth() {
     api.getTickets({}).then(tickets => {
@@ -205,8 +219,9 @@ export default function GusAssistant({ onTicketsCreated }) {
       setVoiceLine(getRandomQuote(quotes));
       voiceTimerRef.current = setTimeout(() => setVoiceLine(null), 3000);
 
-      // Re-check board health
+      // Re-check board health and streak
       checkBoardHealth();
+      checkWeeklyStreak();
     };
     window.addEventListener('gus-ticket-moved', handler);
     return () => window.removeEventListener('gus-ticket-moved', handler);
@@ -391,6 +406,9 @@ export default function GusAssistant({ onTicketsCreated }) {
         <div className="gus-nameplate">
           <span className="gus-status-dot" />
           Augustus
+          {weeklyCount > 0 && (
+            <span className="gus-streak">{weeklyCount} this week</span>
+          )}
         </div>
       </div>
     );
