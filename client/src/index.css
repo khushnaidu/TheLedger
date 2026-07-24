@@ -1195,32 +1195,97 @@ b, strong, th {
   padding: 4px 10px;
 }
 
-.tv-knob-row {
+.tv-btn-row {
   display: flex;
   justify-content: center;
-  gap: 5px;
+  gap: 4px;
 }
 
-/* silver face buttons — flat */
-.tv-knob {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
+/* ── Windows 95 chrome — grey, beveled, pixel type ── */
+
+.win-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: #000;
+  text-transform: uppercase;
+  padding: 6px 12px 5px;
+  background: #c0c0c0;
   border: none;
-  background: #c9cace;
-  color: #1c1d21;
-  font-family: var(--font);
-  font-size: 0.4375rem;
+  border-radius: 0;
+  box-shadow:
+    inset -1px -1px 0 #0a0a0a,
+    inset 1px 1px 0 #ffffff,
+    inset -2px -2px 0 #808080,
+    inset 2px 2px 0 #dfdfdf;
   cursor: pointer;
-  transition: none;
-  padding: 0;
+  white-space: nowrap;
 }
 
-.tv-knob:hover { background: #eceef2; }
+.win-btn:active {
+  box-shadow:
+    inset 1px 1px 0 #0a0a0a,
+    inset -1px -1px 0 #ffffff,
+    inset 2px 2px 0 #808080,
+    inset -2px -2px 0 #dfdfdf;
+  padding: 7px 11px 4px 13px;
+}
 
-.tv-knob-on {
-  background: #5c5e64;
-  color: #fff;
+.win-btn:disabled { color: #808080; text-shadow: 1px 1px 0 #fff; cursor: default; }
+
+.win-btn-sm {
+  font-size: 6px;
+  padding: 5px 7px 4px;
+}
+
+.win-btn-sm:active { padding: 6px 6px 3px 8px; }
+
+/* dimmed backdrop behind the big screen */
+.tv-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0, 0, 0, 0.6);
+  animation: tvFade 0.15s ease-out;
+}
+
+@keyframes tvFade {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* the same tv, flown to center stage — same iframe, playback uninterrupted */
+.tv-photo-big {
+  position: fixed;
+  left: 50%;
+  top: 45%;
+  transform: translate(-50%, -50%);
+  width: min(640px, 76vw);
+  z-index: 301;
+  animation: tvGrow 0.2s ease-out;
+}
+
+@keyframes tvGrow {
+  0% { opacity: 0.4; transform: translate(-50%, -50%) scale(0.55); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.tv-big-controls {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.tv-big-hint {
+  font-family: var(--font);
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
 }
 
 /* silver chin strip — flat */
@@ -1351,6 +1416,17 @@ b, strong, th {
 /* the sidebar keeps a true black hairline */
 aside {
   border-right: 1px solid var(--ink);
+}
+
+/* the valar wheel — words orbiting out of the screen edge */
+.valar-spin {
+  transform-origin: center;
+  transform-box: view-box;
+  animation: valarSpin 16s linear infinite;
+}
+
+@keyframes valarSpin {
+  to { transform: rotate(360deg); }
 }
 
 /* ============ MY WALL — the wall calendar ============ */

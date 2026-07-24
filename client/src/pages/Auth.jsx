@@ -26,94 +26,63 @@ export default function Auth({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-white flex">
-      {/* Left panel — art */}
-      <div className="hidden lg:flex w-[45%] bg-black items-end justify-center p-10 relative overflow-hidden">
-        <img src="/art/kiss.png" alt="" className="absolute inset-0 w-full h-full object-cover opacity-90" />
-        <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-black/80 to-transparent" />
-        <div className="relative z-10 text-white mb-10">
-          <div className="h-[4px] bg-[var(--stamp)] w-[60px] mb-8" />
-          <p className="t-display text-[2.5rem] mb-4">
-            The Ledger
-          </p>
-          <p className="text-[0.625rem] tracking-[0.12em] uppercase opacity-70">
-            Task management, filed properly.
-          </p>
-          <p className="text-[0.4375rem] tracking-[0.12em] uppercase opacity-40 mt-3">
-            fig. kiss.png — evidence of joy, filed 2026
-          </p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-white flex items-center justify-center px-8">
+      <div className="w-full max-w-[360px]">
+        <p className="t-label mb-4 text-center">{mode === 'login' ? 'Sign In' : 'Create Account'}</p>
+        <h1
+          className="mb-12 text-center"
+          style={{ fontFamily: "'Magnetic Drawing', 'Gochi Hand', cursive", fontSize: '2.6rem', lineHeight: 1.1 }}
+        >
+          {mode === 'login' ? 'Welcome Back' : 'New Entry'}
+        </h1>
 
-      {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center px-8">
-        <div className="w-full max-w-[360px]">
-          {/* Mobile logo */}
-          <div className="lg:hidden mb-12 text-center">
-            <img src="/art/ledgerlogo.jpg" alt="" className="w-[60px] mx-auto mb-3 mix-blend-multiply" />
-            <p className="t-title text-[1.1rem]">
-              The Ledger
-            </p>
-          </div>
+        {error && (
+          <p className="text-[0.5625rem] text-[var(--stamp)] tracking-[0.04em] text-center mb-8">{error}</p>
+        )}
 
-          <div className="rule-8 mb-12" />
-
-          <p className="t-label mb-6">{mode === 'login' ? 'Sign In' : 'Create Account'}</p>
-          <h1 className="t-display text-[2rem] mb-4">
-            {mode === 'login' ? 'Welcome Back' : 'New Entry'}
-          </h1>
-          <div className="rule-4 mb-10" style={{ background: 'var(--stamp)', width: '40px' }} />
-
-          {error && (
-            <div className="border-2 border-[var(--stamp)] p-3 mb-8">
-              <p className="text-[0.5625rem] text-[var(--stamp)] tracking-[0.04em]">{error}</p>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {mode === 'register' && (
+            <div>
+              <label className="t-label block mb-3">Name</label>
+              <input type="text" value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="input-field" placeholder="Your name" required />
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6 margin-line">
-            {mode === 'register' && (
-              <div>
-                <label className="t-label block mb-3">Name</label>
-                <input type="text" value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="input-field" placeholder="Your name" required />
-              </div>
-            )}
+          <div>
+            <label className="t-label block mb-3">Email</label>
+            <input type="email" value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              className="input-field" placeholder="you@email.com" required autoFocus />
+          </div>
 
-            <div>
-              <label className="t-label block mb-3">Email</label>
-              <input type="email" value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="input-field" placeholder="you@email.com" required autoFocus />
-            </div>
+          <div>
+            <label className="t-label block mb-3">Password</label>
+            <input type="password" value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              className="input-field" placeholder={mode === 'register' ? '6+ characters' : 'Your password'} required
+              minLength={mode === 'register' ? 6 : undefined} />
+          </div>
 
-            <div>
-              <label className="t-label block mb-3">Password</label>
-              <input type="password" value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className="input-field" placeholder={mode === 'register' ? '6+ characters' : 'Your password'} required
-                minLength={mode === 'register' ? 6 : undefined} />
-            </div>
-
-            <div className="pt-4">
-              <button type="submit" disabled={loading}
-                className="btn-black w-full justify-center disabled:opacity-20">
-                <ArrowRight className="w-3 h-3" strokeWidth={3} />
-                {loading ? 'Working...' : mode === 'login' ? 'Sign In' : 'Create Account'}
-              </button>
-            </div>
-          </form>
-
-          <div className="rule mt-10 mb-6" />
-
-          <p className="t-small text-center">
-            {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}{' '}
-            <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }}
-              className="text-black underline underline-offset-2 hover:text-[var(--stamp)] transition-colors">
-              {mode === 'login' ? 'Register' : 'Sign In'}
+          <div className="pt-4">
+            <button type="submit" disabled={loading}
+              className="btn-black w-full justify-center disabled:opacity-20">
+              <ArrowRight className="w-3 h-3" strokeWidth={3} />
+              {loading ? 'Working...' : mode === 'login' ? 'Sign In' : 'Create Account'}
             </button>
-          </p>
-        </div>
+          </div>
+        </form>
+
+        <p className="t-small text-center mt-8">
+          {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}{' '}
+          <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }}
+            className="text-black underline underline-offset-2 hover:text-[var(--stamp)] transition-colors">
+            {mode === 'login' ? 'Register' : 'Sign In'}
+          </button>
+        </p>
+
+        <img src="/art/bloom.png" alt="" className="w-[150px] mx-auto mt-14 mix-blend-multiply" />
       </div>
     </div>
   );

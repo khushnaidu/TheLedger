@@ -15,9 +15,33 @@ export default function TvSet() {
   const [channel, setChannel] = useState(0);
   const [powered, setPowered] = useState(false);
   const [tuning, setTuning] = useState(false);
+  const [big, setBig] = useState(false);
   const timerRef = useRef(null);
+  const frameRef = useRef(null);
+  const playTimeRef = useRef(0);
 
   useEffect(() => () => clearTimeout(timerRef.current), []);
+
+  // YT streams currentTime via infoDelivery once we send the listening handshake
+  useEffect(() => {
+    const onMsg = (e) => {
+      if (!/youtube/.test(e.origin)) return;
+      try {
+        const d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+        if (d?.info?.currentTime !== undefined) playTimeRef.current = d.info.currentTime;
+      } catch { /* not ours */ }
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  // Escape closes the big screen
+  useEffect(() => {
+    if (!big) return;
+    const onKey = (e) => { if (e.key === 'Escape') setBig(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [big]);
 
   const changeChannel = (i) => {
     if (powered && i === channel) return;
@@ -30,38 +54,58 @@ export default function TvSet() {
     }, 650);
   };
 
+  const nextChannel = () => changeChannel(powered ? (channel + 1) % CHANNELS.length : channel);
+
+  const openBig = () => {
+    if (!powered) changeChannel(channel);
+    setBig(true);
+  };
+
+  const post = (msg) => {
+    frameRef.current?.contentWindow?.postMessage(
+      JSON.stringify({ ...msg, id: 'ledgertv', channel: 'widget' }), '*'
+    );
+  };
+
+  const skip30 = () => post({ event: 'command', func: 'seekTo', args: [playTimeRef.current + 30, true] });
+
   const current = CHANNELS[channel];
 
   return (
     <div className="tv-set">
-      {/* the player sits behind the photo; the screen hole in tv.png reveals it */}
-      <div className="tv-photo-wrap">
+      {big && <div className="tv-overlay" onClick={() => setBig(false)} />}
+
+      {/* ONE tv, ONE iframe — going big is pure CSS, so playback never restarts */}
+      <div className={`tv-photo-wrap ${big ? 'tv-photo-big' : ''}`}>
         <img src="/art/actual_tv.png" alt="" className="tv-chassis" />
         <div className="tv-screen-cut">
           {powered && !tuning && (
             <iframe
-              src={current.src}
+              ref={frameRef}
+              src={`${current.src}&enablejsapi=1`}
               title={`channel ${current.name}`}
               allow="autoplay; encrypted-media; picture-in-picture"
               allowFullScreen
+              onLoad={() => post({ event: 'listening' })}
             />
           )}
-          {tuning && <div className="tv-static" />}
-          {!powered && !tuning && <div className="tv-static" />}
+          {(tuning || !powered) && <div className="tv-static" />}
         </div>
+        {big && (
+          <div className="tv-big-controls">
+            <button type="button" className="win-btn" onClick={nextChannel}>Next Channel</button>
+            <button type="button" className="win-btn" onClick={skip30} disabled={tuning}>Skip +30s</button>
+            <span className="tv-big-hint">hover the screen to scrub · esc to close</span>
+          </div>
+        )}
       </div>
-      <div className="tv-knob-row">
-        {CHANNELS.map((ch, i) => (
-          <button
-            key={ch.name}
-            onClick={() => changeChannel(i)}
-            className={`tv-knob ${powered && i === channel ? 'tv-knob-on' : ''}`}
-            title={ch.name}
-          >
-            {i + 1}
-          </button>
-        ))}
+
+      {/* grey 90s buttons */}
+      <div className="tv-btn-row">
+        <button type="button" className="win-btn win-btn-sm" onClick={nextChannel}>Next CH</button>
+        <button type="button" className="win-btn win-btn-sm" onClick={openBig}>Big Screen</button>
       </div>
+
       <div className="tv-status-row">
         <span className="tv-brand">Ledgervision</span>
         <span className="tv-channel-name">

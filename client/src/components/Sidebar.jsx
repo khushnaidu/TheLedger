@@ -47,8 +47,7 @@ export default function Sidebar({ user, onLogout }) {
         </p>
       </div>
 
-      <div className="mx-5 mt-2 rule-4 mb-[2px]" />
-      <div className="mx-5 rule" />
+      <div className="mt-2" style={{ borderTop: '1px solid var(--ink)' }} />
 
       {/* User + date */}
       <div className="px-5 pt-2 pb-1 flex items-baseline justify-between">
@@ -66,7 +65,7 @@ export default function Sidebar({ user, onLogout }) {
       </div>
 
       {/* Bureau counters */}
-      <div className="mx-5 mt-1 mb-1 border-t border-b border-black py-1">
+      <div className="px-5 mt-1 mb-1 py-1" style={{ borderTop: '1px solid var(--ink)', borderBottom: '1px solid var(--ink)' }}>
         <div className="counter-table">
           {[
             ['Entries', stats?.total],
@@ -111,7 +110,7 @@ export default function Sidebar({ user, onLogout }) {
             to={to}
             end={to === '/'}
             className={({ isActive }) =>
-              `block px-5 py-2.5 text-[0.6875rem] uppercase tracking-[0.12em] border-t border-[var(--ink-08)] ${
+              `block px-5 py-2.5 text-[0.6875rem] uppercase tracking-[0.12em] border-t border-[var(--ink)] ${
                 isActive
                   ? 'bg-black text-white'
                   : 'text-[var(--ink-50)] hover:text-[var(--ink)]'
@@ -142,7 +141,7 @@ export default function Sidebar({ user, onLogout }) {
       </div>
 
       {/* Logout */}
-      <div className="px-4 py-2.5 border-t border-[var(--ink-08)]">
+      <div className="px-4 py-2.5 border-t border-[var(--ink)]">
         <button onClick={onLogout} className="btn-ghost w-full justify-center">
           <LogOut className="w-3 h-3" /> Sign Out
         </button>

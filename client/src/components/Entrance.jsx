@@ -6,62 +6,34 @@ export default function Entrance({ userName, onEnter }) {
 
   return (
     <div className="fixed inset-0 z-[100] bg-white flex items-center justify-center entrance-screen">
-      {/* Background art — faded, atmospheric */}
-      <img
-        src="/art/peace.png"
-        alt=""
-        className="absolute inset-0 w-full h-full object-cover opacity-[0.16]"
-      />
-      <span className="fig-caption absolute bottom-4 left-6 z-10">
-        fig. peace.png — and nothing else
-      </span>
+      <div className="relative z-10 text-center px-8 entrance-content">
+        <h1
+          className="entrance-title mx-auto max-w-[900px]"
+          style={{
+            fontFamily: 'var(--font-head)',
+            fontWeight: 700,
+            fontSize: 'clamp(2.2rem, 5vw, 3.6rem)',
+            lineHeight: 1.05,
+            letterSpacing: '-0.03em',
+            textTransform: 'lowercase',
+          }}
+        >
+          willkommen zurück bei <span className="whitespace-nowrap">„the ledger“</span>
+        </h1>
 
-      {/* Content */}
-      <div className="relative z-10 text-center entrance-content">
-        {/* Logo */}
-        <img
-          src="/art/ledgerlogo.jpg"
-          alt=""
-          className="w-[100px] mx-auto mb-6 mix-blend-multiply entrance-logo"
-        />
-
-        {/* Title */}
-        <div className="mb-3">
-          <div className="rule-4 w-[50px] mx-auto mb-8" />
-          <h1 className="t-display text-[3.5rem] entrance-title">
-            The Ledger
-          </h1>
-        </div>
-
-        <p className="t-label mb-2 entrance-subtitle">Task Management, Filed Properly</p>
-
-        <div className="rule w-[200px] mx-auto mt-8 mb-8 entrance-rule" />
-
-        {/* Welcome */}
-        <p className="text-[0.75rem] tracking-[0.08em] text-[var(--ink-30)] mb-12 entrance-welcome">
-          Welcome back, {userName}
-        </p>
-
-        {/* One way in */}
-        <div className="flex items-center justify-center entrance-buttons">
+        <div className="flex items-center justify-center mt-14 entrance-buttons">
           <button
             onClick={onEnter}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
-            className="group relative border-2 border-black px-12 py-5 transition-all duration-150 hover:bg-black hover:text-white"
+            className="group relative px-12 py-5 transition-all duration-150 hover:bg-black hover:text-white"
+            style={{ border: '2px solid var(--ink)' }}
           >
-            <span className="text-[0.625rem] tracking-[0.14em] uppercase">Enter the Ledger</span>
+            <span className="text-[0.625rem] tracking-[0.14em] lowercase">eintreten</span>
             {hovered && (
               <ArrowRight className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 opacity-60" />
             )}
           </button>
-        </div>
-
-        {/* Stamp */}
-        <div className="mt-16 entrance-stamp">
-          <span className="stamp stamp-red text-[0.5rem]">
-            {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-          </span>
         </div>
       </div>
     </div>

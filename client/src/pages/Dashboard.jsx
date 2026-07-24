@@ -15,6 +15,30 @@ const DEDICATION_STYLE = {
   letterSpacing: '-0.015em',
 };
 
+// a wheel of words half-buried in the screen edge, forever turning
+function ValarWheel({ size = 300 }) {
+  const c = size / 2;
+  const r = c - 26;
+  const circ = 2 * Math.PI * r;
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} aria-hidden="true">
+      <defs>
+        <path id="valar-orbit" d={`M ${c},${c - r} a ${r},${r} 0 1,1 -0.01,0`} fill="none" />
+      </defs>
+      <g className="valar-spin">
+        <text
+          fill="var(--ink)"
+          style={{ fontFamily: "'Magnetic Drawing', 'Gochi Hand', cursive", fontSize: 25, letterSpacing: '0.1em' }}
+        >
+          <textPath href="#valar-orbit" textLength={circ} lengthAdjust="spacingAndGlyphs">
+            valar morghulis · valar morghulis · valar morghulis · valar morghulis · valar morghulis ·
+          </textPath>
+        </text>
+      </g>
+    </svg>
+  );
+}
+
 // hover lens — reveals the english translation through a circle under the cursor
 function DedicationLens() {
   const boxRef = useRef(null);
@@ -122,8 +146,8 @@ export default function Dashboard() {
 
       {/* The kid and the numbers, side by side */}
       <div className="flex items-start gap-10 mb-16 relative z-10">
-        <div className="flex-shrink-0">
-          <img src="/art/babykhush.gif" alt="" data-parallax="0.12" className="block w-[270px] -ml-10" />
+        <div data-parallax="0.12" className="flex-shrink-0">
+          <img src="/art/babykhush.gif" alt="" className="block w-[270px] -ml-10" />
           <p className="fig-caption mt-2 -ml-10">fig. babykhush.gif — the original archivist</p>
         </div>
         <div className="flex-1 flex flex-wrap items-start gap-x-10 gap-y-5 pt-1">
@@ -186,24 +210,23 @@ export default function Dashboard() {
 
       {/* the margin float — gosling up top, a small bourdain rocketing past the globe below */}
       <div>
-        <img
-          src="/art/gosling.gif"
-          alt=""
-          data-parallax="0.38"
-          className="art-loose w-[235px] h-[420px] object-cover right-[-350px] top-[150px] z-[5]"
-        />
-        <img
-          src="/art/bourdain.gif"
-          alt=""
-          data-parallax="0.65"
-          className="art-loose w-[160px] right-[-200px] top-[1520px] z-20"
-        />
+        <div data-parallax="0.38" className="art-loose w-[235px] right-[-350px] top-[150px] z-[5]">
+          <img src="/art/gosling.gif" alt="" className="block w-full h-[420px] object-cover" />
+          <p className="fig-caption mt-2">fig. gosling.gif — hey girl</p>
+        </div>
+        {/* half the wheel lives beyond the edge — overflow-x-clip trims it flush */}
+        <div className="art-loose right-[-600px] top-[640px] z-[5]">
+          <ValarWheel size={480} />
+        </div>
+        <div data-parallax="0.65" className="art-loose w-[160px] right-[-200px] top-[1520px] z-20">
+          <img src="/art/bourdain.gif" alt="" className="block w-full" />
+          <p className="fig-caption mt-2">fig. bourdain.gif — parts unknown</p>
+        </div>
         {/* the dragon guards the bottom of the ledger */}
-        <img
-          src="/art/dragon.gif"
-          alt=""
-          className="art-loose w-[240px] right-[-150px] bottom-[-10px] z-0"
-        />
+        <div className="art-loose w-[240px] right-[-150px] bottom-[-10px] z-0">
+          <img src="/art/dragon.gif" alt="" className="block w-full" />
+          <p className="fig-caption mt-2">fig. dragon.gif — guards the lower margin</p>
+        </div>
         {/* для Таи — hover to decode */}
         <DedicationLens />
       </div>
@@ -211,10 +234,14 @@ export default function Dashboard() {
       {/* Big and small — the world spins, the kiss undercuts it */}
       <div className="mb-24 relative z-0">
         <div className="flex items-start">
-          <img src="/art/herewegoagain.gif" alt="" data-parallax="0.22" className="block w-[250px] shrink-0" />
+          <div data-parallax="0.22" className="w-[250px] shrink-0">
+            <img src="/art/herewegoagain.gif" alt="" className="block w-full" />
+            <p className="fig-caption mt-2">fig. herewegoagain.gif — every monday</p>
+          </div>
           <div className="ml-auto -mr-16 shrink-0">
             <WireGlobe size={580} />
-            <div className="mt-1 mr-12 ml-auto max-w-[320px] text-right select-none">
+            <p className="fig-caption text-right mr-12">fig. situation globe — live, drag to rotate</p>
+            <div className="mt-3 mr-12 ml-auto max-w-[320px] text-right select-none">
               <p className="t-label mb-3">Sector 00 · Headquarters</p>
               <p className="text-[0.5625rem] leading-[1.9] tracking-[0.1em] uppercase text-[var(--ink-30)]">
                 Recognized seat of executive motion. Verdicts issued at this desk
@@ -225,11 +252,10 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-        <img src="/art/kiss.png" alt="" data-parallax="0.3" className="block w-[360px] -ml-16 -mt-28 relative z-10" />
-        <p className="fig-caption mt-3">
-          fig. herewegoagain.gif — every monday · fig. situation globe — live, drag to rotate ·
-          fig. kiss.png — evidence of joy
-        </p>
+        <div data-parallax="0.3" className="w-[360px] -ml-16 -mt-28 relative z-10">
+          <img src="/art/kiss.png" alt="" className="block w-full" />
+          <p className="fig-caption mt-2">fig. kiss.png — evidence of joy</p>
+        </div>
       </div>
 
       {/* Quiet footer actions */}
