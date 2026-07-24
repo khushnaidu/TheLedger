@@ -214,10 +214,10 @@ export default function Board() {
                       ? 'border-[var(--stamp)] bg-[var(--stamp)] text-white'
                       : 'border-[var(--ink-15)]'
                   }`}>
-                  <img src="/art/blackholesun.gif" alt="" className={`ledger-only h-9 w-9 object-cover ${isOver ? '' : 'opacity-60 grayscale'}`} />
+                  <img src="/art/globe.gif" alt="" className={`ledger-only h-9 w-9 object-cover ${isOver ? '' : 'opacity-60 grayscale'}`} />
                   <Trash2 className={`w-4 h-4 transition-transform duration-150 ${isOver ? 'scale-125' : 'text-[var(--ink-30)]'}`} />
                   <span className={`text-[0.625rem] tracking-[0.14em] uppercase ${isOver ? '' : 'text-[var(--ink-30)]'}`}>
-                    {isOver ? 'Into the black hole sun' : 'Drag here to delete'}
+                    {isOver ? 'Off the face of the earth' : 'Drag here to delete'}
                   </span>
                   <div className="hidden">{provided.placeholder}</div>
                 </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RefreshCw } from 'lucide-react';
 import { api } from '../api';
+import WireGlobe from '../components/WireGlobe';
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -150,14 +151,8 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Loose art — raw, unapologetic, never blocks a click */}
+      {/* The rail — bourdain walks beside you the whole way down */}
       <div className="ledger-only">
-        <img
-          src="/art/peace.png"
-          alt=""
-          className="art-loose w-[460px] right-[-100px] top-[640px] z-0 opacity-[0.16]"
-        />
-        {/* The rail — bourdain walks beside you the whole way down */}
         <img
           src="/art/bourdain.gif"
           alt=""
@@ -165,15 +160,26 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Big and small — the sun stares back, the kiss undercuts it */}
+      {/* Big and small — the world spins, the kiss undercuts it */}
       <div className="ledger-only mb-24 relative z-0">
         <div className="flex items-start">
-          <img src="/art/herewegoagain.gif" alt="" className="block w-[250px]" />
-          <img src="/art/blackholesun.gif" alt="" className="block w-[440px] ml-auto -mr-14" />
+          <img src="/art/herewegoagain.gif" alt="" className="block w-[250px] shrink-0" />
+          <div className="ml-auto -mr-16 shrink-0">
+            <WireGlobe size={580} />
+            <div className="mt-1 mr-12 ml-auto max-w-[320px] text-right select-none">
+              <p className="t-label mb-3">Sector 00 · Headquarters</p>
+              <p className="text-[0.5625rem] leading-[1.9] tracking-[0.1em] uppercase text-[var(--ink-30)]">
+                Recognized seat of executive motion. Verdicts issued at this desk
+                propagate outward at the speed of paperwork. No committee, no
+                quorum — one archivist, planetary jurisdiction. All decisions
+                final upon filing. Coordinates: your chair.
+              </p>
+            </div>
+          </div>
         </div>
         <img src="/art/kiss.png" alt="" className="block w-[360px] -ml-16 -mt-28 relative z-10" />
         <p className="fig-caption mt-3">
-          fig. herewegoagain.gif — every monday · fig. blackholesun.gif — stare directly at it ·
+          fig. herewegoagain.gif — every monday · fig. situation globe — live, drag to rotate ·
           fig. kiss.png — evidence of joy
         </p>
       </div>
