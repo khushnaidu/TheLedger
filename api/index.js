@@ -11,7 +11,6 @@ const ticketRoutes = require('../server/src/routes/tickets');
 const categoryRoutes = require('../server/src/routes/categories');
 const labelRoutes = require('../server/src/routes/labels');
 const statsRoutes = require('../server/src/routes/stats');
-const canvasRoutes = require('../server/src/routes/canvas');
 const aiRoutes = require('../server/src/routes/ai');
 
 const app = express();
@@ -27,7 +26,6 @@ app.use('/api/tickets', authMiddleware, ticketRoutes);
 app.use('/api/categories', authMiddleware, categoryRoutes);
 app.use('/api/labels', authMiddleware, labelRoutes);
 app.use('/api/stats', authMiddleware, statsRoutes);
-app.use('/api/canvas', authMiddleware, canvasRoutes);
 app.use('/api/ai', authMiddleware, aiRoutes);
 
 module.exports = app;
