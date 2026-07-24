@@ -9,6 +9,8 @@ export default function CreateTicket() {
   const [categories, setCategories] = useState([]);
   const [labels, setLabels] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [newCat, setNewCat] = useState(null); // null = closed, string = draft name
+  const [creatingCat, setCreatingCat] = useState(false);
   const [form, setForm] = useState({ title: '', description: '', status: 'BACKLOG', priority: 'MEDIUM', categoryId: '', labelIds: [], dueDate: '' });
 
   useEffect(() => {
@@ -26,6 +28,19 @@ export default function CreateTicket() {
   };
 
   const toggleLabel = (lid) => { setForm((f) => ({ ...f, labelIds: f.labelIds.includes(lid) ? f.labelIds.filter((x) => x !== lid) : [...f.labelIds, lid] })); };
+
+  const addCategory = async () => {
+    const name = (newCat || '').trim();
+    if (!name || creatingCat) return;
+    setCreatingCat(true);
+    try {
+      const cat = await api.createCategory({ name });
+      setCategories((cs) => [...cs, cat]);
+      setForm((f) => ({ ...f, categoryId: cat.id }));
+      setNewCat(null);
+    } catch (e) { console.error(e); }
+    setCreatingCat(false);
+  };
 
   return (
     <div className="max-w-[640px] mx-auto">
@@ -85,9 +100,41 @@ export default function CreateTicket() {
           </div>
           <div>
             <label className="t-label block mb-3">Category</label>
-            <select value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })} className="select-field w-full">
+            <select
+              value={form.categoryId}
+              onChange={(e) => {
+                if (e.target.value === '__new__') { setNewCat(''); return; }
+                setForm({ ...form, categoryId: e.target.value });
+              }}
+              className="select-field w-full"
+            >
               {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              <option value="__new__">+ New category…</option>
             </select>
+            {newCat !== null && (
+              <div className="flex gap-2 mt-2">
+                <input
+                  type="text"
+                  autoFocus
+                  value={newCat}
+                  onChange={(e) => setNewCat(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') { e.preventDefault(); addCategory(); }
+                    if (e.key === 'Escape') setNewCat(null);
+                  }}
+                  placeholder="Name it..."
+                  className="input-field flex-1 text-[0.6875rem]"
+                />
+                <button
+                  type="button"
+                  onClick={addCategory}
+                  disabled={creatingCat || !(newCat || '').trim()}
+                  className="btn-black px-3 disabled:opacity-20 disabled:cursor-not-allowed"
+                >
+                  {creatingCat ? '...' : 'Add'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

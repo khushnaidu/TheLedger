@@ -31,8 +31,8 @@ router.post('/register', async (req, res) => {
       data: [
         { name: 'Work', color: '#000000', icon: 'briefcase', userId: user.id },
         { name: 'School', color: '#000000', icon: 'graduation-cap', userId: user.id },
+        { name: 'Adulting Chores', color: '#000000', icon: 'home', userId: user.id },
         { name: 'Personal', color: '#000000', icon: 'user', userId: user.id },
-        { name: 'Documentation', color: '#000000', icon: 'file-text', userId: user.id },
       ],
     });
     await prisma.label.createMany({

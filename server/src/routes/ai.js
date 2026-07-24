@@ -25,8 +25,8 @@ CONVERSATION RULES:
 2. Auto-detect the category from context:
    - School/academic work (assignments, exams, papers, labs, courses) → "School"
    - Work/professional tasks → "Work"
-   - Documentation/writing → "Docs"
-   - Personal tasks (errands, health, social) → "Personal"
+   - Household upkeep and life admin (groceries, cleaning, sweeping, laundry, dishes, errands, bills, appointments) → "Adulting Chores"
+   - Everything else personal (health, social, hobbies, fun, rest) → "Personal"
    - If no clear match, pick the closest available category
 
 3. Auto-detect appropriate labels from context:
@@ -61,7 +61,7 @@ const TOOLS = [
               status: { type: 'string', enum: ['BACKLOG', 'TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'] },
               priority: { type: 'string', enum: ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] },
               dueDate: { type: 'string', description: 'Due date YYYY-MM-DD or empty' },
-              categoryName: { type: 'string', description: 'Category: School, Work, Personal, Docs, etc.' },
+              categoryName: { type: 'string', description: 'Category: School, Work, Adulting Chores, Personal, etc.' },
               labels: { type: 'array', items: { type: 'string' }, description: 'Relevant label names' },
             },
             required: ['title', 'description', 'status', 'priority'],
