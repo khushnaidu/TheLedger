@@ -240,7 +240,7 @@ export default function Dashboard() {
           </div>
           <div className="ml-auto -mr-16 shrink-0">
             <WireGlobe size={580} />
-            <p className="fig-caption text-right mr-12">fig. situation globe — live, drag to rotate</p>
+            <p className="fig-caption text-right mr-12">fig. situation globe — live. drag to spin · scroll to zoom · click the bay</p>
             <div className="mt-3 mr-12 ml-auto max-w-[320px] text-right select-none">
               <p className="t-label mb-3">Sector 00 · Headquarters</p>
               <p className="text-[0.5625rem] leading-[1.9] tracking-[0.1em] uppercase text-[var(--ink-30)]">
