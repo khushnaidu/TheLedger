@@ -59,8 +59,11 @@ export default function TicketDetail() {
 
         {/* Sidebar */}
         <div className="space-y-8 stagger">
-          {/* Stamps art — strong editorial element at top of sidebar */}
-          <img src="/art/randomstamps.jpg" alt="" className="w-[120px] mx-auto mix-blend-multiply opacity-90" />
+          {/* One entry, handled gently */}
+          <div className="w-full">
+            <img src="/art/gosling.gif" alt="" className="w-full" />
+            <span className="fig-caption ledger-only">fig. gosling.gif — handle with care</span>
+          </div>
 
           <div>
             <p className="t-label mb-4">Status</p>

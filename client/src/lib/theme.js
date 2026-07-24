@@ -8,9 +8,9 @@ export const THEMES = {
 export const THEME_ASSETS = {
   ledger: {
     logo: '/art/ledgerlogo.jpg',
-    sidebarBottom: '/art/sidebarbottom.jpg',
-    emptyColumn: '/art/couchrandom.jpg',
-    headerArt: '/art/handblack.jpg',
+    sidebarBottom: '/art/cuties.png',
+    emptyColumn: '/art/peace.png',
+    headerArt: '/art/whiplash.gif',
     soundtrack: '/audio/soundtrack.mp3',
   },
   tome: {

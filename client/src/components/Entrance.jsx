@@ -8,10 +8,13 @@ export default function Entrance({ userName, onEnter }) {
     <div className="fixed inset-0 z-[100] bg-white flex items-center justify-center entrance-screen">
       {/* Background art — faded, atmospheric */}
       <img
-        src="/art/buildings.jpg"
+        src="/art/peace.png"
         alt=""
-        className="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-[0.06]"
+        className="absolute inset-0 w-full h-full object-cover opacity-[0.16]"
       />
+      <span className="fig-caption absolute bottom-4 left-6 z-10">
+        fig. peace.png — and nothing else
+      </span>
 
       {/* Content */}
       <div className="relative z-10 text-center entrance-content">
@@ -25,7 +28,7 @@ export default function Entrance({ userName, onEnter }) {
         {/* Title */}
         <div className="mb-3">
           <div className="rule-4 w-[50px] mx-auto mb-8" />
-          <h1 className="text-[3.5rem] leading-[0.85] tracking-[-0.05em] uppercase entrance-title">
+          <h1 className="t-display text-[3.5rem] entrance-title">
             The Ledger
           </h1>
         </div>

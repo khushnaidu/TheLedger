@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Plus, LogOut, Wand2 } from 'lucide-react';
+import { api } from '../api';
 import { getLevelInfo, getTotalXP } from '../lib/xp';
 import { useTheme } from '../lib/ThemeContext';
+import TvSet from './TvSet';
 
 const navItems = [
   { to: '/', label: 'Dashboard' },
@@ -15,6 +17,7 @@ export default function Sidebar({ user, onLogout }) {
   const navigate = useNavigate();
   const { theme, toggle, assets, appTitle } = useTheme();
   const [levelInfo, setLevelInfo] = useState(() => getLevelInfo(getTotalXP()));
+  const [stats, setStats] = useState(null);
 
   useEffect(() => {
     const handler = (e) => setLevelInfo(e.detail.level);
@@ -22,33 +25,71 @@ export default function Sidebar({ user, onLogout }) {
     return () => window.removeEventListener('gus-xp-gained', handler);
   }, []);
 
+  useEffect(() => {
+    const load = () => api.getStats().then(setStats).catch(() => {});
+    load();
+    window.addEventListener('gus-tickets-created', load);
+    window.addEventListener('gus-ticket-moved', load);
+    return () => {
+      window.removeEventListener('gus-tickets-created', load);
+      window.removeEventListener('gus-ticket-moved', load);
+    };
+  }, []);
+
   // Re-compute title when theme changes
   useEffect(() => {
     setLevelInfo(getLevelInfo(getTotalXP()));
   }, [theme]);
 
+  const pad = (n) => String(n ?? 0).padStart(4, '0');
+
   return (
     <aside className="fixed left-0 top-0 h-screen w-[220px] bg-white flex flex-col z-50 border-r-[3px] border-black overflow-hidden">
-      {/* Logo art */}
-      <div className="px-5 pt-6 pb-2 flex flex-col items-center">
-        <img src={assets.logo} alt="" className="w-[90px] mb-3 mix-blend-multiply" />
-        <p className="text-[1.1rem] leading-[0.85] tracking-[-0.04em] uppercase text-center">
+      {/* The television sits where the logo used to — persistent across pages */}
+      <div className="px-5 pt-4 pb-2 flex flex-col items-center">
+        <img src={assets.logo} alt="" className="tome-only w-[80px] mb-2" />
+        <TvSet />
+        <p className="t-title text-[1.05rem] uppercase text-center mt-2">
           {appTitle}
         </p>
       </div>
 
-      <div className="mx-5 mt-3 rule-4 mb-1" />
+      <div className="mx-5 mt-2 rule-4 mb-[2px]" />
       <div className="mx-5 rule" />
 
       {/* User + date */}
-      <div className="px-5 pt-3 pb-1">
+      <div className="px-5 pt-2 pb-1 flex items-baseline justify-between">
         <p className="t-label">{user?.name}</p>
-        <p className="t-label mt-1" style={{ color: 'var(--ink-15)' }}>
-          {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+        <p className="text-[0.5rem] tracking-[0.1em]" style={{ color: 'var(--ink-30)' }}>
+          {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '.')}
         </p>
       </div>
 
-      {/* XP Level badge */}
+      {/* The staff */}
+      <div className="px-5 pt-2 flex items-start gap-2 ledger-only">
+        <img src="/art/selfie-cap.png" alt="" className="w-[52px]" />
+        <img src="/art/selfie-bandana.png" alt="" className="w-[52px] mt-3" />
+        <span className="fig-caption mt-1" style={{ writingMode: 'vertical-rl' }}>the staff</span>
+      </div>
+
+      {/* Bureau counters */}
+      <div className="mx-5 mt-1 mb-1 ledger-only border-t border-b border-black py-1">
+        <div className="counter-table">
+          {[
+            ['Entries', stats?.total],
+            ['Done', stats?.byStatus?.DONE],
+            ['Active', stats?.byStatus?.IN_PROGRESS],
+            ['Categories', stats?.byCategory?.length],
+          ].map(([label, n]) => (
+            <div key={label} className="counter-row">
+              <span>{label}</span>
+              <span className="counter-num">{pad(n)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* XP Level */}
       <div className="mx-5 mt-2 mb-1">
         <div className="flex items-center justify-between mb-1">
           <span className="text-[0.5rem] tracking-[0.16em] text-[var(--ink-30)] uppercase">
@@ -60,7 +101,7 @@ export default function Sidebar({ user, onLogout }) {
         </div>
         <div className="w-full h-[3px] bg-[var(--ink-08)]">
           <div
-            className="h-full bg-[var(--ink)] transition-all duration-500"
+            className="h-full bg-[var(--ink)]"
             style={{ width: `${Math.min(levelInfo.progress * 100, 100)}%` }}
           />
         </div>
@@ -69,54 +110,54 @@ export default function Sidebar({ user, onLogout }) {
         </p>
       </div>
 
-      {/* Nav */}
-      <nav className="pt-5 pb-4 space-y-0">
-        {navItems.map(({ to, label }) => (
+      {/* Nav — numbered index */}
+      <nav className="pt-4 pb-3 space-y-0">
+        {navItems.map(({ to, label }, i) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
             className={({ isActive }) =>
-              `block px-5 py-3 text-[0.6875rem] uppercase tracking-[0.12em] transition-all duration-75 ${
+              `block px-5 py-2.5 text-[0.6875rem] uppercase tracking-[0.12em] border-t border-[var(--ink-08)] ${
                 isActive
                   ? 'bg-black text-white'
-                  : 'text-[var(--ink-30)] hover:text-[var(--ink)]'
+                  : 'text-[var(--ink-50)] hover:text-[var(--ink)]'
               }`
             }
           >
+            <span className="nav-index-num">{String(i + 1).padStart(2, '0')}</span>
             {label}
           </NavLink>
         ))}
       </nav>
 
       {/* Create */}
-      <div className="px-4 pb-3">
-        <button onClick={() => navigate('/tickets/new')} className="btn-black w-full justify-center py-3.5">
+      <div className="px-4 pb-2">
+        <button onClick={() => navigate('/tickets/new')} className="btn-black w-full justify-center py-3">
           <Plus className="w-3 h-3" strokeWidth={3} />
           New Entry
         </button>
       </div>
 
       {/* Theme toggle */}
-      <div className="px-4 pb-3">
-        <button onClick={toggle} className="btn-outline w-full justify-center py-2.5 text-[0.5rem]">
+      <div className="px-4 pb-2">
+        <button onClick={toggle} className="btn-outline w-full justify-center py-2 text-[0.5rem]">
           <Wand2 className="w-3 h-3" />
           {theme === 'ledger' ? 'Enter the Tome' : 'Return to Ledger'}
         </button>
       </div>
 
       {/* Bottom art */}
-      <div className="relative mt-auto flex-1 min-h-[100px]">
+      <div className="relative mt-auto flex-1 min-h-[90px]">
         <img
           src={assets.sidebarBottom}
           alt=""
-          className="absolute bottom-0 left-0 w-full h-full object-cover object-top mix-blend-multiply opacity-90"
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[92%] max-h-full object-contain object-bottom"
         />
-        <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-white to-transparent" />
       </div>
 
       {/* Logout */}
-      <div className="px-4 py-3 border-t border-[var(--ink-08)]">
+      <div className="px-4 py-2.5 border-t border-[var(--ink-08)]">
         <button onClick={onLogout} className="btn-ghost w-full justify-center">
           <LogOut className="w-3 h-3" /> Sign Out
         </button>

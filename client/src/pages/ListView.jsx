@@ -117,20 +117,30 @@ export default function ListView() {
     : '';
 
   return (
-    <div className="max-w-[960px] mx-auto">
-      <div className="rule-8 mb-16" />
-
+    <div className="max-w-[960px] mx-auto relative">
       {/* Header */}
-      <div className="flex items-end justify-between mb-16">
-        <div>
-          <p className="t-label mb-6">Archive</p>
-          <h1 className="t-display text-[2.5rem]">All Entries</h1>
-        </div>
-        <img src="/art/randomstamps.jpg" alt="" className="w-[140px] mix-blend-multiply opacity-90" />
+      <div className="flex items-baseline gap-6 mb-6">
+        <h1 className="t-display text-[2rem]">The Archive</h1>
+        <p className="t-label">
+          Every entry, accounted for — <span className="counter-num">{String(visibleTickets.length).padStart(4, '0')}</span> on record
+        </p>
+      </div>
+
+      {/* The approval, drawn out vertically beside the records */}
+      <div className="art-loose ledger-only right-[-130px] top-[120px] w-[115px]">
+        <img
+          src="/art/approves.png"
+          alt=""
+          className="w-full h-[450px] block"
+          style={{ objectFit: 'fill' }}
+        />
+        <p className="fig-caption mt-2">
+          fig. approves.png — elongated, still approving
+        </p>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-10">
+      <div className="flex flex-wrap gap-3 mb-6 border-t border-b border-black py-2">
         <form onSubmit={handleSearch} className="flex-1 min-w-[200px] relative">
           <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--ink-15)]" />
           <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
@@ -176,11 +186,11 @@ export default function ListView() {
       )}
 
       {/* Table */}
-      <div className="border-t-[3px] border-black">
+      <div className="border-t-2 border-black">
         <table className="w-full">
           <thead>
-            <tr className="border-b-[2px] border-black">
-              <th className="w-8 py-4 pr-2">
+            <tr className="border-b border-black">
+              <th className="w-8 py-2.5 pr-2">
                 <button onClick={selectAll}
                   className={`w-4 h-4 border-2 flex items-center justify-center transition-all ${
                     selected.size === visibleTickets.length && visibleTickets.length > 0
@@ -189,6 +199,7 @@ export default function ListView() {
                   {selected.size === visibleTickets.length && visibleTickets.length > 0 && <Check className="w-2.5 h-2.5" strokeWidth={3} />}
                 </button>
               </th>
+              <th className="w-10 text-left py-2.5 pr-2 t-label">№</th>
               {[
                 { key: 'title', label: 'Entry' },
                 { key: 'status', label: 'Status' },
@@ -198,7 +209,7 @@ export default function ListView() {
                 { key: 'createdAt', label: 'Filed' },
               ].map(({ key, label }) => (
                 <th key={key} onClick={() => toggleSort(key === 'category' ? 'categoryId' : key)}
-                  className="text-left px-0 pr-4 py-4 t-label cursor-pointer hover:text-black transition-colors">
+                  className="text-left px-0 pr-4 py-2.5 t-label cursor-pointer hover:text-black">
                   <div className="flex items-center gap-1">{label}<ArrowUpDown className="w-2.5 h-2.5 opacity-30" /></div>
                 </th>
               ))}
@@ -207,7 +218,7 @@ export default function ListView() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={8} className="py-20 text-center">
+              <tr><td colSpan={9} className="py-20 text-center">
                 <div className="flex flex-col items-center">
                   <div className="loader mb-4"><div className="loader-bar" /><div className="loader-bar" /><div className="loader-bar" /><div className="loader-bar" /></div>
                   <p className="t-label">Loading entries...</p>
@@ -215,34 +226,35 @@ export default function ListView() {
               </td></tr>
             ) : visibleTickets.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-16 text-center">
-                  <img src="/art/couchrandom.jpg" alt="" className="w-[100px] mx-auto mix-blend-multiply opacity-90 mb-4" />
-                  <p className="t-small">No entries found</p>
+                <td colSpan={9} className="py-16 text-center">
+                  <img src="/art/keepgoing.png" alt="" className="w-[110px] mx-auto mb-4" />
+                  <p className="t-small">No entries found — i tried, i'm trying</p>
                 </td>
               </tr>
-            ) : visibleTickets.map((ticket) => (
+            ) : visibleTickets.map((ticket, idx) => (
               <tr key={ticket.id}
                 onClick={() => !selectMode && navigate(`/tickets/${ticket.id}`)}
-                className={`transition-all border-b border-[var(--ink-08)] cursor-pointer hover:bg-[var(--ink-04)] ${
+                className={`border-b border-[var(--ink-08)] cursor-pointer hover:bg-[var(--ink-04)] ${
                   selected.has(ticket.id) ? 'bg-[var(--ink-04)]' : ''
                 }`}>
-                <td className="py-4 pr-2">
+                <td className="py-2.5 pr-2">
                   <button onClick={(e) => toggleSelect(e, ticket.id)}
-                    className={`w-4 h-4 border-2 flex items-center justify-center transition-all ${
+                    className={`w-4 h-4 border flex items-center justify-center ${
                       selected.has(ticket.id)
                         ? 'border-black bg-black text-white' : 'border-[var(--ink-15)] hover:border-black'
                     }`}>
                     {selected.has(ticket.id) && <Check className="w-2.5 h-2.5" strokeWidth={3} />}
                   </button>
                 </td>
-                <td className="py-4 pr-4 text-[0.6875rem] max-w-[260px] truncate">{ticket.title}</td>
-                <td className="py-4 pr-4"><StatusBadge status={ticket.status} /></td>
-                <td className="py-4 pr-4"><PriorityBadge priority={ticket.priority} /></td>
-                <td className="py-4 pr-4 t-small">{ticket.category?.name || '—'}</td>
-                <td className="py-4 pr-4 t-small">{ticket.dueDate ? new Date(ticket.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}</td>
-                <td className="py-4 pr-4 t-small">{new Date(ticket.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td>
-                <td className="py-4">
-                  <button onClick={(e) => handleSingleDelete(e, ticket.id)} className="text-[var(--ink-15)] hover:text-[var(--stamp)] transition-all p-1">
+                <td className="py-2.5 pr-2 t-small counter-num">{String(idx + 1).padStart(3, '0')}</td>
+                <td className="py-2.5 pr-4 text-[0.6875rem] max-w-[260px] truncate">{ticket.title}</td>
+                <td className="py-2.5 pr-4"><StatusBadge status={ticket.status} /></td>
+                <td className="py-2.5 pr-4"><PriorityBadge priority={ticket.priority} /></td>
+                <td className="py-2.5 pr-4 t-small">{ticket.category?.name || '—'}</td>
+                <td className="py-2.5 pr-4 t-small counter-num">{ticket.dueDate ? new Date(ticket.dueDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '.') : '—'}</td>
+                <td className="py-2.5 pr-4 t-small counter-num">{new Date(ticket.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '.')}</td>
+                <td className="py-2.5">
+                  <button onClick={(e) => handleSingleDelete(e, ticket.id)} className="text-[var(--ink-15)] hover:text-[var(--stamp)] p-1">
                     <Trash2 className="w-3 h-3" />
                   </button>
                 </td>
@@ -261,7 +273,15 @@ export default function ListView() {
         />
       )}
 
-      <div className="rule mt-16 mb-10" />
+      {/* Even the backlog */}
+      <div className="ledger-only mt-16">
+        <img src="/art/withlove.png" alt="" className="block w-[240px] -ml-6" />
+        <p className="fig-caption mt-2 ml-1">
+          fig. withlove.png — everything is beautiful when you look at it with love. even the backlog.
+        </p>
+      </div>
+
+      <div className="rule mt-10 mb-10" />
     </div>
   );
 }

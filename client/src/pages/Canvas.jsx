@@ -150,7 +150,10 @@ export default function Canvas() {
           <h1 className="t-display text-[2.5rem] mb-4">Canvas LMS</h1>
           <div className="rule-4" style={{ background: 'var(--stamp)', width: '60px' }} />
         </div>
-        <img src="/art/randomstamps.jpg" alt="" className="w-[120px] mix-blend-multiply opacity-90 flex-shrink-0 -mt-4" />
+        <div className="flex-shrink-0 -mt-4 w-[170px]">
+          <img src="/art/keepgoing.png" alt="" className="w-full" />
+          <span className="fig-caption ledger-only">fig. keepgoing.png — i tried, i'm trying</span>
+        </div>
       </div>
 
       {error && (
@@ -346,6 +349,7 @@ export default function Canvas() {
           <div className="rule mt-16 mb-10" />
         </>
       )}
+
     </div>
   );
 }

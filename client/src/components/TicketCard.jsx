@@ -1,6 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import { Clock, CheckCircle } from 'lucide-react';
+import { Clock, CheckCircle, Folder } from 'lucide-react';
 import { PRIORITY_CONFIG } from '../constants';
+
+const fmt = (d) =>
+  new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '.');
 
 export default function TicketCard({ ticket, isDragging }) {
   const navigate = useNavigate();
@@ -16,48 +19,56 @@ export default function TicketCard({ ticket, isDragging }) {
   return (
     <div
       onClick={() => navigate(`/tickets/${ticket.id}`)}
-      className={`panel p-5 cursor-pointer bg-white ${isDragging ? 'shadow-[4px_4px_0_#000] -translate-x-0.5 -translate-y-0.5' : ''} ${isDone ? 'opacity-60' : ''}`}
-      style={isCritical ? { borderColor: 'var(--stamp)' } : isDone ? { borderColor: '#2a7d4f' } : {}}
+      className={`panel p-3 cursor-pointer bg-white ${isDragging ? 'shadow-[3px_3px_0_#000]' : ''} ${isDone ? 'opacity-50' : ''}`}
+      style={isCritical ? { borderColor: 'var(--stamp)' } : {}}
     >
-      {/* Meta */}
-      <div className="flex items-center justify-between mb-3">
+      {/* Top meta line */}
+      <div className="meta-strip justify-between mb-2" style={{ gap: '4px 8px' }}>
         {isDone ? (
-          <span className="t-label" style={{ color: '#2a7d4f' }}>
-            <span className="flex items-center gap-1"><CheckCircle className="w-2.5 h-2.5" /> Done</span>
+          <span className="meta-item">
+            <CheckCircle /> Filed
           </span>
         ) : (
-          <span className="t-label" style={{ color: isCritical ? 'var(--stamp)' : undefined }}>
-            {priority.label}
+          <span className="meta-item" style={isCritical ? { color: 'var(--stamp)' } : {}}>
+            PRI · {priority.label}
           </span>
         )}
         {ticket.category && (
-          <span className="t-label">{ticket.category.name}</span>
+          <span className="meta-item">
+            <Folder /> {ticket.category.name}
+          </span>
         )}
       </div>
 
       {/* Title */}
-      <h3 className={`t-heading text-[0.75rem] mb-2 ${isDone ? 'line-through' : ''}`}>{ticket.title}</h3>
+      <h3 className={`entry-title text-[0.8125rem] mb-1.5 ${isDone ? 'line-through' : ''}`}>
+        {ticket.title}
+      </h3>
 
       {/* Labels */}
       {ticket.labels?.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-2">
+        <div className="mb-1">
           {ticket.labels.map((label) => (
-            <span key={label.id} className="t-label" style={{ color: 'var(--ink-30)' }}>
-              [{label.name}]
+            <span key={label.id} className="tag-box tag-box-mute">
+              {label.name}
             </span>
           ))}
         </div>
       )}
 
-      {/* Due */}
+      {/* Bottom meta line */}
       {ticket.dueDate && (
-        <div className={`flex items-center gap-1.5 mt-3 t-small ${
-          isDone ? 'text-[#2a7d4f]' : isOverdue || isDueSoon ? 'text-[var(--stamp)]' : ''
-        }`}>
-          <Clock className="w-2.5 h-2.5" />
-          {new Date(ticket.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-          {isOverdue && <span className="stamp stamp-red text-[0.4375rem] py-0 px-1 ml-1">Late</span>}
-          {isDueSoon && !isOverdue && <span className="stamp stamp-red text-[0.4375rem] py-0 px-1 ml-1">{daysLeft === 0 ? 'Today' : `${daysLeft}d`}</span>}
+        <div className={`meta-strip mt-1.5 ${isOverdue || isDueSoon ? 'text-[var(--stamp)]' : ''}`}
+          style={isOverdue || isDueSoon ? { color: 'var(--stamp)' } : {}}>
+          <span className="meta-item">
+            <Clock /> {fmt(ticket.dueDate)}
+          </span>
+          {isOverdue && <span className="stamp stamp-red text-[0.4375rem] py-0 px-1">Late</span>}
+          {isDueSoon && !isOverdue && (
+            <span className="stamp stamp-red text-[0.4375rem] py-0 px-1">
+              {daysLeft === 0 ? 'Today' : `${daysLeft}d`}
+            </span>
+          )}
         </div>
       )}
     </div>

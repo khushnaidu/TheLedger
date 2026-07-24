@@ -29,14 +29,18 @@ export default function Auth({ onLogin }) {
     <div className="min-h-screen bg-white flex">
       {/* Left panel — art */}
       <div className="hidden lg:flex w-[45%] bg-black items-end justify-center p-10 relative overflow-hidden">
-        <img src="/art/buildings.jpg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-lighten" />
+        <img src="/art/kiss.png" alt="" className="absolute inset-0 w-full h-full object-cover opacity-90" />
+        <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-black/80 to-transparent" />
         <div className="relative z-10 text-white mb-10">
           <div className="h-[4px] bg-[var(--stamp)] w-[60px] mb-8" />
-          <p className="text-[2.5rem] leading-[0.9] tracking-[-0.04em] uppercase mb-4">
+          <p className="t-display text-[2.5rem] mb-4">
             The Ledger
           </p>
-          <p className="text-[0.625rem] tracking-[0.12em] uppercase opacity-50">
+          <p className="text-[0.625rem] tracking-[0.12em] uppercase opacity-70">
             Task management, filed properly.
+          </p>
+          <p className="text-[0.4375rem] tracking-[0.12em] uppercase opacity-40 mt-3">
+            fig. kiss.png — evidence of joy, filed 2026
           </p>
         </div>
       </div>
@@ -47,7 +51,7 @@ export default function Auth({ onLogin }) {
           {/* Mobile logo */}
           <div className="lg:hidden mb-12 text-center">
             <img src="/art/ledgerlogo.jpg" alt="" className="w-[60px] mx-auto mb-3 mix-blend-multiply" />
-            <p className="text-[1.1rem] leading-[0.85] tracking-[-0.04em] uppercase">
+            <p className="t-title text-[1.1rem]">
               The Ledger
             </p>
           </div>

@@ -5,6 +5,8 @@ import { ThemeProvider } from './lib/ThemeContext';
 import { getTheme } from './lib/theme';
 import Sidebar from './components/Sidebar';
 import SoundToggle from './components/SoundToggle';
+import Masthead from './components/Masthead';
+import Colophon from './components/Colophon';
 import Entrance from './components/Entrance';
 import GusAssistant from './components/GusAssistant';
 import Dashboard from './pages/Dashboard';
@@ -105,7 +107,8 @@ function App() {
           <div className="relative z-10 flex min-h-screen">
             <SoundToggle playing={playing} onToggle={toggleSound} />
             <Sidebar user={user} onLogout={handleLogout} />
-            <main className="flex-1 ml-[220px] px-10 py-8 overflow-auto flex flex-col min-h-screen">
+            <main className="flex-1 ml-[220px] px-10 py-6 overflow-y-auto overflow-x-clip flex flex-col min-h-screen">
+              <Masthead />
               <div className="flex-1">
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
@@ -117,8 +120,11 @@ function App() {
                   <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
               </div>
-              <footer className="py-6 text-center t-label tracking-[0.2em]">
-                Made by Khush
+              <footer className="pt-10 pb-4">
+                <Colophon />
+                <p className="tome-footer-note text-center t-label tracking-[0.2em] py-2">
+                  Made by Khush
+                </p>
               </footer>
             </main>
             <GusAssistant onTicketsCreated={() => {

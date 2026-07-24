@@ -138,14 +138,20 @@ export default function Board() {
   );
 
   return (
-    <div className="max-w-full">
-      <div className="rule-8 mb-16" />
-      <p className="t-label mb-6">{theme === 'tome' ? 'Battle Map' : 'Workflow'}</p>
-      <h1 className="t-display text-[2.5rem] mb-16">{theme === 'tome' ? 'Quest Board' : 'Board'}</h1>
+    <div className="max-w-full pb-[110px]">
+      <div className="flex items-baseline justify-between mb-6">
+        <div className="flex items-baseline gap-6">
+          <h1 className="t-display text-[2rem]">{theme === 'tome' ? 'Quest Board' : 'Board'}</h1>
+          <p className="t-label">{theme === 'tome' ? 'Battle Map' : 'Workflow — drag to reclassify'}</p>
+        </div>
+        <p className="t-label ledger-only">
+          {String(tickets.length).padStart(4, '0')} entries in circulation
+        </p>
+      </div>
 
       <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {/* Columns — fixed height, internal scroll */}
-        <div className="flex gap-6 overflow-x-auto" style={{ height: 'calc(100vh - 240px)' }}>
+        <div className="flex gap-4 overflow-x-auto" style={{ height: 'calc(100vh - 330px)', minHeight: '400px' }}>
           {STATUSES.map((status) => {
             const config = STATUS_CONFIG[status];
             const colTickets = columns[status] || [];
@@ -153,16 +159,16 @@ export default function Board() {
 
             return (
               <div key={status} className="flex-shrink-0 w-[240px] flex flex-col">
-                <div className={`mb-6 ${isActive ? 'rule-4' : 'rule-2'}`} style={isActive ? { background: 'var(--stamp)' } : {}} />
-                <div className="flex items-center justify-between mb-6">
+                <div className={`mb-2 ${isActive ? 'rule-4' : 'rule-2'}`} style={isActive ? { background: 'var(--stamp)' } : {}} />
+                <div className="flex items-baseline justify-between mb-3 border-b border-[var(--ink-08)] pb-2">
                   <span className={`t-label ${isActive ? 'text-[var(--stamp)]' : ''}`}>{statusLabels[status] || config.label}</span>
-                  <span className="t-small">{colTickets.length}</span>
+                  <span className="t-small counter-num">{String(colTickets.length).padStart(2, '0')}</span>
                 </div>
 
                 <Droppable droppableId={status}>
                   {(provided, snapshot) => (
                     <div ref={provided.innerRef} {...provided.droppableProps}
-                      className={`space-y-3 flex-1 overflow-y-auto pr-1 transition-colors ${snapshot.isDraggingOver ? 'bg-[var(--ink-04)] p-2 -m-2' : ''}`}>
+                      className={`space-y-2 flex-1 overflow-y-auto pr-1 ${snapshot.isDraggingOver ? 'bg-[var(--ink-04)] p-2 -m-2' : ''}`}>
                       {colTickets.map((ticket, index) => (
                         <Draggable key={ticket.id} draggableId={ticket.id} index={index}>
                           {(prov, snap) => (
@@ -181,8 +187,8 @@ export default function Board() {
                       {provided.placeholder}
                       {colTickets.length === 0 && !snapshot.isDraggingOver && (
                         <div className="pt-6 text-center">
-                          <img src={assets.emptyColumn} alt="" className="w-[70px] mx-auto mix-blend-multiply opacity-90 mb-2" />
-                          <span className="t-small">Empty</span>
+                          <img src={assets.emptyColumn} alt="" className="w-[120px] mx-auto mb-2" />
+                          <span className="t-small">Empty — peace and nothing else</span>
                         </div>
                       )}
                     </div>
@@ -195,7 +201,7 @@ export default function Board() {
         </div>
 
         {/* Trash bar — slides open below columns when dragging */}
-        <div className={`transition-all duration-200 overflow-hidden ${
+        <div className={`relative z-50 bg-white transition-all duration-200 overflow-hidden ${
           dragging ? 'max-h-[60px] opacity-100 mt-4' : 'max-h-0 opacity-0'
         }`}>
           <Droppable droppableId="TRASH">
@@ -208,9 +214,10 @@ export default function Board() {
                       ? 'border-[var(--stamp)] bg-[var(--stamp)] text-white'
                       : 'border-[var(--ink-15)]'
                   }`}>
+                  <img src="/art/blackholesun.gif" alt="" className={`ledger-only h-9 w-9 object-cover ${isOver ? '' : 'opacity-60 grayscale'}`} />
                   <Trash2 className={`w-4 h-4 transition-transform duration-150 ${isOver ? 'scale-125' : 'text-[var(--ink-30)]'}`} />
                   <span className={`text-[0.625rem] tracking-[0.14em] uppercase ${isOver ? '' : 'text-[var(--ink-30)]'}`}>
-                    {isOver ? 'Release to delete' : 'Drag here to delete'}
+                    {isOver ? 'Into the black hole sun' : 'Drag here to delete'}
                   </span>
                   <div className="hidden">{provided.placeholder}</div>
                 </div>
@@ -219,6 +226,10 @@ export default function Board() {
           </Droppable>
         </div>
       </DragDropContext>
+
+      {/* The sky, and Sev on patrol beneath it */}
+      <img src="/art/actuallyican.png" alt="" className="board-sky ledger-only" />
+      <img src="/art/sev.gif" alt="" className="sev-walk ledger-only" />
 
       {/* Undo toast */}
       {pendingDelete && (
