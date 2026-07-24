@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Volume2, VolumeX, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 export default function Entrance({ userName, onEnter }) {
-  const [hovered, setHovered] = useState(null);
+  const [hovered, setHovered] = useState(false);
 
   return (
     <div className="fixed inset-0 z-[100] bg-white flex items-center justify-center entrance-screen">
@@ -42,37 +42,17 @@ export default function Entrance({ userName, onEnter }) {
           Welcome back, {userName}
         </p>
 
-        {/* Two choices */}
-        <div className="flex items-center justify-center gap-6 entrance-buttons">
+        {/* One way in */}
+        <div className="flex items-center justify-center entrance-buttons">
           <button
-            onClick={() => onEnter(true)}
-            onMouseEnter={() => setHovered('sound')}
-            onMouseLeave={() => setHovered(null)}
-            className="group relative border-2 border-black px-10 py-5 transition-all duration-150 hover:bg-black hover:text-white"
+            onClick={onEnter}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            className="group relative border-2 border-black px-12 py-5 transition-all duration-150 hover:bg-black hover:text-white"
           >
-            <div className="flex items-center gap-3">
-              <Volume2 className="w-4 h-4" />
-              <span className="text-[0.625rem] tracking-[0.14em] uppercase">Enter with sound</span>
-            </div>
-            {hovered === 'sound' && (
+            <span className="text-[0.625rem] tracking-[0.14em] uppercase">Enter the Ledger</span>
+            {hovered && (
               <ArrowRight className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 opacity-60" />
-            )}
-          </button>
-
-          <button
-            onClick={() => onEnter(false)}
-            onMouseEnter={() => setHovered('silent')}
-            onMouseLeave={() => setHovered(null)}
-            className="group relative border-2 border-[var(--ink-15)] px-10 py-5 transition-all duration-150 hover:border-black"
-          >
-            <div className="flex items-center gap-3">
-              <VolumeX className="w-4 h-4 text-[var(--ink-30)]" />
-              <span className="text-[0.625rem] tracking-[0.14em] uppercase text-[var(--ink-30)] group-hover:text-black transition-colors">
-                Enter silent
-              </span>
-            </div>
-            {hovered === 'silent' && (
-              <ArrowRight className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 opacity-30" />
             )}
           </button>
         </div>

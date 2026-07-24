@@ -11,14 +11,12 @@ export const THEME_ASSETS = {
     sidebarBottom: '/art/cuties.png',
     emptyColumn: '/art/peace.png',
     headerArt: '/art/whiplash.gif',
-    soundtrack: '/audio/soundtrack.mp3',
   },
   tome: {
     logo: '/art/tome/tomelogo.png',
     sidebarBottom: '/art/tome/dungeon-bottom.png',
     emptyColumn: '/art/tome/empty-scroll.png',
     headerArt: '/art/tome/fortress-gate.png',
-    soundtrack: '/audio/tome-soundtrack.mp3',
   },
 };
 
