@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { api, isAuthenticated, setToken } from './api';
-import { ThemeProvider } from './lib/ThemeContext';
-import { getTheme } from './lib/theme';
 import Sidebar from './components/Sidebar';
 import Masthead from './components/Masthead';
 import Colophon from './components/Colophon';
@@ -13,7 +11,6 @@ import Board from './pages/Board';
 import ListView from './pages/ListView';
 import TicketDetail from './pages/TicketDetail';
 import CreateTicket from './pages/CreateTicket';
-import Canvas from './pages/Canvas';
 import Auth from './pages/Auth';
 
 function App() {
@@ -21,11 +18,6 @@ function App() {
   const [checking, setChecking] = useState(true);
   const [entered, setEntered] = useState(false);
   const [exiting, setExiting] = useState(false);
-
-  useEffect(() => {
-    // Set theme on initial load
-    document.documentElement.setAttribute('data-theme', getTheme());
-  }, []);
 
   useEffect(() => {
     if (isAuthenticated()) {
@@ -56,30 +48,25 @@ function App() {
 
   if (!user) {
     return (
-      <ThemeProvider>
-        <Router>
-          <Routes>
-            <Route path="*" element={<Auth onLogin={handleLogin} />} />
-          </Routes>
-        </Router>
-      </ThemeProvider>
+      <Router>
+        <Routes>
+          <Route path="*" element={<Auth onLogin={handleLogin} />} />
+        </Routes>
+      </Router>
     );
   }
 
   // Show entrance screen before entering the app
   if (!entered) {
     return (
-      <ThemeProvider>
-        <div className={exiting ? 'entrance-exit' : ''}>
-          <Entrance userName={user.name} onEnter={handleEnter} />
-        </div>
-      </ThemeProvider>
+      <div className={exiting ? 'entrance-exit' : ''}>
+        <Entrance userName={user.name} onEnter={handleEnter} />
+      </div>
     );
   }
 
   return (
-    <ThemeProvider>
-      <Router>
+    <Router>
         <div className="relative min-h-screen bg-white">
           <div className="relative z-10 flex min-h-screen">
             <Sidebar user={user} onLogout={handleLogout} />
@@ -92,15 +79,11 @@ function App() {
                   <Route path="/list" element={<ListView />} />
                   <Route path="/tickets/new" element={<CreateTicket />} />
                   <Route path="/tickets/:id" element={<TicketDetail />} />
-                  <Route path="/canvas" element={<Canvas />} />
                   <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
               </div>
               <footer className="pt-10 pb-4">
                 <Colophon />
-                <p className="tome-footer-note text-center t-label tracking-[0.2em] py-2">
-                  Made by Khush
-                </p>
               </footer>
             </main>
             <GusAssistant onTicketsCreated={() => {
@@ -108,8 +91,7 @@ function App() {
             }} />
           </div>
         </div>
-      </Router>
-    </ThemeProvider>
+    </Router>
   );
 }
 

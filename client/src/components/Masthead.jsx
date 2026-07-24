@@ -36,7 +36,7 @@ export default function Masthead() {
     'every entry accounted for',
     'bourdain.gif — patron saint of showing up',
     'peace and nothing else',
-    'globe.gif — where deleted entries go',
+    'fire.gif — where deleted entries go',
   ];
 
   return (

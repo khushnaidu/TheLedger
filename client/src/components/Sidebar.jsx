@@ -1,21 +1,19 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Plus, LogOut, Wand2 } from 'lucide-react';
+import { Plus, LogOut } from 'lucide-react';
 import { api } from '../api';
 import { getLevelInfo, getTotalXP } from '../lib/xp';
-import { useTheme } from '../lib/ThemeContext';
+import { APP_TITLE, ASSETS } from '../lib/theme';
 import TvSet from './TvSet';
 
 const navItems = [
   { to: '/', label: 'Dashboard' },
   { to: '/board', label: 'Board' },
   { to: '/list', label: 'Archive' },
-  { to: '/canvas', label: 'Canvas LMS' },
 ];
 
 export default function Sidebar({ user, onLogout }) {
   const navigate = useNavigate();
-  const { theme, toggle, assets, appTitle } = useTheme();
   const [levelInfo, setLevelInfo] = useState(() => getLevelInfo(getTotalXP()));
   const [stats, setStats] = useState(null);
 
@@ -36,21 +34,15 @@ export default function Sidebar({ user, onLogout }) {
     };
   }, []);
 
-  // Re-compute title when theme changes
-  useEffect(() => {
-    setLevelInfo(getLevelInfo(getTotalXP()));
-  }, [theme]);
-
   const pad = (n) => String(n ?? 0).padStart(4, '0');
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-[220px] bg-white flex flex-col z-50 border-r-[3px] border-black overflow-hidden">
+    <aside className="fixed left-0 top-0 h-screen w-[220px] bg-white flex flex-col z-50 overflow-hidden">
       {/* The television sits where the logo used to — persistent across pages */}
       <div className="px-5 pt-4 pb-2 flex flex-col items-center">
-        <img src={assets.logo} alt="" className="tome-only w-[80px] mb-2" />
         <TvSet />
         <p className="t-title text-[1.05rem] uppercase text-center mt-2">
-          {appTitle}
+          {APP_TITLE}
         </p>
       </div>
 
@@ -66,14 +58,14 @@ export default function Sidebar({ user, onLogout }) {
       </div>
 
       {/* The staff */}
-      <div className="px-5 pt-2 flex items-start gap-2 ledger-only">
+      <div className="px-5 pt-2 flex items-start gap-2">
         <img src="/art/selfie-cap.png" alt="" className="w-[52px]" />
         <img src="/art/selfie-bandana.png" alt="" className="w-[52px] mt-3" />
         <span className="fig-caption mt-1" style={{ writingMode: 'vertical-rl' }}>the staff</span>
       </div>
 
       {/* Bureau counters */}
-      <div className="mx-5 mt-1 mb-1 ledger-only border-t border-b border-black py-1">
+      <div className="mx-5 mt-1 mb-1 border-t border-b border-black py-1">
         <div className="counter-table">
           {[
             ['Entries', stats?.total],
@@ -139,18 +131,10 @@ export default function Sidebar({ user, onLogout }) {
         </button>
       </div>
 
-      {/* Theme toggle */}
-      <div className="px-4 pb-2">
-        <button onClick={toggle} className="btn-outline w-full justify-center py-2 text-[0.5rem]">
-          <Wand2 className="w-3 h-3" />
-          {theme === 'ledger' ? 'Enter the Tome' : 'Return to Ledger'}
-        </button>
-      </div>
-
       {/* Bottom art */}
       <div className="relative mt-auto flex-1 min-h-[90px]">
         <img
-          src={assets.sidebarBottom}
+          src={ASSETS.sidebarBottom}
           alt=""
           className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[92%] max-h-full object-contain object-bottom"
         />

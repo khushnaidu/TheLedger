@@ -62,7 +62,7 @@ export default function TicketDetail() {
           {/* One entry, handled gently */}
           <div className="w-full">
             <img src="/art/gosling.gif" alt="" className="w-full" />
-            <span className="fig-caption ledger-only">fig. gosling.gif — handle with care</span>
+            <span className="fig-caption">fig. gosling.gif — handle with care</span>
           </div>
 
           <div>

@@ -3,11 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { api } from '../api';
 import { STATUSES, PRIORITIES, STATUS_CONFIG, PRIORITY_CONFIG } from '../constants';
-import { useTheme } from '../lib/ThemeContext';
 
 export default function CreateTicket() {
   const navigate = useNavigate();
-  const { assets } = useTheme();
   const [categories, setCategories] = useState([]);
   const [labels, setLabels] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -45,8 +43,7 @@ export default function CreateTicket() {
           <div className="rule-4" style={{ background: 'var(--stamp)', width: '60px' }} />
         </div>
         <div className="flex-shrink-0 -mt-4 w-[180px]">
-          <img src={assets.headerArt} alt="" className="w-full tome-only" />
-          <div className="ledger-only">
+          <div>
             <img src="/art/bloom.png" alt="" className="w-full" />
             <span className="fig-caption">fig. bloom.png — never too late to bloom. file it.</span>
           </div>
@@ -57,7 +54,7 @@ export default function CreateTicket() {
       <img
         src="/art/whiplash.gif"
         alt=""
-        className="ledger-only fixed right-0 top-[215px] w-[250px] h-[62vh] object-cover z-[5] pointer-events-none select-none"
+        className="fixed right-0 top-[215px] w-[250px] h-[62vh] object-cover z-[5] pointer-events-none select-none"
       />
 
       <form onSubmit={handleSubmit} className="space-y-10 margin-line">

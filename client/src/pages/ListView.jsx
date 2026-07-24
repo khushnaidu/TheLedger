@@ -127,7 +127,7 @@ export default function ListView() {
       </div>
 
       {/* The approval, drawn out vertically beside the records */}
-      <div className="art-loose ledger-only right-[-130px] top-[120px] w-[115px]">
+      <div className="art-loose right-[-130px] top-[120px] w-[115px]">
         <img
           src="/art/approves.png"
           alt=""
@@ -274,7 +274,7 @@ export default function ListView() {
       )}
 
       {/* Even the backlog */}
-      <div className="ledger-only mt-16">
+      <div className="mt-16">
         <img src="/art/withlove.png" alt="" className="block w-[240px] -ml-6" />
         <p className="fig-caption mt-2 ml-1">
           fig. withlove.png — everything is beautiful when you look at it with love. even the backlog.

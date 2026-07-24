@@ -33,7 +33,7 @@ export default function TvSet() {
   const current = CHANNELS[channel];
 
   return (
-    <div className="tv-set ledger-only">
+    <div className="tv-set">
       {/* the player sits behind the photo; the screen hole in tv.png reveals it */}
       <div className="tv-photo-wrap">
         <img src="/art/actual_tv.png" alt="" className="tv-chassis" />

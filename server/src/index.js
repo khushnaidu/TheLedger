@@ -10,7 +10,6 @@ const ticketRoutes = require('./routes/tickets');
 const categoryRoutes = require('./routes/categories');
 const labelRoutes = require('./routes/labels');
 const statsRoutes = require('./routes/stats');
-const canvasRoutes = require('./routes/canvas');
 const aiRoutes = require('./routes/ai');
 
 const app = express();
@@ -28,7 +27,6 @@ app.use('/api/tickets', authMiddleware, ticketRoutes);
 app.use('/api/categories', authMiddleware, categoryRoutes);
 app.use('/api/labels', authMiddleware, labelRoutes);
 app.use('/api/stats', authMiddleware, statsRoutes);
-app.use('/api/canvas', authMiddleware, canvasRoutes);
 app.use('/api/ai', authMiddleware, aiRoutes);
 
 // Serve static frontend in production (non-Vercel)

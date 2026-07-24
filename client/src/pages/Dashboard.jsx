@@ -1,33 +1,75 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw } from 'lucide-react';
 import { api } from '../api';
 import WireGlobe from '../components/WireGlobe';
+
+const DEDICATION_RU =
+  '— Хуш верит в Таю и знает: сегодня она покорит каждую задачу, которую поставит перед собой, — и ещё успеет насладиться сладким угощением в конце дня :)';
+const DEDICATION_EN =
+  '— Khush believes in Taia and knows: today she will conquer every task she sets for herself — and will still have time to enjoy a sweet treat at the end of the day :)';
+const DEDICATION_STYLE = {
+  fontFamily: 'var(--font-head)',
+  fontWeight: 700,
+  fontSize: '1.8rem',
+  lineHeight: 1.05,
+  letterSpacing: '-0.015em',
+};
+
+// hover lens — reveals the english translation through a circle under the cursor
+function DedicationLens() {
+  const boxRef = useRef(null);
+  const [lens, setLens] = useState(null);
+  const R = 72;
+
+  return (
+    <div
+      ref={boxRef}
+      className="absolute right-[-150px] bottom-[240px] w-[430px] text-right z-30 select-none"
+      style={{ cursor: lens ? 'none' : 'default' }}
+      onMouseMove={(e) => {
+        const r = boxRef.current.getBoundingClientRect();
+        setLens({ x: e.clientX - r.left, y: e.clientY - r.top });
+      }}
+      onMouseLeave={() => setLens(null)}
+    >
+      <p style={{ ...DEDICATION_STYLE, color: 'var(--ink)' }}>{DEDICATION_RU}</p>
+      {lens && (
+        <>
+          <p
+            className="absolute inset-0 bg-white"
+            style={{
+              ...DEDICATION_STYLE,
+              color: 'var(--ink)',
+              clipPath: `circle(${R}px at ${lens.x}px ${lens.y}px)`,
+            }}
+          >
+            {DEDICATION_EN}
+          </p>
+          <div
+            className="absolute rounded-full border border-[var(--ink)] pointer-events-none"
+            style={{ left: lens.x - R, top: lens.y - R, width: R * 2, height: R * 2 }}
+          >
+            <span
+              className="absolute left-1/2 -translate-x-1/2 bg-white border border-[var(--ink)] px-1.5"
+              style={{ bottom: -8, fontSize: '0.4375rem', letterSpacing: '0.14em', fontFamily: 'var(--font)' }}
+            >
+              RU→EN
+            </span>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
-  const [syncResult, setSyncResult] = useState(null);
   const navigate = useNavigate();
 
-  const loadDashboard = async () => {
-    // Auto-sync Canvas in background (fire and forget on first load)
-    api.autoSyncCanvas()
-      .then((result) => {
-        if (result.imported > 0 || result.updated > 0) {
-          setSyncResult(result);
-          // Refresh stats after sync brought new data
-          api.getStats().then(setStats);
-        }
-      })
-      .catch(() => {}); // silently fail if Canvas not connected
-
-    // Load stats immediately (don't wait for sync)
+  useEffect(() => {
     api.getStats().then(setStats).catch(console.error).finally(() => setLoading(false));
-  };
-
-  useEffect(() => { loadDashboard(); }, []);
+  }, []);
 
   // Refresh when Gus creates tickets
   useEffect(() => {
@@ -49,17 +91,6 @@ export default function Dashboard() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const manualSync = async () => {
-    setSyncing(true);
-    try {
-      const result = await api.autoSyncCanvas();
-      setSyncResult(result);
-      const fresh = await api.getStats();
-      setStats(fresh);
-    } catch {}
-    setSyncing(false);
-  };
-
   if (loading) return (
     <div className="flex flex-col items-center justify-center py-32">
       <div className="loader mb-6"><div className="loader-bar" /><div className="loader-bar" /><div className="loader-bar" /><div className="loader-bar" /></div>
@@ -75,17 +106,6 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-[820px] stagger relative">
-      {/* Sync notification — a whisper, not a box */}
-      {syncResult && (syncResult.imported > 0 || syncResult.updated > 0) && (
-        <p className="t-small mb-8">
-          canvas brought {syncResult.imported > 0 && `${syncResult.imported} new`}
-          {syncResult.imported > 0 && syncResult.updated > 0 && ' and '}
-          {syncResult.updated > 0 && `${syncResult.updated} changed`}
-          {' — '}
-          <button onClick={() => setSyncResult(null)} className="btn-ghost inline">noted</button>
-        </p>
-      )}
-
       {/* Header — one headline, one number */}
       <div className="flex items-end justify-between pt-10 mb-6 relative z-10">
         <div>
@@ -102,7 +122,7 @@ export default function Dashboard() {
 
       {/* The kid and the numbers, side by side */}
       <div className="flex items-start gap-10 mb-16 relative z-10">
-        <div className="ledger-only flex-shrink-0">
+        <div className="flex-shrink-0">
           <img src="/art/babykhush.gif" alt="" data-parallax="0.12" className="block w-[270px] -ml-10" />
           <p className="fig-caption mt-2 -ml-10">fig. babykhush.gif — the original archivist</p>
         </div>
@@ -165,7 +185,7 @@ export default function Dashboard() {
       </div>
 
       {/* the margin float — gosling up top, a small bourdain rocketing past the globe below */}
-      <div className="ledger-only">
+      <div>
         <img
           src="/art/gosling.gif"
           alt=""
@@ -178,10 +198,18 @@ export default function Dashboard() {
           data-parallax="0.65"
           className="art-loose w-[160px] right-[-200px] top-[1520px] z-20"
         />
+        {/* the dragon guards the bottom of the ledger */}
+        <img
+          src="/art/dragon.gif"
+          alt=""
+          className="art-loose w-[240px] right-[-150px] bottom-[-10px] z-0"
+        />
+        {/* для Таи — hover to decode */}
+        <DedicationLens />
       </div>
 
       {/* Big and small — the world spins, the kiss undercuts it */}
-      <div className="ledger-only mb-24 relative z-0">
+      <div className="mb-24 relative z-0">
         <div className="flex items-start">
           <img src="/art/herewegoagain.gif" alt="" data-parallax="0.22" className="block w-[250px] shrink-0" />
           <div className="ml-auto -mr-16 shrink-0">
@@ -208,10 +236,6 @@ export default function Dashboard() {
       <div className="flex items-center gap-10 pb-16 relative z-10">
         <button onClick={() => navigate('/board')} className="btn-ghost">the board</button>
         <button onClick={() => navigate('/list')} className="btn-ghost">the archive</button>
-        <button onClick={manualSync} disabled={syncing} className="btn-ghost">
-          <RefreshCw className={`w-2.5 h-2.5 ${syncing ? 'animate-spin' : ''}`} />
-          sync canvas
-        </button>
       </div>
     </div>
   );

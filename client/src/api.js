@@ -68,14 +68,4 @@ export const api = {
   // AI Assistant
   generateTicket: (data) => request('/ai/generate-ticket', { method: 'POST', body: JSON.stringify(data) }),
   createTicketsFromGus: (data) => request('/ai/create-tickets', { method: 'POST', body: JSON.stringify(data) }),
-
-  // Canvas LMS
-  getCanvasStatus: () => request('/canvas/status'),
-  connectCanvas: (data) => request('/canvas/connect', { method: 'POST', body: JSON.stringify(data) }),
-  disconnectCanvas: () => request('/canvas/disconnect', { method: 'DELETE' }),
-  getCanvasCourses: () => request('/canvas/courses'),
-  getCanvasAssignments: (courseId) => request(`/canvas/courses/${courseId}/assignments`),
-  importCanvasAssignments: (data) => request('/canvas/import', { method: 'POST', body: JSON.stringify(data) }),
-  syncCanvas: () => request('/canvas/sync', { method: 'POST' }),
-  autoSyncCanvas: () => request('/canvas/auto-sync', { method: 'POST' }),
 };

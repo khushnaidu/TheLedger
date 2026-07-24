@@ -1,4 +1,4 @@
-import { getTheme, LEVEL_TITLES } from './theme';
+import { LEVEL_TITLES } from './theme';
 
 const STORAGE_KEY = 'ledger_xp';
 
@@ -25,8 +25,7 @@ function saveXPState(state) {
 }
 
 export function getLevelInfo(xp) {
-  const theme = getTheme();
-  const titles = LEVEL_TITLES[theme] || LEVEL_TITLES.ledger;
+  const titles = LEVEL_TITLES;
 
   let levelIdx = 0;
   for (let i = LEVEL_XP.length - 1; i >= 0; i--) {

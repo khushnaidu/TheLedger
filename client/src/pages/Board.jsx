@@ -7,7 +7,7 @@ import TicketCard from '../components/TicketCard';
 import UndoToast from '../components/UndoToast';
 import { awardXP } from '../lib/xp';
 import { updateQuestProgress } from '../lib/quests';
-import { useTheme } from '../lib/ThemeContext';
+import { ASSETS, STATUS_LABELS } from '../lib/theme';
 
 function urgencyScore(ticket) {
   if (!ticket.dueDate) {
@@ -18,7 +18,6 @@ function urgencyScore(ticket) {
 }
 
 export default function Board() {
-  const { theme, assets, statusLabels } = useTheme();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dragging, setDragging] = useState(false);
@@ -141,10 +140,10 @@ export default function Board() {
     <div className="max-w-full pb-[110px]">
       <div className="flex items-baseline justify-between mb-6">
         <div className="flex items-baseline gap-6">
-          <h1 className="t-display text-[2rem]">{theme === 'tome' ? 'Quest Board' : 'Board'}</h1>
-          <p className="t-label">{theme === 'tome' ? 'Battle Map' : 'Workflow — drag to reclassify'}</p>
+          <h1 className="t-display text-[2rem]">Board</h1>
+          <p className="t-label">Workflow — drag to reclassify</p>
         </div>
-        <p className="t-label ledger-only">
+        <p className="t-label">
           {String(tickets.length).padStart(4, '0')} entries in circulation
         </p>
       </div>
@@ -161,7 +160,7 @@ export default function Board() {
               <div key={status} className="flex-shrink-0 w-[240px] flex flex-col">
                 <div className={`mb-2 ${isActive ? 'rule-4' : 'rule-2'}`} style={isActive ? { background: 'var(--stamp)' } : {}} />
                 <div className="flex items-baseline justify-between mb-3 border-b border-[var(--ink-08)] pb-2">
-                  <span className={`t-label ${isActive ? 'text-[var(--stamp)]' : ''}`}>{statusLabels[status] || config.label}</span>
+                  <span className={`t-label ${isActive ? 'text-[var(--stamp)]' : ''}`}>{STATUS_LABELS[status] || config.label}</span>
                   <span className="t-small counter-num">{String(colTickets.length).padStart(2, '0')}</span>
                 </div>
 
@@ -177,7 +176,7 @@ export default function Board() {
                               <TicketCard ticket={ticket} isDragging={snap.isDragging} />
                               {stampingId === ticket.id && (
                                 <div className="done-stamp-overlay">
-                                  <span className="done-stamp">{theme === 'tome' ? 'Slain' : 'Done'}</span>
+                                  <span className="done-stamp">Done</span>
                                 </div>
                               )}
                             </div>
@@ -187,7 +186,7 @@ export default function Board() {
                       {provided.placeholder}
                       {colTickets.length === 0 && !snapshot.isDraggingOver && (
                         <div className="pt-6 text-center">
-                          <img src={assets.emptyColumn} alt="" className="w-[120px] mx-auto mb-2" />
+                          <img src={ASSETS.emptyColumn} alt="" className="w-[120px] mx-auto mb-2" />
                           <span className="t-small">Empty — peace and nothing else</span>
                         </div>
                       )}
@@ -202,22 +201,30 @@ export default function Board() {
 
         {/* Trash bar — slides open below columns when dragging */}
         <div className={`relative z-50 bg-white transition-all duration-200 overflow-hidden ${
-          dragging ? 'max-h-[60px] opacity-100 mt-4' : 'max-h-0 opacity-0'
+          dragging ? 'max-h-[100px] opacity-100 mt-4' : 'max-h-0 opacity-0'
         }`}>
           <Droppable droppableId="TRASH">
             {(provided, snapshot) => {
               const isOver = snapshot.isDraggingOver;
               return (
                 <div ref={provided.innerRef} {...provided.droppableProps}
-                  className={`flex items-center justify-center gap-3 py-4 border-2 border-dashed transition-all duration-150 ${
+                  className={`relative overflow-hidden flex items-center justify-center gap-3 py-6 border-2 border-dashed transition-all duration-150 ${
                     isOver
-                      ? 'border-[var(--stamp)] bg-[var(--stamp)] text-white'
+                      ? 'border-[var(--stamp)] bg-black text-white'
                       : 'border-[var(--ink-15)]'
                   }`}>
-                  <img src="/art/globe.gif" alt="" className={`ledger-only h-9 w-9 object-cover ${isOver ? '' : 'opacity-60 grayscale'}`} />
-                  <Trash2 className={`w-4 h-4 transition-transform duration-150 ${isOver ? 'scale-125' : 'text-[var(--ink-30)]'}`} />
-                  <span className={`text-[0.625rem] tracking-[0.14em] uppercase ${isOver ? '' : 'text-[var(--ink-30)]'}`}>
-                    {isOver ? 'Off the face of the earth' : 'Drag here to delete'}
+                  {/* the fire pit — two rows of flames, back row dimmer and offset */}
+                  <div
+                    className={`absolute inset-x-0 bottom-0 pointer-events-none transition-all duration-150 ${isOver ? 'h-[64px] opacity-70' : 'h-[40px] opacity-40'}`}
+                    style={{ backgroundImage: "url('/art/fire.gif')", backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%', backgroundPosition: '60px bottom' }}
+                  />
+                  <div
+                    className={`absolute inset-x-0 bottom-0 pointer-events-none transition-all duration-150 ${isOver ? 'h-[52px] opacity-100' : 'h-[30px] opacity-70'}`}
+                    style={{ backgroundImage: "url('/art/fire.gif')", backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%', backgroundPosition: 'bottom' }}
+                  />
+                  <Trash2 className={`relative z-10 w-4 h-4 transition-transform duration-150 ${isOver ? 'scale-125' : 'text-[var(--ink-30)]'}`} />
+                  <span className={`relative z-10 text-[0.625rem] tracking-[0.14em] uppercase ${isOver ? '' : 'text-[var(--ink-30)]'}`}>
+                    {isOver ? 'Into the fire pit' : 'Drag here to delete'}
                   </span>
                   <div className="hidden">{provided.placeholder}</div>
                 </div>
@@ -228,8 +235,8 @@ export default function Board() {
       </DragDropContext>
 
       {/* The sky, and Sev on patrol beneath it */}
-      <img src="/art/actuallyican.png" alt="" className="board-sky ledger-only" />
-      <img src="/art/sev.gif" alt="" className="sev-walk ledger-only" />
+      <img src="/art/actuallyican.png" alt="" className="board-sky" />
+      <img src="/art/sev.gif" alt="" className="sev-walk" />
 
       {/* Undo toast */}
       {pendingDelete && (
