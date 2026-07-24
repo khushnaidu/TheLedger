@@ -1,6 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Gochi+Hand&display=swap');
+
+/* scribbly display hand — public domain, shipped with the app */
+@font-face {
+  font-family: 'Magnetic Drawing';
+  src: url('/magnetic-drawing-font/MagneticDrawing-2vnO3.ttf') format('truetype');
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
@@ -471,125 +479,59 @@ b, strong, th {
 /* ── Gus Assistant ───────────────────────── */
 
 /* Clerk window — floats free in the top-right, attached to nothing */
-.gus-board-character {
+/* Gus peeps in from the right edge of the screen */
+.gus-peek {
   position: fixed;
-  top: 26px;
-  right: 24px;
+  top: 42vh;
+  right: 0;
   z-index: 100;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   cursor: pointer;
   font-family: var(--font);
   text-transform: uppercase;
 }
 
-.gus-window {
-  width: 120px;
-  border: 3px solid var(--line);
-  background: var(--ink-04);
-  overflow: visible;
-  position: relative;
-  transition: transform 0.2s ease;
-}
-
-.gus-board-character:hover .gus-window {
-  transform: scale(1.03);
-}
-
-/* The face — large, peering through the window */
-.gus-face-container {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  overflow: hidden;
-}
-
-.gus-face {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center top;
-  background: #fff;
+.gus-peek-face {
+  display: block;
+  width: 150px;
   mix-blend-mode: multiply;
-  transition: opacity 0.1s ease;
-  display: block;
+  transform: translateX(56%) rotate(-8deg);
+  transform-origin: 90% 100%;
+  animation: gusWiggle 9s ease-in-out infinite;
+  transition: transform 0.25s ease;
 }
 
-/* Nameplate under the window */
-.gus-nameplate {
-  width: 120px;
-  background: var(--ink);
-  color: #fff;
-  text-align: center;
-  padding: 5px 0;
-  font-size: 0.5rem;
-  letter-spacing: 0.2em;
-  border: 3px solid var(--line);
-  border-top: none;
+/* hover — he leans further in */
+.gus-peek:hover .gus-peek-face {
+  animation: none;
+  transform: translateX(24%) rotate(-11deg);
 }
 
-.gus-status-dot {
-  display: inline-block;
-  width: 5px;
-  height: 5px;
-  background: #22c55e;
-  margin-right: 5px;
-  vertical-align: middle;
+/* mostly still, a little wiggle at the end of each loop */
+@keyframes gusWiggle {
+  0%, 82%, 100% { transform: translateX(56%) rotate(-8deg); }
+  86% { transform: translateX(44%) rotate(-12deg); }
+  90% { transform: translateX(52%) rotate(-6deg); }
+  94% { transform: translateX(46%) rotate(-10deg); }
 }
 
-/* Quest bar under nameplate */
-.gus-quest-bar {
-  width: 120px;
-  padding: 4px 8px;
-  background: var(--ink-04);
-  border: 2px solid var(--ink-08);
-  border-top: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-}
-
-.gus-quest-done {
-  background: var(--ink);
-  border-color: var(--ink);
-}
-
-.gus-quest-text {
-  font-size: 0.375rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-50);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.gus-quest-done .gus-quest-text {
-  color: #fff;
-}
-
-.gus-quest-progress {
-  font-size: 0.375rem;
-  letter-spacing: 0.08em;
-  color: var(--ink-30);
-  flex-shrink: 0;
-}
-
-.gus-streak {
-  display: block;
-  font-size: 0.4375rem;
-  letter-spacing: 0.12em;
-  opacity: 0.6;
-  margin-top: 1px;
-}
-
-/* Hover speech bubble */
-.gus-window-bubble {
+/* vertical nameplate flush against the edge */
+.gus-peek-tab {
   position: absolute;
-  bottom: -8px;
-  right: 128px;
+  top: calc(100% + 2px);
+  right: 0;
+  writing-mode: vertical-rl;
+  background: var(--ink);
+  color: #fff;
+  padding: 8px 3px;
+  font-size: 0.4375rem;
+  letter-spacing: 0.22em;
+}
+
+/* Hover speech bubble — floats left of the peeking face */
+.gus-peek-bubble {
+  position: absolute;
+  top: 34%;
+  right: 84px;
   background: var(--ink);
   color: #fff;
   padding: 6px 10px;
@@ -603,7 +545,7 @@ b, strong, th {
   pointer-events: none;
 }
 
-.gus-window-bubble::after {
+.gus-peek-bubble::after {
   content: '';
   position: absolute;
   right: -4px;
@@ -615,16 +557,16 @@ b, strong, th {
   transform: rotate(45deg);
 }
 
-.gus-board-character:hover .gus-window-bubble {
+.gus-peek:hover .gus-peek-bubble {
   opacity: 1;
   transform: translateX(0);
 }
 
-/* Voice line — visible speech bubble on drag-drop */
-.gus-voice-line {
+/* Voice line — visible speech bubble on drag-drop / XP events */
+.gus-peek-voice {
   position: absolute;
-  bottom: -8px;
-  right: 128px;
+  top: 34%;
+  right: 84px;
   background: var(--ink);
   color: #fff;
   padding: 8px 12px;
@@ -636,7 +578,7 @@ b, strong, th {
   pointer-events: none;
 }
 
-.gus-voice-line::after {
+.gus-peek-voice::after {
   content: '';
   position: absolute;
   right: -4px;
@@ -653,22 +595,63 @@ b, strong, th {
   100% { opacity: 1; transform: translateX(0); }
 }
 
-/* Small face in chat header */
-.gus-face-container-sm {
-  position: relative;
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
+/* Quest + streak strip inside the chat panel */
+.gus-quest-strip {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--ink-04);
+  font-size: 0.4375rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-50);
 }
 
-.gus-face-sm {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border: 1px solid var(--line);
+.gus-quest-strip.gus-quest-done {
+  background: var(--ink);
+  color: #fff;
+}
+
+.gus-quest-strip-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gus-quest-strip-progress {
+  flex-shrink: 0;
+  color: var(--ink-30);
+}
+
+.gus-quest-done .gus-quest-strip-progress { color: #fff; }
+
+.gus-quest-strip-streak {
+  margin-left: auto;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+/* Obvious collapse button in the chat header */
+.gus-collapse-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font);
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border: 1px solid var(--ink);
   background: #fff;
-  mix-blend-mode: multiply;
-  transition: opacity 0.1s ease;
+  padding: 5px 9px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.gus-collapse-btn:hover {
+  background: var(--ink);
+  color: #fff;
 }
 
 /* Chat panel — anchored top-right */
@@ -1368,4 +1351,427 @@ b, strong, th {
 /* the sidebar keeps a true black hairline */
 aside {
   border-right: 1px solid var(--ink);
+}
+
+/* ============ MY WALL — the wall calendar ============ */
+
+:root {
+  --wall-ink: #221c13;
+  --wall-paper: #f5efe1;
+}
+
+/* perspective stage so the page flip has depth */
+.wall-flip-stage {
+  perspective: 1500px;
+}
+
+.wall-cal {
+  position: relative;
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+  background: var(--wall-paper);
+  padding: 26px 22px 18px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.16);
+  font-family: 'Gochi Hand', cursive;
+  color: var(--wall-ink);
+  transform-origin: top center;
+}
+
+/* the page lifts from the bottom, hinged where the tape is */
+.wall-flip-out {
+  animation: wallFlipOut 0.24s ease-in forwards;
+}
+
+.wall-flip-in {
+  animation: wallFlipIn 0.52s cubic-bezier(0.34, 1.35, 0.64, 1) forwards;
+}
+
+@keyframes wallFlipOut {
+  0% { transform: rotateX(0deg); }
+  100% { transform: rotateX(-86deg); opacity: 0.85; }
+}
+
+@keyframes wallFlipIn {
+  0% { transform: rotateX(-86deg); opacity: 0.85; }
+  55% { transform: rotateX(7deg); opacity: 1; }
+  76% { transform: rotateX(-4deg); }
+  100% { transform: rotateX(0deg); }
+}
+
+/* paper grain over everything — the page is a physical thing */
+.wall-cal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/art/papergrain.jpg') center / cover no-repeat;
+  opacity: 0.55;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* washi tape holding the page to the wall */
+.wall-tape {
+  position: absolute;
+  width: 92px;
+  height: 26px;
+  background: rgba(213, 205, 182, 0.65);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  z-index: 3;
+}
+
+.wall-tape-l { top: -11px; left: 36px; transform: rotate(-7deg); }
+.wall-tape-r { top: -11px; right: 36px; transform: rotate(5deg); }
+
+/* art of the month, boxed by a hand-drawn frame */
+.wall-art {
+  position: relative;
+  height: 235px;
+  overflow: visible;
+  margin: 0 8px;
+}
+
+.wall-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* the marker ink layers (grid + frames) */
+.wall-ink {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* month masthead — hand-lettered */
+.wall-masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 4px;
+  margin-top: -26px;
+  position: relative;
+  z-index: 1;
+}
+
+.wall-month {
+  font-size: 3.1rem;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--stamp);
+  transform: rotate(-1.2deg);
+  display: inline-block;
+  /* paper-colored sticker outline so the title reads over any month's art */
+  text-shadow:
+    2px 0 var(--wall-paper), -2px 0 var(--wall-paper),
+    0 2px var(--wall-paper), 0 -2px var(--wall-paper),
+    2px 2px var(--wall-paper), -2px -2px var(--wall-paper),
+    2px -2px var(--wall-paper), -2px 2px var(--wall-paper),
+    4px 4px 0 rgba(0, 0, 0, 0.18);
+}
+
+.wall-year {
+  font-size: 1.1rem;
+  letter-spacing: 0.14em;
+  color: var(--wall-ink);
+  transform: rotate(2deg);
+  display: inline-block;
+}
+
+.wall-nav {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  border: none;
+  background: transparent;
+  font-family: 'Gochi Hand', cursive;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wall-ink);
+  opacity: 0.75;
+  cursor: pointer;
+  transition: transform 0.12s, color 0.12s, opacity 0.12s;
+}
+
+.wall-nav:hover {
+  color: var(--stamp);
+  opacity: 1;
+  transform: scale(1.15) rotate(-2deg);
+}
+
+/* weekday header — handwritten caps */
+.wall-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wall-ink);
+  padding: 2px 8px 0;
+}
+
+.wall-weekdays span {
+  padding: 4px 10px 2px;
+  text-align: left;
+  transform: rotate(-0.6deg);
+}
+
+.wall-weekdays span:nth-child(2n) { transform: rotate(0.7deg); }
+
+.wall-sun { color: var(--stamp); }
+
+/* the day grid — ink lines live in the SVG behind it */
+.wall-grid-wrap {
+  position: relative;
+  margin: 0 8px 6px;
+}
+
+.wall-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.wall-day {
+  position: relative;
+  height: 96px;
+  padding: 5px 8px;
+  cursor: pointer;
+  transition: background 0.12s;
+  overflow: hidden;
+}
+
+.wall-day:hover { background: rgba(0, 0, 0, 0.035); }
+
+.wall-ghost { cursor: default; }
+.wall-ghost:hover { background: transparent; }
+.wall-ghost .wall-day-num { opacity: 0.25; }
+
+/* handwritten day number, top-right like the printed ones */
+.wall-day-num {
+  position: absolute;
+  top: 5px;
+  right: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  font-size: 1.05rem;
+  line-height: 1;
+  transform: rotate(1deg);
+}
+
+/* today — circled in red pen, slightly wobbly like a hand did it */
+.wall-today {
+  border: 2.5px solid var(--stamp);
+  border-radius: 52% 46% 50% 48% / 48% 52% 46% 52%;
+  transform: rotate(-5deg);
+  color: var(--stamp);
+}
+
+/* "notes:" scribbled in the first empty box */
+.wall-notes {
+  position: absolute;
+  top: 6px;
+  left: 9px;
+  font-size: 0.8rem;
+  color: var(--stamp);
+  transform: rotate(-1.5deg);
+}
+
+.wall-day-events {
+  margin-top: 24px;
+}
+
+.wall-event {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: none;
+  transform: rotate(-0.8deg);
+}
+
+.wall-event:nth-child(2n) { transform: rotate(0.6deg); }
+
+.wall-event-more {
+  opacity: 0.45;
+  font-size: 0.7rem;
+}
+
+/* a little photo taped into the day box */
+.wall-photo-wrap {
+  position: absolute;
+  top: 4px;
+  right: 32px;
+  display: inline-block;
+  transform: rotate(3deg);
+}
+
+.wall-photo-wrap::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 22px;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.09);
+  z-index: 2;
+}
+
+.wall-photo {
+  display: block;
+  max-height: 42px;
+  max-width: 58px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+/* wired calendars — same hand, no paper, straight on the page */
+.wall-feeds {
+  font-family: 'Gochi Hand', cursive;
+  color: var(--wall-ink);
+}
+
+.wall-feeds-title {
+  font-family: 'Magnetic Drawing', 'Gochi Hand', cursive;
+  font-size: 1.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--stamp);
+  transform: rotate(-0.8deg);
+  display: inline-block;
+}
+
+.wall-feed-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 0.95rem;
+  border-bottom: 1.5px dashed rgba(34, 28, 19, 0.25);
+}
+
+.wall-feed-kind {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  border: 1.5px solid var(--wall-ink);
+  padding: 0 6px;
+  transform: rotate(-1.2deg);
+  flex-shrink: 0;
+}
+
+.wall-feed-x {
+  border: none;
+  background: transparent;
+  color: var(--wall-ink);
+  opacity: 0.5;
+  cursor: pointer;
+  align-self: center;
+  transition: opacity 0.12s, color 0.12s, transform 0.12s;
+}
+
+.wall-feed-x:hover { opacity: 1; color: var(--stamp); transform: rotate(8deg); }
+
+/* handwriting on a ruled line */
+.wall-input {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--wall-ink);
+  font-family: 'Gochi Hand', cursive;
+  font-size: 1rem;
+  padding: 3px 2px;
+  color: var(--wall-ink);
+  outline: none;
+  text-transform: none;
+}
+
+.wall-input::placeholder { color: rgba(34, 28, 19, 0.35); }
+.wall-input:focus { border-color: var(--stamp); }
+
+/* a button drawn on with marker */
+.wall-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Magnetic Drawing', 'Gochi Hand', cursive;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 2px solid var(--wall-ink);
+  background: transparent;
+  color: var(--wall-ink);
+  padding: 3px 16px;
+  transform: rotate(-1deg);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.wall-btn:hover:not(:disabled) {
+  border-color: var(--stamp);
+  color: var(--stamp);
+  transform: rotate(1deg) scale(1.05);
+}
+
+.wall-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* squiggly-underlined links */
+.wall-hand-link {
+  font-family: 'Magnetic Drawing', 'Gochi Hand', cursive;
+  font-size: 1rem;
+  text-transform: lowercase;
+  color: var(--stamp);
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+  transition: transform 0.12s;
+}
+
+.wall-hand-link:hover { transform: rotate(-1.5deg) scale(1.06); display: inline-block; }
+
+.wall-feeds-help {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  opacity: 0.55;
+  text-transform: none;
+}
+
+/* the day sheet — slides in from the right */
+.day-sheet {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 340px;
+  z-index: 120;
+  background: #fff;
+  border-left: 1px solid var(--ink);
+  box-shadow: -10px 0 34px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font);
+  animation: daySheetIn 0.22s ease-out;
+}
+
+@keyframes daySheetIn {
+  0% { opacity: 0; transform: translateX(24px); }
+  100% { opacity: 1; transform: translateX(0); }
 }

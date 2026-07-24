@@ -8,6 +8,7 @@ import Entrance from './components/Entrance';
 import GusAssistant from './components/GusAssistant';
 import Dashboard from './pages/Dashboard';
 import Board from './pages/Board';
+import MyWall from './pages/MyWall';
 import ListView from './pages/ListView';
 import TicketDetail from './pages/TicketDetail';
 import CreateTicket from './pages/CreateTicket';
@@ -76,6 +77,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/board" element={<Board />} />
+                  <Route path="/wall" element={<MyWall />} />
                   <Route path="/list" element={<ListView />} />
                   <Route path="/tickets/new" element={<CreateTicket />} />
                   <Route path="/tickets/:id" element={<TicketDetail />} />

@@ -65,6 +65,19 @@ export const api = {
   // Stats
   getStats: () => request('/stats'),
 
+  // Wall calendar events
+  getEvents: (month) => request(`/events?month=${month}`),
+  createEvent: (data) => request('/events', { method: 'POST', body: JSON.stringify(data) }),
+  updateEvent: (id, data) => request(`/events/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteEvent: (id) => request(`/events/${id}`, { method: 'DELETE' }),
+  searchGiphy: (q) => request(`/events/giphy/search?q=${encodeURIComponent(q)}`),
+
+  // Calendar feed subscriptions (Google secret ICS / Apple public share)
+  getFeeds: () => request('/feeds'),
+  addFeed: (data) => request('/feeds', { method: 'POST', body: JSON.stringify(data) }),
+  deleteFeed: (id) => request(`/feeds/${id}`, { method: 'DELETE' }),
+  syncFeeds: (force = false) => request('/feeds/sync-all', { method: 'POST', body: JSON.stringify({ force }) }),
+
   // AI Assistant
   generateTicket: (data) => request('/ai/generate-ticket', { method: 'POST', body: JSON.stringify(data) }),
   createTicketsFromGus: (data) => request('/ai/create-tickets', { method: 'POST', body: JSON.stringify(data) }),

@@ -5,13 +5,7 @@ export const ASSETS = {
   emptyColumn: '/art/peace.png',
 };
 
-export const GUS_FACES = {
-  idle: '/gus/idle.png',
-  blinking: '/gus/blinking.png',
-  thinking: '/gus/thinking.png',
-  smiling: '/gus/smiling.png',
-  curious: '/gus/curious.png',
-};
+export const GUS_FACE = '/gus/idle.png';
 
 export const GUS_PERSONA = { name: 'Augustus "Gus"', role: 'Filing Clerk', status: 'On Duty', nameplate: 'Augustus' };
 
@@ -31,6 +25,7 @@ export const GUS_QUOTES = {
     '/board': ["The filing cabinet awaits...", "Need something organized?", "Drag, drop, conquer.", "Paperwork never sleeps."],
     '/list': ["The full archives, at your service.", "Every entry, accounted for.", "Need to find something specific?", "The records don't lie."],
     '/tickets/new': ["Filing a new one by hand? Respect.", "I could do that for you, y'know.", "Manual entry — old school. I like it.", "The pen is mightier than the keyboard."],
+    '/wall': ["Ah, the wall. Where the good days go.", "Tape something nice to it.", "A calendar with taste. Rare.", "Special occasions get special treatment."],
   },
   defaultQuotes: ["Gus is on standby.", "Click to summon the clerk.", "Need something filed?"],
   moveQuotes: {

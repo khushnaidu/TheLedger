@@ -18,6 +18,34 @@ model User {
   categories Category[]
   labels     Label[]
   canvas     CanvasIntegration?
+  events     CalendarEvent[]
+  feeds      CalendarFeed[]
+}
+
+model CalendarFeed {
+  id           String    @id @default(uuid())
+  url          String
+  label        String?
+  kind         String    @default("ics") // google | apple | ics
+  lastSyncedAt DateTime?
+  user         User      @relation(fields: [userId], references: [id])
+  userId       String
+  createdAt    DateTime  @default(now())
+}
+
+model CalendarEvent {
+  id         String   @id @default(uuid())
+  title      String
+  date       String   // "YYYY-MM-DD" — wall calendars think in days, not timestamps
+  note       String?
+  imageUrl   String?
+  source     String   @default("manual") // manual | google | ics
+  externalId String?  // dedupe key for synced events
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+  createdAt  DateTime @default(now())
+
+  @@index([userId, date])
 }
 
 model Ticket {

@@ -9,6 +9,7 @@ import TvSet from './TvSet';
 const navItems = [
   { to: '/', label: 'Dashboard' },
   { to: '/board', label: 'Board' },
+  { to: '/wall', label: 'My Wall' },
   { to: '/list', label: 'Archive' },
 ];
 
