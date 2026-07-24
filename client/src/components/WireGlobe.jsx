@@ -77,7 +77,7 @@ export default function WireGlobe({ size = 440 }) {
 
     const st = {
       yaw: -1.25, pitch: 0.18, vyaw: SPIN, vpitch: 0,
-      zoom: 1, targetZoom: 1,
+      zoom: 1, targetZoom: 1, zoomArmed: false,
       flying: false, targetYaw: 0, targetPitch: 0,
       dragging: false, lastX: 0, lastY: 0, downX: 0, downY: 0, moved: 0,
       bayScreen: null, raf: 0,
@@ -266,7 +266,7 @@ export default function WireGlobe({ size = 440 }) {
         ctx.fillText(`ZOOM ×${st.zoom.toFixed(1)}`, 10, size - 20);
         ctx.globalAlpha = 0.35;
         ctx.font = '400 6.5px "IBM Plex Mono", monospace';
-        ctx.fillText('DBL-CLICK TO PULL BACK', 10, size - 10);
+        ctx.fillText('SCROLL ZOOMS · DBL-CLICK PULLS BACK', 10, size - 10);
       } else {
         // idle hint — stacked in the left margin, breathes like an invitation
         const breathe = 0.4 + 0.2 * Math.sin(time / 600);
@@ -276,7 +276,7 @@ export default function WireGlobe({ size = 440 }) {
         ctx.globalAlpha = breathe * 0.8;
         ctx.font = '400 6.5px "IBM Plex Mono", monospace';
         ctx.fillText('DRAG TO SPIN', 8, 32);
-        ctx.fillText('SCROLL TO ZOOM', 8, 43);
+        ctx.fillText('DBL-CLICK TO ZOOM', 8, 43);
         ctx.fillText('CLICK THE BAY', 8, 54);
       }
 
@@ -295,6 +295,7 @@ export default function WireGlobe({ size = 440 }) {
       st.targetPitch = Math.atan2(Y, h);
       st.targetZoom = BAY_FLY_ZOOM;
       st.flying = true;
+      st.zoomArmed = true;
       st.vyaw = 0;
       st.vpitch = 0;
     };
@@ -354,6 +355,8 @@ export default function WireGlobe({ size = 440 }) {
       }
     };
     const onWheel = (e) => {
+      // page scroll stays free until the globe is entered via double-click
+      if (!st.zoomArmed) return;
       e.preventDefault();
       st.targetZoom = Math.max(1, Math.min(MAX_ZOOM, st.targetZoom * Math.exp(-e.deltaY * 0.0018)));
     };
@@ -361,6 +364,7 @@ export default function WireGlobe({ size = 440 }) {
       if (st.targetZoom > 1.5) {
         st.targetZoom = 1;
         st.flying = false;
+        st.zoomArmed = false;
       } else {
         flyToBay();
       }
