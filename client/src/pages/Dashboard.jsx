@@ -36,6 +36,19 @@ export default function Dashboard() {
     return () => window.removeEventListener('gus-tickets-created', handler);
   }, []);
 
+  // parallax — tagged art drifts up faster than the scroll, factor per element
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      document.querySelectorAll('[data-parallax]').forEach((el) => {
+        el.style.transform = `translateY(${(-y * parseFloat(el.dataset.parallax)).toFixed(1)}px)`;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   const manualSync = async () => {
     setSyncing(true);
     try {
@@ -90,7 +103,7 @@ export default function Dashboard() {
       {/* The kid and the numbers, side by side */}
       <div className="flex items-start gap-10 mb-16 relative z-10">
         <div className="ledger-only flex-shrink-0">
-          <img src="/art/babykhush.gif" alt="" className="block w-[270px] -ml-10" />
+          <img src="/art/babykhush.gif" alt="" data-parallax="0.12" className="block w-[270px] -ml-10" />
           <p className="fig-caption mt-2 -ml-10">fig. babykhush.gif — the original archivist</p>
         </div>
         <div className="flex-1 flex flex-wrap items-start gap-x-10 gap-y-5 pt-1">
@@ -151,19 +164,26 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* The rail — bourdain walks beside you the whole way down */}
+      {/* the margin float — gosling up top, a small bourdain rocketing past the globe below */}
       <div className="ledger-only">
+        <img
+          src="/art/gosling.gif"
+          alt=""
+          data-parallax="0.38"
+          className="art-loose w-[235px] h-[420px] object-cover right-[-350px] top-[150px] z-[5]"
+        />
         <img
           src="/art/bourdain.gif"
           alt=""
-          className="fixed right-0 top-[215px] w-[235px] h-[62vh] object-cover z-[5] pointer-events-none select-none"
+          data-parallax="0.65"
+          className="art-loose w-[160px] right-[-200px] top-[1520px] z-20"
         />
       </div>
 
       {/* Big and small — the world spins, the kiss undercuts it */}
       <div className="ledger-only mb-24 relative z-0">
         <div className="flex items-start">
-          <img src="/art/herewegoagain.gif" alt="" className="block w-[250px] shrink-0" />
+          <img src="/art/herewegoagain.gif" alt="" data-parallax="0.22" className="block w-[250px] shrink-0" />
           <div className="ml-auto -mr-16 shrink-0">
             <WireGlobe size={580} />
             <div className="mt-1 mr-12 ml-auto max-w-[320px] text-right select-none">
@@ -177,7 +197,7 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-        <img src="/art/kiss.png" alt="" className="block w-[360px] -ml-16 -mt-28 relative z-10" />
+        <img src="/art/kiss.png" alt="" data-parallax="0.3" className="block w-[360px] -ml-16 -mt-28 relative z-10" />
         <p className="fig-caption mt-3">
           fig. herewegoagain.gif — every monday · fig. situation globe — live, drag to rotate ·
           fig. kiss.png — evidence of joy
