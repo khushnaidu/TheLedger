@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { Power, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // The channel lineup. Add a channel: { name: 'MTV', src: 'https://www.youtube.com/embed/VIDEO_ID?autoplay=1' }
 // (playlists: 'https://www.youtube.com/embed/videoseries?list=PLAYLIST_ID&autoplay=1')
@@ -55,10 +56,22 @@ export default function TvSet() {
   };
 
   const nextChannel = () => changeChannel(powered ? (channel + 1) % CHANNELS.length : channel);
+  const prevChannel = () => changeChannel(powered ? (channel - 1 + CHANNELS.length) % CHANNELS.length : channel);
 
   const openBig = () => {
     if (!powered) changeChannel(channel);
     setBig(true);
+  };
+
+  const togglePower = () => {
+    if (powered) {
+      clearTimeout(timerRef.current);
+      setPowered(false);
+      setTuning(false);
+      setBig(false);
+    } else {
+      changeChannel(channel);
+    }
   };
 
   const post = (msg) => {
@@ -102,7 +115,15 @@ export default function TvSet() {
 
       {/* grey 90s buttons */}
       <div className="tv-btn-row">
-        <button type="button" className="win-btn win-btn-sm" onClick={nextChannel}>Next CH</button>
+        <button type="button" className="win-btn win-btn-sm win-btn-ico" onClick={togglePower} title="Power">
+          <Power size={10} strokeWidth={3} />
+        </button>
+        <button type="button" className="win-btn win-btn-sm win-btn-ico" onClick={prevChannel} title="Prev channel">
+          <ChevronLeft size={10} strokeWidth={3} />
+        </button>
+        <button type="button" className="win-btn win-btn-sm win-btn-ico" onClick={nextChannel} title="Next channel">
+          <ChevronRight size={10} strokeWidth={3} />
+        </button>
         <button type="button" className="win-btn win-btn-sm" onClick={openBig}>Big Screen</button>
       </div>
 

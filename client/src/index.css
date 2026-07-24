@@ -1239,6 +1239,9 @@ b, strong, th {
 
 .win-btn-sm:active { padding: 6px 6px 3px 8px; }
 
+/* icon-only win buttons (power / channel arrows) */
+.win-btn-ico { display: inline-flex; align-items: center; justify-content: center; line-height: 0; }
+
 /* dimmed backdrop behind the big screen */
 .tv-overlay {
   position: fixed;
