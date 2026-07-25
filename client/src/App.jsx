@@ -20,6 +20,17 @@ function App() {
   const [entered, setEntered] = useState(false);
   const [exiting, setExiting] = useState(false);
 
+  // one composition, every screen: lay out at the 1440px reference, scale to fit
+  useEffect(() => {
+    const fit = () => {
+      const z = Math.min(2, Math.max(0.5, window.innerWidth / 1440));
+      document.body.style.zoom = z;
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, []);
+
   useEffect(() => {
     if (isAuthenticated()) {
       api.getMe()
