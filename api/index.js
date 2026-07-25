@@ -14,6 +14,7 @@ const statsRoutes = require('../server/src/routes/stats');
 const aiRoutes = require('../server/src/routes/ai');
 const eventRoutes = require('../server/src/routes/events');
 const feedRoutes = require('../server/src/routes/feeds');
+const partnerRoutes = require('../server/src/routes/partner');
 
 const app = express();
 
@@ -31,5 +32,6 @@ app.use('/api/stats', authMiddleware, statsRoutes);
 app.use('/api/ai', authMiddleware, aiRoutes);
 app.use('/api/events', authMiddleware, eventRoutes);
 app.use('/api/feeds', authMiddleware, feedRoutes);
+app.use('/api/partner', authMiddleware, partnerRoutes);
 
 module.exports = app;

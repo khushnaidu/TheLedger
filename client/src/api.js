@@ -78,6 +78,14 @@ export const api = {
   deleteFeed: (id) => request(`/feeds/${id}`, { method: 'DELETE' }),
   syncFeeds: (force = false) => request('/feeds/sync-all', { method: 'POST', body: JSON.stringify({ force }) }),
 
+  // Partner face-off
+  getPartner: () => request('/partner'),
+  invitePartner: (email) => request('/partner/invite', { method: 'POST', body: JSON.stringify({ email }) }),
+  acceptPartner: () => request('/partner/accept', { method: 'POST' }),
+  unlinkPartner: () => request('/partner', { method: 'DELETE' }),
+  getFaceoff: () => request('/partner/faceoff'),
+  leavePartnerNote: (body) => request('/partner/notes', { method: 'POST', body: JSON.stringify({ body }) }),
+
   // AI Assistant
   generateTicket: (data) => request('/ai/generate-ticket', { method: 'POST', body: JSON.stringify(data) }),
   createTicketsFromGus: (data) => request('/ai/create-tickets', { method: 'POST', body: JSON.stringify(data) }),

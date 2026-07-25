@@ -9,6 +9,7 @@ import GusAssistant from './components/GusAssistant';
 import Dashboard from './pages/Dashboard';
 import Board from './pages/Board';
 import MyWall from './pages/MyWall';
+import FaceOff from './pages/FaceOff';
 import ListView from './pages/ListView';
 import TicketDetail from './pages/TicketDetail';
 import CreateTicket from './pages/CreateTicket';
@@ -19,17 +20,6 @@ function App() {
   const [checking, setChecking] = useState(true);
   const [entered, setEntered] = useState(false);
   const [exiting, setExiting] = useState(false);
-
-  // one composition, every screen: lay out at the 1440px reference, scale to fit
-  useEffect(() => {
-    const fit = () => {
-      const z = Math.min(2, Math.max(0.5, window.innerWidth / 1440));
-      document.body.style.zoom = z;
-    };
-    fit();
-    window.addEventListener('resize', fit);
-    return () => window.removeEventListener('resize', fit);
-  }, []);
 
   useEffect(() => {
     if (isAuthenticated()) {
@@ -89,6 +79,7 @@ function App() {
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/board" element={<Board />} />
                   <Route path="/wall" element={<MyWall />} />
+                  <Route path="/faceoff" element={<FaceOff />} />
                   <Route path="/list" element={<ListView />} />
                   <Route path="/tickets/new" element={<CreateTicket />} />
                   <Route path="/tickets/:id" element={<TicketDetail />} />

@@ -13,6 +13,7 @@ const statsRoutes = require('./routes/stats');
 const aiRoutes = require('./routes/ai');
 const eventRoutes = require('./routes/events');
 const feedRoutes = require('./routes/feeds');
+const partnerRoutes = require('./routes/partner');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -32,6 +33,7 @@ app.use('/api/stats', authMiddleware, statsRoutes);
 app.use('/api/ai', authMiddleware, aiRoutes);
 app.use('/api/events', authMiddleware, eventRoutes);
 app.use('/api/feeds', authMiddleware, feedRoutes);
+app.use('/api/partner', authMiddleware, partnerRoutes);
 
 // Serve static frontend in production (non-Vercel)
 if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {

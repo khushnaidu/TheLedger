@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Plus, LogOut } from 'lucide-react';
-import { api } from '../api';
 import { getLevelInfo, getTotalXP } from '../lib/xp';
 import { APP_TITLE, ASSETS } from '../lib/theme';
 import TvSet from './TvSet';
@@ -10,13 +9,13 @@ const navItems = [
   { to: '/', label: 'Dashboard' },
   { to: '/board', label: 'Board' },
   { to: '/wall', label: 'My Wall' },
+  { to: '/faceoff', label: 'Face-Off' },
   { to: '/list', label: 'Archive' },
 ];
 
 export default function Sidebar({ user, onLogout }) {
   const navigate = useNavigate();
   const [levelInfo, setLevelInfo] = useState(() => getLevelInfo(getTotalXP()));
-  const [stats, setStats] = useState(null);
 
   useEffect(() => {
     const handler = (e) => setLevelInfo(e.detail.level);
@@ -24,25 +23,12 @@ export default function Sidebar({ user, onLogout }) {
     return () => window.removeEventListener('gus-xp-gained', handler);
   }, []);
 
-  useEffect(() => {
-    const load = () => api.getStats().then(setStats).catch(() => {});
-    load();
-    window.addEventListener('gus-tickets-created', load);
-    window.addEventListener('gus-ticket-moved', load);
-    return () => {
-      window.removeEventListener('gus-tickets-created', load);
-      window.removeEventListener('gus-ticket-moved', load);
-    };
-  }, []);
-
-  const pad = (n) => String(n ?? 0).padStart(4, '0');
-
   return (
     <aside className="fixed left-0 top-0 h-screen w-[220px] bg-white flex flex-col z-50 overflow-hidden">
       {/* The television sits where the logo used to — persistent across pages */}
-      <div className="px-5 pt-4 pb-2 flex flex-col items-center">
+      <div className="px-5 pt-3 pb-1.5 flex flex-col items-center">
         <TvSet />
-        <p className="t-title text-[1.05rem] uppercase text-center mt-2">
+        <p className="t-title text-[1.05rem] uppercase text-center mt-1.5">
           {APP_TITLE}
         </p>
       </div>
@@ -50,7 +36,7 @@ export default function Sidebar({ user, onLogout }) {
       <div className="mt-2" style={{ borderTop: '1px solid var(--ink)' }} />
 
       {/* User + date */}
-      <div className="px-5 pt-2 pb-1 flex items-baseline justify-between">
+      <div className="px-5 pt-1.5 pb-1 flex items-baseline justify-between">
         <p className="t-label">{user?.name}</p>
         <p className="text-[0.5rem] tracking-[0.1em]" style={{ color: 'var(--ink-30)' }}>
           {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '.')}
@@ -58,31 +44,14 @@ export default function Sidebar({ user, onLogout }) {
       </div>
 
       {/* The staff */}
-      <div className="px-5 pt-2 flex items-start gap-2">
-        <img src="/art/selfie-cap.png" alt="" className="w-[52px]" />
-        <img src="/art/selfie-bandana.png" alt="" className="w-[52px] mt-3" />
+      <div className="px-5 pt-1.5 flex items-start gap-2">
+        <img src="/art/selfie-cap.png" alt="" className="w-[46px]" />
+        <img src="/art/selfie-bandana.png" alt="" className="w-[46px] mt-3" />
         <span className="fig-caption mt-1" style={{ writingMode: 'vertical-rl' }}>the staff</span>
       </div>
 
-      {/* Bureau counters */}
-      <div className="px-5 mt-1 mb-1 py-1" style={{ borderTop: '1px solid var(--ink)', borderBottom: '1px solid var(--ink)' }}>
-        <div className="counter-table">
-          {[
-            ['Entries', stats?.total],
-            ['Done', stats?.byStatus?.DONE],
-            ['Active', stats?.byStatus?.IN_PROGRESS],
-            ['Categories', stats?.byCategory?.length],
-          ].map(([label, n]) => (
-            <div key={label} className="counter-row">
-              <span>{label}</span>
-              <span className="counter-num">{pad(n)}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* XP Level */}
-      <div className="mx-5 mt-2 mb-1">
+      <div className="mx-5 mt-1.5 mb-1">
         <div className="flex items-center justify-between mb-1">
           <span className="text-[0.5rem] tracking-[0.16em] text-[var(--ink-30)] uppercase">
             Lvl {levelInfo.level}
@@ -103,14 +72,14 @@ export default function Sidebar({ user, onLogout }) {
       </div>
 
       {/* Nav — numbered index */}
-      <nav className="pt-4 pb-3 space-y-0">
+      <nav className="pt-2 pb-2 space-y-0">
         {navItems.map(({ to, label }, i) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
             className={({ isActive }) =>
-              `block px-5 py-2.5 text-[0.6875rem] uppercase tracking-[0.12em] border-t border-[var(--ink)] ${
+              `block px-5 py-2 text-[0.6875rem] uppercase tracking-[0.12em] border-t border-[var(--ink)] ${
                 isActive
                   ? 'bg-black text-white'
                   : 'text-[var(--ink-50)] hover:text-[var(--ink)]'
@@ -124,15 +93,16 @@ export default function Sidebar({ user, onLogout }) {
       </nav>
 
       {/* Create */}
-      <div className="px-4 pb-2">
-        <button onClick={() => navigate('/tickets/new')} className="btn-black w-full justify-center py-3">
+      <div className="px-4 pb-1.5">
+        <button onClick={() => navigate('/tickets/new')} className="btn-black w-full justify-center py-2.5">
           <Plus className="w-3 h-3" strokeWidth={3} />
           New Entry
         </button>
       </div>
 
       {/* Bottom art */}
-      <div className="relative mt-auto flex-1 min-h-[90px]">
+      {/* flexible — soaks up whatever height remains so Sign Out never clips */}
+      <div className="relative mt-auto flex-1 min-h-0">
         <img
           src={ASSETS.sidebarBottom}
           alt=""

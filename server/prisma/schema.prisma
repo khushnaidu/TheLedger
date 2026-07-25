@@ -20,6 +20,38 @@ model User {
   canvas     CanvasIntegration?
   events     CalendarEvent[]
   feeds      CalendarFeed[]
+
+  sentInvites     Connection[]  @relation("connRequester")
+  receivedInvites Connection[]  @relation("connAddressee")
+  notesWritten    PartnerNote[] @relation("noteAuthor")
+  notesReceived   PartnerNote[] @relation("noteRecipient")
+}
+
+// Two accounts linked for the face-off — invite by email, other side accepts
+model Connection {
+  id          String    @id @default(uuid())
+  requester   User      @relation("connRequester", fields: [requesterId], references: [id])
+  requesterId String
+  addressee   User      @relation("connAddressee", fields: [addresseeId], references: [id])
+  addresseeId String
+  status      String    @default("PENDING") // PENDING | ACCEPTED
+  createdAt   DateTime  @default(now())
+  acceptedAt  DateTime?
+
+  @@index([requesterId])
+  @@index([addresseeId])
+}
+
+model PartnerNote {
+  id          String   @id @default(uuid())
+  body        String
+  author      User     @relation("noteAuthor", fields: [authorId], references: [id])
+  authorId    String
+  recipient   User     @relation("noteRecipient", fields: [recipientId], references: [id])
+  recipientId String
+  createdAt   DateTime @default(now())
+
+  @@index([recipientId, createdAt])
 }
 
 model CalendarFeed {
