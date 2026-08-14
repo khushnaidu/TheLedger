@@ -20,6 +20,22 @@ function dayLabels() {
   return out;
 }
 
+// a low fire smoldering along the bottom of the page — same recipe as the board's fire pit
+function FloorFire() {
+  return (
+    <div className="relative h-[32px] pointer-events-none" aria-hidden="true">
+      <div
+        className="absolute inset-x-0 bottom-0 h-full opacity-35"
+        style={{ backgroundImage: "url('/art/fire.gif')", backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%', backgroundPosition: '60px bottom' }}
+      />
+      <div
+        className="absolute inset-x-0 bottom-0 h-[22px] opacity-60"
+        style={{ backgroundImage: "url('/art/fire.gif')", backgroundRepeat: 'repeat-x', backgroundSize: 'auto 100%', backgroundPosition: 'bottom' }}
+      />
+    </div>
+  );
+}
+
 function FighterPortrait({ user, corner, flipped }) {
   const red = corner === 'red';
   return (
@@ -227,6 +243,10 @@ export default function FaceOff() {
         )}
 
         {error && <p className="t-small text-center mt-6" style={{ color: 'var(--stamp)' }}>{error}</p>}
+
+        <div className="mt-24">
+          <FloorFire />
+        </div>
       </div>
     );
   }
@@ -332,7 +352,7 @@ export default function FaceOff() {
       {error && <p className="t-small mb-6" style={{ color: 'var(--stamp)' }}>{error}</p>}
 
       {/* Dissolution */}
-      <div className="pb-16">
+      <div className="pb-10">
         <button
           className="btn-ghost"
           disabled={busy}
@@ -341,6 +361,8 @@ export default function FaceOff() {
           dissolve the bout
         </button>
       </div>
+
+      <FloorFire />
     </div>
   );
 }
