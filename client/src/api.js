@@ -37,6 +37,8 @@ export const api = {
   // Auth
   register: (data) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
   login: (data) => request('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+  forgotPassword: (email) => request('/auth/forgot', { method: 'POST', body: JSON.stringify({ email }) }),
+  resetPassword: (data) => request('/auth/reset', { method: 'POST', body: JSON.stringify(data) }),
   getMe: () => request('/auth/me'),
 
   // Tickets

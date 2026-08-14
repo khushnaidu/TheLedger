@@ -14,6 +14,7 @@ import ListView from './pages/ListView';
 import TicketDetail from './pages/TicketDetail';
 import CreateTicket from './pages/CreateTicket';
 import Auth from './pages/Auth';
+import ResetPassword from './pages/ResetPassword';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -52,6 +53,7 @@ function App() {
     return (
       <Router>
         <Routes>
+          <Route path="/reset" element={<ResetPassword onLogin={handleLogin} />} />
           <Route path="*" element={<Auth onLogin={handleLogin} />} />
         </Routes>
       </Router>
