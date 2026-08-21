@@ -233,7 +233,7 @@ export default function ReadingRoom() {
             />
 
             {/* the cabinet bank — the real photo, drawers mapped onto it */}
-            <div className="rr-cabbank">
+            <div data-no-click-sound className="rr-cabbank">
               {Array.from({ length: Math.max(1, Math.ceil((drawers.length + 1) / BANDS.length)) }, (_, ci) => (
                 <div key={ci} className="rr-cabinet-photo">
                   <img src="/art/file_cabinett.png" alt="" draggable={false} />

@@ -1,14 +1,20 @@
-// A soft mechanical click, but only where it means something: sidebar
-// tabs and buttons, and the big page-navigation moves (back to shelf,
-// back to catalog, New Entry…). Everything else — ticket drags, pen-tray
-// picks, canvas work — stays silent. Opt an element in with data-clicky.
-// One template element, cloned per play so rapid clicks overlap.
-const ALLOW = '[data-clicky], [data-clicky-zone] button, [data-clicky-zone] a';
+// A soft mechanical click under most interactions — buttons, links,
+// pointer-cursor surfaces — EXCEPT inside [data-no-click-sound] zones:
+// drag boards, notebook canvas + pen tray, PDF text selection, and the
+// cabinet (which brings its own drawer sound). [data-clicky] forces a
+// click even inside a silent zone. Cloned per play so rapid clicks
+// overlap; volume low enough to be felt more than heard.
+const CLICKABLE = 'button, a, [role="button"], input, select, textarea, label, summary';
 
 let template = null;
 
 function isClicky(target) {
-  return target instanceof Element && !!target.closest(ALLOW);
+  if (!(target instanceof Element)) return false;
+  if (target.closest('[data-clicky]')) return true;
+  if (target.closest('[data-no-click-sound]')) return false;
+  if (target.closest(CLICKABLE)) return true;
+  // custom interactive surfaces (spines, files, chips…) invite by cursor
+  return getComputedStyle(target).cursor === 'pointer';
 }
 
 export function initClicky() {

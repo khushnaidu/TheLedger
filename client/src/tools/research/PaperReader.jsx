@@ -167,7 +167,7 @@ export default function PaperReader() {
       </div>
 
       <div className="rr-reader-body">
-        <div className="rr-pagecol" ref={colRef} onPointerUp={() => setTimeout(capture, 10)}>
+        <div data-no-click-sound className="rr-pagecol" ref={colRef} onPointerUp={() => setTimeout(capture, 10)}>
           {doc ? (
             Array.from({ length: doc.numPages }, (_, i) => i + 1).map((n) => (
               <PdfPage

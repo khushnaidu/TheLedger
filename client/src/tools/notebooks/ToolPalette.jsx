@@ -30,7 +30,7 @@ export default function ToolPalette({
   };
 
   return (
-    <div className="nb-palette">
+    <div data-no-click-sound className="nb-palette">
       <p className="nb-palette-title">Pen Tray</p>
       {TOOLS.map(({ id, label }) => (
         <button

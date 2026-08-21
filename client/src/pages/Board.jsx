@@ -150,7 +150,7 @@ export default function Board() {
 
       <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {/* Columns — fixed height, internal scroll */}
-        <div className="flex gap-4 overflow-x-auto" style={{ height: 'calc(100vh - 330px)', minHeight: '400px' }}>
+        <div data-no-click-sound className="flex gap-4 overflow-x-auto" style={{ height: 'calc(100vh - 330px)', minHeight: '400px' }}>
           {STATUSES.map((status) => {
             const config = STATUS_CONFIG[status];
             const colTickets = columns[status] || [];

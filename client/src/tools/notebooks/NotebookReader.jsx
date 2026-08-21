@@ -440,7 +440,7 @@ export default function NotebookReader() {
         />
 
         <div className="flex-1 min-w-0" ref={stageRef}>
-          <div className="nb-spread-stage">
+          <div data-no-click-sound className="nb-spread-stage">
             <div className={`nb-book nb-book-${notebook.coverStyle}`}>
             <div className="nb-spread">
               {underPages.map((page, i) => (
