@@ -1569,13 +1569,49 @@ b, strong, th {
   display: inline-block;
 }
 
-/* section slug above each group of rows, broadsheet-style */
-.nav-section-label {
+/* section slug rows fold like a broadsheet index — click to open a
+   section, and the others tuck away so the column never outgrows its slot */
+.nav-section-head {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   font-size: 0.4375rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ink-30);
-  padding: 4px 20px 2px;
+  padding: 6px 20px 5px;
+  border-top: 1px solid var(--ink);
+  background: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.nav-section-head:hover { color: var(--ink); }
+
+/* collapsed, but the page you're on lives inside */
+.nav-section-head-hot { color: var(--ink); }
+
+.nav-section-count {
+  font-size: 0.4375rem;
+  letter-spacing: 0.08em;
+  color: inherit;
+}
+
+.nav-section-dot { color: var(--stamp); }
+
+/* grid-rows collapse: animatable height without measuring */
+.nav-section-fold {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.26s ease;
+}
+
+.nav-section-fold-open { grid-template-rows: 1fr; }
+
+.nav-section-fold-inner {
+  overflow: hidden;
+  min-height: 0;
 }
 
 /* Tailwind .border-black markup renders as hairline ink */

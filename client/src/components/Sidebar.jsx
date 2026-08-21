@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Plus, LogOut } from 'lucide-react';
 import { getLevelInfo, getTotalXP } from '../lib/xp';
 import { APP_TITLE, ASSETS } from '../lib/theme';
@@ -20,9 +20,31 @@ function buildNav() {
   })).filter((section) => section.tools.length > 0);
 }
 
+// which section a path belongs to (detail routes count toward their tool's prefix)
+function sectionForPath(nav, path) {
+  for (const section of nav) {
+    for (const t of section.tools) {
+      if (t.end ? path === t.route : path.startsWith(t.route)) return section.id;
+    }
+  }
+  return null;
+}
+
 export default function Sidebar({ user, onLogout }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [levelInfo, setLevelInfo] = useState(() => getLevelInfo(getTotalXP()));
+  const nav = useMemo(() => buildNav(), []);
+
+  // accordion: one section unfolded at a time so the column never outgrows
+  // its slot; the section holding the current page opens itself
+  // starts folded; picking a tool folds it back up — the ▪ marks where you are
+  const [openId, setOpenId] = useState(null);
+  const [lastPath, setLastPath] = useState(pathname);
+  if (pathname !== lastPath) {
+    setLastPath(pathname);
+    setOpenId(null);
+  }
 
   useEffect(() => {
     const handler = (e) => setLevelInfo(e.detail.level);
@@ -80,30 +102,51 @@ export default function Sidebar({ user, onLogout }) {
         </p>
       </div>
 
-      {/* Nav — the paper's sections, numbered index. Elastic: scrolls before anything clips. */}
-      <nav className="pt-1 pb-1 space-y-0 overflow-y-auto min-h-0" style={{ scrollbarWidth: 'none' }}>
-        {buildNav().map((section) => (
-          <div key={section.id}>
-            <p className="nav-section-label">§ {section.label}</p>
-            {section.tools.map(({ id, route, name, end, index }) => (
-              <NavLink
-                key={id}
-                to={route}
-                end={!!end}
-                className={({ isActive }) =>
-                  `block px-5 py-[6px] text-[0.6875rem] uppercase tracking-[0.12em] border-t border-[var(--ink)] ${
-                    isActive
-                      ? 'bg-black text-white'
-                      : 'text-[var(--ink-50)] hover:text-[var(--ink)]'
-                  }`
-                }
+      {/* Nav — the paper's sections as a folding index. One section open at a
+          time, so the column stays short and the bottom art keeps its room. */}
+      <nav className="pt-1 pb-1 overflow-y-auto min-h-0" style={{ scrollbarWidth: 'none' }}>
+        {nav.map((section) => {
+          const open = openId === section.id;
+          const holdsPage = sectionForPath(nav, pathname) === section.id;
+          return (
+            <div key={section.id}>
+              <button
+                type="button"
+                className={`nav-section-head ${holdsPage && !open ? 'nav-section-head-hot' : ''}`}
+                aria-expanded={open}
+                onClick={() => setOpenId(open ? null : section.id)}
               >
-                <span className="nav-index-num">{String(index).padStart(2, '0')}</span>
-                {name}
-              </NavLink>
-            ))}
-          </div>
-        ))}
+                <span>§ {section.label}</span>
+                <span className="nav-section-count">
+                  {holdsPage && !open && <span className="nav-section-dot">▪ </span>}
+                  {open ? '—' : String(section.tools.length).padStart(2, '0')}
+                </span>
+              </button>
+              <div className={`nav-section-fold ${open ? 'nav-section-fold-open' : ''}`}>
+                <div className="nav-section-fold-inner">
+                  {section.tools.map(({ id, route, name, end, index }) => (
+                    <NavLink
+                      key={id}
+                      to={route}
+                      end={!!end}
+                      tabIndex={open ? 0 : -1}
+                      className={({ isActive }) =>
+                        `block px-5 py-[5px] text-[0.5625rem] uppercase tracking-[0.14em] border-t border-[var(--ink)] ${
+                          isActive
+                            ? 'bg-black text-white'
+                            : 'text-[var(--ink-50)] hover:text-[var(--ink)]'
+                        }`
+                      }
+                    >
+                      <span className="nav-index-num">{String(index).padStart(2, '0')}</span>
+                      {name}
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </nav>
 
       {/* Create */}
