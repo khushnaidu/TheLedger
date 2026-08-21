@@ -198,7 +198,7 @@ export default function GusAssistant({ onTicketsCreated }) {
         setApiMessages(prev => [
           ...prev,
           { role: 'assistant', content: [{ type: 'tool_use', id: 't', name: 'create_tickets', input: { message: data.message, tickets: data.tickets } }] },
-          { role: 'user', content: [{ type: 'tool_result', tool_use_id: 't', content: 'Tickets shown to user for approval.' }] },
+          { role: 'user', content: [{ type: 'tool_result', tool_use_id: 't', content: 'Drafts displayed with a File button. NOT saved yet — only the user pressing File commits them.' }] },
         ]);
       }
     } catch (err) {
@@ -215,6 +215,8 @@ export default function GusAssistant({ onTicketsCreated }) {
       const count = tickets.length;
       const doneMsg = `Consider it done! ${count} ${count === 1 ? 'entry' : 'entries'} filed and stamped. The archives grow ever richer.`;
       setMessages(prev => [...prev, { role: 'gus', text: doneMsg }]);
+      // let the model know the drafts were actually committed, so follow-up turns are truthful
+      setApiMessages(prev => [...prev, { role: 'user', content: `[system note: the user pressed File — ${count} ${count === 1 ? 'ticket is' : 'tickets are'} now saved in the ledger.]` }]);
       for (let i = 0; i < count; i++) {
         const qs = updateQuestProgress('create');
         if (qs.completed) {
