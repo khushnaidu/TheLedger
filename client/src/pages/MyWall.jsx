@@ -496,7 +496,8 @@ export default function MyWall() {
           </div>
 
           <p className="wall-feeds-help">
-            google: settings → your calendar → "secret address in iCal format".
+            google: settings → left sidebar, under "settings for my calendars" click your calendar's name →
+            scroll to "integrate calendar" → copy "secret address in iCal format".
             apple: icloud → share calendar → public calendar → copy the webcal link.
             events land on the wall automatically; birthdays repeat every year.
           </p>
