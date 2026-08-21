@@ -44,21 +44,14 @@ export default function Sidebar({ user, onLogout }) {
         </p>
       </div>
 
-      {/* The staff — selfies in the personal edition, neutral hires in public */}
-      <div className="px-5 pt-1.5 flex items-start gap-2">
-        {isPersonal() ? (
-          <>
-            <img src="/art/selfie-cap.png" alt="" className="w-[46px]" />
-            <img src="/art/selfie-bandana.png" alt="" className="w-[46px] mt-3" />
-          </>
-        ) : (
-          <>
-            <img src="/art/rays.jpg" alt="" className="w-[46px]" />
-            <img src="/art/stillshine.jpg" alt="" className="w-[46px] mt-3" />
-          </>
-        )}
-        <span className="fig-caption mt-1" style={{ writingMode: 'vertical-rl' }}>the staff</span>
-      </div>
+      {/* The staff — it's the two of us, so the section only exists in the personal edition */}
+      {isPersonal() && (
+        <div className="px-5 pt-1.5 flex items-start gap-2">
+          <img src="/art/selfie-cap.png" alt="" className="w-[46px]" />
+          <img src="/art/selfie-bandana.png" alt="" className="w-[46px] mt-3" />
+          <span className="fig-caption mt-1" style={{ writingMode: 'vertical-rl' }}>the staff</span>
+        </div>
+      )}
 
       {/* XP Level */}
       <div className="mx-5 mt-1.5 mb-1">
@@ -112,11 +105,12 @@ export default function Sidebar({ user, onLogout }) {
 
       {/* Bottom art */}
       {/* flexible — soaks up whatever height remains so Sign Out never clips */}
-      <div className="relative mt-auto flex-1 min-h-0">
+      <div className="relative mt-auto flex-1 min-h-0 overflow-hidden">
         <img
           src={isPersonal() ? ASSETS.sidebarBottom : '/art/goodboy.jpg'}
           alt=""
           className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[92%] max-h-full object-contain object-bottom"
+          style={isPersonal() ? undefined : { transform: 'translateX(-50%) scaleY(1.15)', transformOrigin: 'bottom' }}
         />
       </div>
 
