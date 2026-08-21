@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { Plus, LogOut } from 'lucide-react';
 import { getLevelInfo, getTotalXP } from '../lib/xp';
 import { APP_TITLE, ASSETS } from '../lib/theme';
+import { isPersonal } from '../lib/edition';
 import TvSet from './TvSet';
 
 const navItems = [
@@ -43,10 +44,19 @@ export default function Sidebar({ user, onLogout }) {
         </p>
       </div>
 
-      {/* The staff */}
+      {/* The staff — selfies in the personal edition, neutral hires in public */}
       <div className="px-5 pt-1.5 flex items-start gap-2">
-        <img src="/art/selfie-cap.png" alt="" className="w-[46px]" />
-        <img src="/art/selfie-bandana.png" alt="" className="w-[46px] mt-3" />
+        {isPersonal() ? (
+          <>
+            <img src="/art/selfie-cap.png" alt="" className="w-[46px]" />
+            <img src="/art/selfie-bandana.png" alt="" className="w-[46px] mt-3" />
+          </>
+        ) : (
+          <>
+            <img src="/art/rays.jpg" alt="" className="w-[46px]" />
+            <img src="/art/stillshine.jpg" alt="" className="w-[46px] mt-3" />
+          </>
+        )}
         <span className="fig-caption mt-1" style={{ writingMode: 'vertical-rl' }}>the staff</span>
       </div>
 
@@ -104,7 +114,7 @@ export default function Sidebar({ user, onLogout }) {
       {/* flexible — soaks up whatever height remains so Sign Out never clips */}
       <div className="relative mt-auto flex-1 min-h-0">
         <img
-          src={ASSETS.sidebarBottom}
+          src={isPersonal() ? ASSETS.sidebarBottom : '/art/goodboy.jpg'}
           alt=""
           className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[92%] max-h-full object-contain object-bottom"
         />

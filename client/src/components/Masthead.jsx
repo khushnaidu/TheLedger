@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
+import { isPersonal } from '../lib/edition';
 
 function startOfDay(d) {
   const x = new Date(d);
@@ -32,7 +33,7 @@ export default function Masthead() {
     overdue > 0 ? `${String(overdue).padStart(2, '0')} overdue` : 'nothing overdue',
     dueToday > 0 ? `${String(dueToday).padStart(2, '0')} due today` : 'clear skies today',
     'not quite a ledger, not really a task manager, certainly not another productivity app',
-    'fig. cuties.png — the reason',
+    ...(isPersonal() ? ['fig. cuties.png — the reason'] : []),
     'every entry accounted for',
     'bourdain.gif — patron saint of showing up',
     'peace and nothing else',

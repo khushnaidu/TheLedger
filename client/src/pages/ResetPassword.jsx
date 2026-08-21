@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { api, setToken } from '../api';
+import { setEdition } from '../lib/edition';
 
 // Landing page for the emailed reset link: /reset?token=...&email=...
 export default function ResetPassword({ onLogin }) {
@@ -27,6 +28,7 @@ export default function ResetPassword({ onLogin }) {
     setLoading(true);
     try {
       const result = await api.resetPassword({ email, token, password });
+      setEdition('public');
       setToken(result.token);
       onLogin(result.user);
       navigate('/');

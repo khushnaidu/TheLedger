@@ -15,6 +15,7 @@ import TicketDetail from './pages/TicketDetail';
 import CreateTicket from './pages/CreateTicket';
 import Auth from './pages/Auth';
 import ResetPassword from './pages/ResetPassword';
+import { clearEdition } from './lib/edition';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -37,6 +38,7 @@ function App() {
 
   const handleLogout = () => {
     setToken(null);
+    clearEdition();
     setUser(null);
     setEntered(false);
     setExiting(false);

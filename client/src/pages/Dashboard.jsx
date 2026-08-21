@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
+import { isPersonal } from '../lib/edition';
 import WireGlobe from '../components/WireGlobe';
 
 const DEDICATION_RU =
@@ -147,8 +148,18 @@ export default function Dashboard() {
       {/* The kid and the numbers, side by side */}
       <div className="flex items-start gap-10 mb-16 relative z-10">
         <div data-parallax="0.12" className="flex-shrink-0">
-          <img src="/art/babykhush.gif" alt="" className="block w-[270px] -ml-10" />
-          <p className="fig-caption mt-2 -ml-10">fig. babykhush.gif — the original archivist</p>
+          {isPersonal() ? (
+            <>
+              <img src="/art/babykhush.gif" alt="" className="block w-[270px] -ml-10" />
+              <p className="fig-caption mt-2 -ml-10">fig. babykhush.gif — the original archivist</p>
+            </>
+          ) : (
+            <>
+              {/* portrait gif forced into a landscape box — stretched wide */}
+              <img src="/art/whiplash.gif" alt="" className="block w-[340px] h-[230px] object-fill -ml-10" />
+              <p className="fig-caption mt-2 -ml-10">fig. whiplash.gif — not quite my tempo</p>
+            </>
+          )}
         </div>
         <div className="flex-1 flex flex-wrap items-start gap-x-10 gap-y-5 pt-1">
           {[
@@ -227,8 +238,8 @@ export default function Dashboard() {
           <img src="/art/dragon.gif" alt="" className="block w-full" />
           <p className="fig-caption mt-2">fig. dragon.gif — guards the lower margin</p>
         </div>
-        {/* для Таи — hover to decode */}
-        <DedicationLens />
+        {/* для Таи — hover to decode; personal edition only */}
+        {isPersonal() && <DedicationLens />}
       </div>
 
       {/* Big and small — the world spins, the kiss undercuts it */}
@@ -253,8 +264,17 @@ export default function Dashboard() {
           </div>
         </div>
         <div data-parallax="0.3" className="w-[360px] -ml-16 -mt-28 relative z-10">
-          <img src="/art/kiss.png" alt="" className="block w-full" />
-          <p className="fig-caption mt-2">fig. kiss.png — evidence of joy</p>
+          {isPersonal() ? (
+            <>
+              <img src="/art/kiss.png" alt="" className="block w-full" />
+              <p className="fig-caption mt-2">fig. kiss.png — evidence of joy</p>
+            </>
+          ) : (
+            <>
+              <img src="/art/stillshine.jpg" alt="" className="block w-full bg-white" />
+              <p className="fig-caption mt-2">fig. stillshine.jpg — evidence of joy</p>
+            </>
+          )}
         </div>
       </div>
 

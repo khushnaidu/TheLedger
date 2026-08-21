@@ -1,9 +1,47 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
+import { isPersonal } from '../lib/edition';
 
 // the two contenders — mii portraits keyed by identity
 const miiFor = (u) =>
   /khush/i.test(`${u?.name || ''} ${u?.email || ''}`) ? '/art/khush-mii.gif' : '/art/taia-mii.gif';
+
+// fighter artwork: miis in the personal edition, an initialed placard in public.
+// mystery renders the unknown challenger; opposeUser picks the opposite mii for it.
+function FighterArt({ user, flipped, red, mystery = false, opposeUser }) {
+  if (isPersonal()) {
+    const src = mystery
+      ? (opposeUser && miiFor(opposeUser) === '/art/khush-mii.gif' ? '/art/taia-mii.gif' : '/art/khush-mii.gif')
+      : miiFor(user);
+    return (
+      <>
+        <img
+          src={src}
+          alt=""
+          className="block w-full"
+          style={{
+            ...(flipped || mystery ? { transform: 'scaleX(-1)' } : {}),
+            ...(mystery ? { filter: 'grayscale(1) contrast(0.6) brightness(1.15)' } : {}),
+          }}
+        />
+        {mystery && (
+          <span className="absolute inset-0 flex items-center justify-center t-display" style={{ fontSize: '4rem' }}>?</span>
+        )}
+      </>
+    );
+  }
+  const initial = mystery ? '?' : (user?.name || '?').trim().charAt(0).toUpperCase();
+  return (
+    <div className="hatch aspect-square w-full flex items-center justify-center">
+      <span
+        className="t-display bg-white px-4 py-1"
+        style={{ fontSize: '4.5rem', color: mystery ? 'var(--ink-30)' : red ? 'var(--stamp)' : 'var(--ink)' }}
+      >
+        {initial}
+      </span>
+    </div>
+  );
+}
 
 const fmtDate = (d) =>
   new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '.');
@@ -41,12 +79,7 @@ function FighterPortrait({ user, corner, flipped }) {
   return (
     <div className={`w-[200px] ${red ? 'text-right' : ''}`}>
       <div className="border border-[var(--ink)] p-1 bg-white">
-        <img
-          src={miiFor(user)}
-          alt=""
-          className="block w-full"
-          style={flipped ? { transform: 'scaleX(-1)' } : undefined}
-        />
+        <FighterArt user={user} flipped={flipped} red={red} />
       </div>
       <p
         className="t-title text-[1.15rem] uppercase mt-3 leading-none"
@@ -186,19 +219,13 @@ export default function FaceOff() {
 
         <div className="flex items-start justify-center gap-14 mb-14">
           <div className="w-[200px]">
-            <div className="border border-[var(--ink)] p-1"><img src={me ? miiFor(me) : '/art/khush-mii.gif'} alt="" className="block w-full" /></div>
+            <div className="border border-[var(--ink)] p-1"><FighterArt user={me} /></div>
             <p className="fig-caption mt-2">fig. you — undefeated, unopposed</p>
           </div>
           <p className="t-display self-center" style={{ fontSize: '3rem', color: 'var(--stamp)' }}>vs</p>
           <div className="w-[200px]">
             <div className="border border-[var(--ink)] p-1 relative">
-              <img
-                src={me ? (miiFor(me) === '/art/khush-mii.gif' ? '/art/taia-mii.gif' : '/art/khush-mii.gif') : '/art/taia-mii.gif'}
-                alt=""
-                className="block w-full"
-                style={{ filter: 'grayscale(1) contrast(0.6) brightness(1.15)', transform: 'scaleX(-1)' }}
-              />
-              <span className="absolute inset-0 flex items-center justify-center t-display" style={{ fontSize: '4rem' }}>?</span>
+              <FighterArt mystery opposeUser={me} />
             </div>
             <p className="fig-caption mt-2 text-right">fig. the challenger — unnamed</p>
           </div>

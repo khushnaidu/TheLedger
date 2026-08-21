@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { api, setToken } from '../api';
+import { resolveEdition, setEdition } from '../lib/edition';
 
 export default function Auth({ onLogin }) {
   const [mode, setMode] = useState('login'); // login | register | forgot
-  const [form, setForm] = useState({ email: '', name: '', password: '' });
+  const [form, setForm] = useState({ email: '', name: '', password: '', code: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -20,7 +21,8 @@ export default function Auth({ onLogin }) {
       } else {
         const result = mode === 'login'
           ? await api.login({ email: form.email, password: form.password })
-          : await api.register(form);
+          : await api.register({ email: form.email, name: form.name, password: form.password });
+        setEdition(mode === 'login' ? resolveEdition(form.code) : 'public');
         setToken(result.token);
         onLogin(result.user);
       }
@@ -101,6 +103,15 @@ export default function Auth({ onLogin }) {
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   className="input-field" placeholder={mode === 'register' ? '6+ characters' : 'Your password'} required
                   minLength={mode === 'register' ? 6 : undefined} />
+              </div>
+            )}
+
+            {mode === 'login' && (
+              <div>
+                <label className="t-label block mb-3">Special Code · Optional</label>
+                <input type="text" value={form.code}
+                  onChange={(e) => setForm({ ...form, code: e.target.value })}
+                  className="input-field" placeholder="For those who know" autoComplete="off" />
               </div>
             )}
 
