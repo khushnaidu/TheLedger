@@ -62,6 +62,21 @@ a, button, [role="button"], input[type="submit"], select, .cursor-pointer {
   cursor: url('/cursors/hand-press.png') 13 2, auto;
 }
 
+/* Inside the television's domain you hold the remote, not the hand.
+   Covers the set, its Win95 buttons, the channel guide, and big-screen mode
+   (overlay + controls live inside .tv-set too). Hotspot = tip of the remote. */
+.tv-set,
+.tv-set button,
+.tv-set input,
+.tv-set iframe {
+  cursor: url('/cursors/remote.png') 7 7, pointer;
+}
+
+.tv-set :active,
+.tv-set:active {
+  cursor: url('/cursors/remote-press.png') 6 6, pointer;
+}
+
 /* Drag/grab state */
 [data-rfd-draggable-id] {
   cursor: url('/cursors/hand.png') 16 2, grab;
