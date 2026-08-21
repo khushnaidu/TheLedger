@@ -94,7 +94,7 @@ function App() {
                 <Colophon />
               </footer>
             </main>
-            <GusAssistant onTicketsCreated={() => {
+            <GusAssistant user={user} onTicketsCreated={() => {
               window.dispatchEvent(new Event('gus-tickets-created'));
             }} />
           </div>

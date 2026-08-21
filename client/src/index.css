@@ -670,6 +670,30 @@ b, strong, th {
   box-shadow: 0 6px 24px rgba(0,0,0,0.14);
 }
 
+/* grab corner — bottom-left, since the panel is pinned top-right */
+.gus-resize {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 18px;
+  height: 18px;
+  cursor: nesw-resize;
+  z-index: 5;
+}
+
+.gus-resize::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  width: 8px;
+  height: 8px;
+  border-left: 2px solid var(--ink-30);
+  border-bottom: 2px solid var(--ink-30);
+}
+
+.gus-resize:hover::after { border-color: var(--ink); }
+
 @keyframes gusSlideDown {
   0% { opacity: 0; transform: translateY(-10px) scale(0.97); }
   100% { opacity: 1; transform: translateY(0) scale(1); }

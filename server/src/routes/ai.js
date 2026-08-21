@@ -33,7 +33,7 @@ CONVERSATION RULES:
    - "urgent", "research", "coding", "writing", "design", "meeting", "review", "bug", "feature", etc.
    - Only suggest labels that genuinely apply
 
-4. When creating multiple tickets for a project, make them actionable and specific — not vague. Each ticket should be a concrete deliverable or step.
+4. When creating multiple tickets for a project, make them actionable and specific — not vague. Each ticket should be a concrete deliverable or step. Never draft more than 15 tickets in one create_tickets call — for bigger projects, propose filing in batches and draft the first batch after the user picks.
 
 5. When the user confirms they want tickets created (says "yes", "go ahead", "file them", etc.), you MUST call create_tickets with the complete ticket objects. NEVER respond to a confirmation with ask_question — that leaves the user with nothing.
 
@@ -126,7 +126,7 @@ router.post('/generate-ticket', async (req, res) => {
 
     const response = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 2048,
+      max_tokens: 8192,
       system: GUS_SYSTEM_PROMPT + categoryContext + labelContext,
       tools: TOOLS,
       tool_choice: { type: 'any' },
@@ -139,6 +139,15 @@ router.post('/generate-ticket', async (req, res) => {
     }
 
     const input = toolBlock.input;
+
+    // a truncated or empty draft must never masquerade as "ready to file"
+    if (toolBlock.name === 'create_tickets' && (response.stop_reason === 'max_tokens' || !input.tickets?.length)) {
+      return res.json({
+        type: 'question',
+        message: "Blast — the stack overran my clipboard and the draft came out incomplete. Let's file this in smaller batches: tell me which chunk to draft first (say, the first 10) and I'll have it ready for your stamp.",
+        proposedTickets: [],
+      });
+    }
 
     if (toolBlock.name === 'ask_question') {
       return res.json({

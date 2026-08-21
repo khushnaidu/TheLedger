@@ -16,11 +16,40 @@ function getPageQuote(pathname, quotes) {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
-export default function GusAssistant({ onTicketsCreated }) {
+// what the clerk mutters while the request is out — cycles so it's clear he's working
+const WORKING_LINES = [
+  'consulting the index...',
+  'rifling the filing cabinet...',
+  'sharpening the pencil...',
+  'stamping in triplicate...',
+  'cross-referencing the archives...',
+  'blowing dust off a folder...',
+];
+
+// Older api messages get trimmed for the request/storage cap; a trailing orphaned
+// tool_result at the front would be rejected by the API, so drop it.
+function capApiMessages(list, n = 40) {
+  const out = list.slice(-n);
+  while (out.length && Array.isArray(out[0]?.content) && out[0].content[0]?.type === 'tool_result') out.shift();
+  return out;
+}
+
+export default function GusAssistant({ onTicketsCreated, user }) {
   const location = useLocation();
+  const HIST_KEY = `ledger_gus_chat_${user?.id || 'anon'}`;
+  const SIZE_KEY = 'ledger_gus_size';
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([]);
-  const [apiMessages, setApiMessages] = useState([]);
+  const [messages, setMessages] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(HIST_KEY))?.messages || []; } catch { return []; }
+  });
+  const [apiMessages, setApiMessages] = useState(() => {
+    try { return capApiMessages(JSON.parse(localStorage.getItem(HIST_KEY))?.apiMessages || []); } catch { return []; }
+  });
+  const [size, setSize] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(SIZE_KEY)) || null; } catch { return null; }
+  });
+  const [workingLine, setWorkingLine] = useState(0);
+  const panelRef = useRef(null);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -153,6 +182,44 @@ export default function GusAssistant({ onTicketsCreated }) {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
   }, [messages, loading]);
 
+  // the conversation survives refreshes — capped so storage stays small
+  useEffect(() => {
+    try {
+      localStorage.setItem(HIST_KEY, JSON.stringify({
+        messages: messages.slice(-40),
+        apiMessages: capApiMessages(apiMessages),
+      }));
+    } catch { /* storage full/blocked — history just won't persist */ }
+  }, [messages, apiMessages, HIST_KEY]);
+
+  // cycle the working lines while a request is out
+  useEffect(() => {
+    if (!loading) return;
+    setWorkingLine(Math.floor(Math.random() * WORKING_LINES.length));
+    const t = setInterval(() => setWorkingLine((i) => i + 1), 1500);
+    return () => clearInterval(t);
+  }, [loading]);
+
+  // drag the bottom-left corner to resize; the panel is anchored top-right
+  const startResize = (e) => {
+    e.preventDefault();
+    const rect = panelRef.current.getBoundingClientRect();
+    const startX = e.clientX, startY = e.clientY;
+    const onMove = (ev) => {
+      setSize({
+        w: Math.min(Math.max(rect.width + (startX - ev.clientX), 320), window.innerWidth - 48),
+        h: Math.min(Math.max(rect.height + (ev.clientY - startY), 400), window.innerHeight - 40),
+      });
+    };
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      setSize((s) => { try { localStorage.setItem(SIZE_KEY, JSON.stringify(s)); } catch { /* ok */ } return s; });
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
   useEffect(() => {
     if (open && inputRef.current) inputRef.current.focus();
   }, [open]);
@@ -177,7 +244,7 @@ export default function GusAssistant({ onTicketsCreated }) {
 
     try {
       const data = await api.generateTicket({
-        messages: newApiMessages,
+        messages: capApiMessages(newApiMessages),
         categories,
         labels,
       });
@@ -191,6 +258,11 @@ export default function GusAssistant({ onTicketsCreated }) {
           { role: 'assistant', content: [{ type: 'tool_use', id: 'q', name: 'ask_question', input: { message: data.message, proposed_tickets: data.proposedTickets } }] },
           { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'q', content: 'User is viewing the question.' }] },
         ]);
+      } else if (data.type === 'tickets' && !data.tickets?.length) {
+        // never show "ready to file" with nothing to file
+        setMessages(prev => [...prev, {
+          role: 'gus', text: "Hm — the draft came out blank. Give me the details once more and I'll redo it properly.",
+        }]);
       } else if (data.type === 'tickets') {
         setMessages(prev => [...prev, {
           role: 'gus', text: data.message, tickets: data.tickets,
@@ -262,7 +334,12 @@ export default function GusAssistant({ onTicketsCreated }) {
 
   // Expanded chat panel
   return (
-    <div className="gus-chat-panel">
+    <div
+      ref={panelRef}
+      className="gus-chat-panel"
+      style={size ? { width: size.w, height: size.h, maxHeight: 'none' } : undefined}
+    >
+      <div className="gus-resize" onMouseDown={startResize} title="Drag to resize" />
       <div className="gus-chat-header">
         <div className="gus-chat-face-wrap">
           <img src={GUS_FACE} alt="Gus" className="gus-chat-face" />
@@ -372,6 +449,9 @@ export default function GusAssistant({ onTicketsCreated }) {
             <img src={GUS_FACE} alt="" className="gus-msg-avatar" />
             <div className="gus-msg-content gus-msg-content-gus">
               <span className="gus-typing"><span /><span /><span /></span>
+              <p className="mt-1.5 text-[0.5rem] tracking-[0.18em] uppercase text-[var(--ink-30)]">
+                {WORKING_LINES[workingLine % WORKING_LINES.length]}
+              </p>
             </div>
           </div>
         )}
