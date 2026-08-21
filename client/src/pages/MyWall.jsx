@@ -220,22 +220,29 @@ function DaySheet({ date, events, onClose, onChanged }) {
         )}
 
         <p className="t-label mb-3">Pin something</p>
-        <div className="flex gap-2 mb-4">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') save(); }}
-            placeholder="What's happening?"
-            className="input-field flex-1 text-[0.75rem]"
-          />
-          <input
-            type="time"
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') save(); }}
+          placeholder="What's happening?"
+          className="input-field w-full mb-3 text-[0.75rem]"
+        />
+        <div className="flex items-center gap-3 mb-4">
+          <span className="t-label whitespace-nowrap">At</span>
+          <select
             value={time}
             onChange={(e) => setTime(e.target.value)}
-            className="input-field w-[110px] text-[0.6875rem]"
-            title="Time (optional)"
-          />
+            className="select-field flex-1"
+            style={{ width: 'auto' }}
+          >
+            <option value="">All day</option>
+            {Array.from({ length: 48 }, (_, i) => {
+              const hh = pad2(Math.floor(i / 2));
+              const mm = i % 2 ? '30' : '00';
+              return <option key={`${hh}:${mm}`} value={`${hh}:${mm}`}>{hh}:{mm}</option>;
+            })}
+          </select>
         </div>
 
         {chosenImage ? (
