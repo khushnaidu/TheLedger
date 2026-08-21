@@ -44,7 +44,7 @@ export default function CreateTicket() {
 
   return (
     <div className="max-w-[640px] mx-auto">
-      <button onClick={() => navigate(-1)} className="btn-ghost mb-10">
+      <button data-clicky onClick={() => navigate(-1)} className="btn-ghost mb-10">
         <ArrowLeft className="w-3 h-3" /> Back
       </button>
 

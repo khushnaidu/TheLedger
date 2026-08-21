@@ -32,7 +32,7 @@ export default function TicketDetail() {
 
   return (
     <div className="max-w-[900px] mx-auto">
-      <button onClick={() => navigate(-1)} className="btn-ghost mb-10">
+      <button data-clicky onClick={() => navigate(-1)} className="btn-ghost mb-10">
         <ArrowLeft className="w-3 h-3" /> Back
       </button>
 

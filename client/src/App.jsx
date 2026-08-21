@@ -12,6 +12,7 @@ import { TOOLS, HIDDEN_ROUTES } from './tools/registry';
 import Auth from './pages/Auth';
 import ResetPassword from './pages/ResetPassword';
 import { clearEdition, isPersonal } from './lib/edition';
+import { initClicky } from './lib/clicky';
 
 // The Reading Room is Jane's turf — Gus stays out of it
 function AssistantOnDuty({ user }) {
@@ -29,6 +30,8 @@ function App() {
   const [checking, setChecking] = useState(true);
   const [entered, setEntered] = useState(false);
   const [exiting, setExiting] = useState(false);
+
+  useEffect(() => initClicky(), []);
 
   useEffect(() => {
     if (isAuthenticated()) {

@@ -404,7 +404,7 @@ export default function NotebookReader() {
     return (
       <div className="max-w-[600px] pt-10">
         <p className="t-label" style={{ color: 'var(--stamp)' }}>{error || 'Notebook not found'}</p>
-        <Link to="/notebooks" className="t-label underline">← back to the shelf</Link>
+        <Link data-clicky to="/notebooks" className="t-label underline">← back to the shelf</Link>
       </div>
     );
   }
@@ -413,7 +413,7 @@ export default function NotebookReader() {
     <div className="max-w-[1200px] stagger relative">
       <div className="flex items-baseline justify-between">
         <div>
-          <Link to="/notebooks" className="t-label hover:text-[var(--stamp)]">← The Shelf</Link>
+          <Link data-clicky to="/notebooks" className="t-label hover:text-[var(--stamp)]">← The Shelf</Link>
           <h1 className="t-display mt-1">{notebook.title}</h1>
         </div>
         <div className="text-right">

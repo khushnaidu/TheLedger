@@ -53,7 +53,7 @@ export default function Sidebar({ user, onLogout }) {
   }, []);
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-[220px] bg-white flex flex-col z-50 overflow-hidden">
+    <aside data-clicky-zone className="fixed left-0 top-0 h-screen w-[220px] bg-white flex flex-col z-50 overflow-hidden">
       {/* The television sits where the logo used to — persistent across pages */}
       <div className="px-5 pt-3 pb-1.5 flex flex-col items-center">
         <TvSet />

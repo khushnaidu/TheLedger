@@ -136,7 +136,7 @@ export default function PaperReader() {
     return (
       <div className="max-w-[800px] pt-10">
         <p className="t-label" style={{ color: 'var(--stamp)' }}>{error}</p>
-        <button className="btn-ghost mt-4" onClick={() => navigate('/research')}>← back to the catalog</button>
+        <button data-clicky className="btn-ghost mt-4" onClick={() => navigate('/research')}>← back to the catalog</button>
       </div>
     );
   }
@@ -151,7 +151,7 @@ export default function PaperReader() {
   return (
     <div className="rr-reader stagger">
       <div className="rr-reader-bar">
-        <button className="btn-ghost" onClick={() => navigate('/research')}>← catalog</button>
+        <button data-clicky className="btn-ghost" onClick={() => navigate('/research')}>← catalog</button>
         <div className="rr-reader-title">
           <p className="t-label">{paper.title}</p>
           <p className="rr-reader-byline">{paper.authors}{paper.year ? ` · ${paper.year}` : ''}</p>
