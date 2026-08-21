@@ -28,8 +28,15 @@ function parseICS(text) {
     const value = line.slice(idx + 1);
     if (key === 'SUMMARY') cur.summary = unescapeText(value);
     else if (key === 'DTSTART') {
-      const m = value.match(/(\d{4})(\d{2})(\d{2})/);
-      if (m) cur.dtstart = `${m[1]}-${m[2]}-${m[3]}`;
+      const m = value.match(/(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})\d{0,2}(Z)?)?/);
+      if (m) {
+        cur.dtstart = `${m[1]}-${m[2]}-${m[3]}`;
+        if (m[4]) {
+          // timed event — keep the wall-clock digits; flag UTC stamps so the client can localize
+          cur.time = `${m[4]}:${m[5]}`;
+          cur.timeIsUtc = !!m[6];
+        }
+      }
     } else if (key === 'UID') cur.uid = value.trim();
     else if (key === 'RRULE') cur.rrule = value.trim();
   }
@@ -55,7 +62,7 @@ function expandOccurrences(events, windowStart, windowEnd) {
       const key = `${uid}:${date}`;
       if (seen.has(key) || !isRealDate(date)) return;
       seen.add(key);
-      out.push({ date, title: ev.summary, uid });
+      out.push({ date, title: ev.summary, uid, time: ev.time || null, timeIsUtc: !!ev.timeIsUtc });
     };
     if (freq === 'YEARLY') {
       const until = ev.rrule.match(/UNTIL=(\d{4})(\d{2})(\d{2})/);

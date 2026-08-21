@@ -80,6 +80,11 @@ export const api = {
   deleteFeed: (id) => request(`/feeds/${id}`, { method: 'DELETE' }),
   syncFeeds: (force = false) => request('/feeds/sync-all', { method: 'POST', body: JSON.stringify({ force }) }),
 
+  // Ledgervision custom channels
+  getChannels: () => request('/channels'),
+  addChannel: (data) => request('/channels', { method: 'POST', body: JSON.stringify(data) }),
+  deleteChannel: (id) => request(`/channels/${id}`, { method: 'DELETE' }),
+
   // Partner face-off
   getPartner: () => request('/partner'),
   invitePartner: (email) => request('/partner/invite', { method: 'POST', body: JSON.stringify({ email }) }),

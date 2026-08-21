@@ -23,6 +23,7 @@ model User {
   canvas     CanvasIntegration?
   events     CalendarEvent[]
   feeds      CalendarFeed[]
+  channels   TvChannel[]
 
   sentInvites     Connection[]  @relation("connRequester")
   receivedInvites Connection[]  @relation("connAddressee")
@@ -57,6 +58,15 @@ model PartnerNote {
   @@index([recipientId, createdAt])
 }
 
+model TvChannel {
+  id        String   @id @default(uuid())
+  name      String   // ≤20 chars, enforced at the API
+  src       String   // youtube embed URL
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime @default(now())
+}
+
 model CalendarFeed {
   id           String    @id @default(uuid())
   url          String
@@ -72,6 +82,9 @@ model CalendarEvent {
   id         String   @id @default(uuid())
   title      String
   date       String   // "YYYY-MM-DD" — wall calendars think in days, not timestamps
+  time       String?  // "HH:MM" — wall-clock time when the event has one
+  timeIsUtc  Boolean  @default(false) // true when time came from an ICS UTC stamp; client localizes
+  hidden     Boolean  @default(false) // user removed a synced event from the wall; survives re-sync
   note       String?
   imageUrl   String?
   source     String   @default("manual") // manual | google | ics

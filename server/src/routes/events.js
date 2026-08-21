@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 router.get('/', async (req, res) => {
   try {
     const { month, date } = req.query;
-    const where = { userId: req.user.id };
+    const where = { userId: req.user.id, hidden: false };
     if (date) where.date = date;
     else if (month) where.date = { startsWith: month };
     const events = await prisma.calendarEvent.findMany({
@@ -24,12 +24,15 @@ router.get('/', async (req, res) => {
 // POST /api/events
 router.post('/', async (req, res) => {
   try {
-    const { title, date, note, imageUrl } = req.body;
+    const { title, date, time, note, imageUrl } = req.body;
     if (!title?.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(date || '')) {
       return res.status(400).json({ error: 'title and date (YYYY-MM-DD) are required' });
     }
+    if (time && !/^\d{2}:\d{2}$/.test(time)) {
+      return res.status(400).json({ error: 'time must be HH:MM' });
+    }
     const event = await prisma.calendarEvent.create({
-      data: { title: title.trim(), date, note: note || null, imageUrl: imageUrl || null, userId: req.user.id },
+      data: { title: title.trim(), date, time: time || null, note: note || null, imageUrl: imageUrl || null, userId: req.user.id },
     });
     res.status(201).json(event);
   } catch (err) {
@@ -42,10 +45,11 @@ router.patch('/:id', async (req, res) => {
   try {
     const existing = await prisma.calendarEvent.findFirst({ where: { id: req.params.id, userId: req.user.id } });
     if (!existing) return res.status(404).json({ error: 'Event not found' });
-    const { title, date, note, imageUrl } = req.body;
+    const { title, date, time, note, imageUrl } = req.body;
     const data = {};
     if (title !== undefined) data.title = title.trim();
     if (date !== undefined) data.date = date;
+    if (time !== undefined) data.time = time || null;
     if (note !== undefined) data.note = note;
     if (imageUrl !== undefined) data.imageUrl = imageUrl;
     const event = await prisma.calendarEvent.update({ where: { id: existing.id }, data });
@@ -60,7 +64,12 @@ router.delete('/:id', async (req, res) => {
   try {
     const existing = await prisma.calendarEvent.findFirst({ where: { id: req.params.id, userId: req.user.id } });
     if (!existing) return res.status(404).json({ error: 'Event not found' });
-    await prisma.calendarEvent.delete({ where: { id: existing.id } });
+    if (existing.source !== 'manual') {
+      // synced events come back on every re-sync, so removal = a hidden flag the sync preserves
+      await prisma.calendarEvent.update({ where: { id: existing.id }, data: { hidden: true } });
+    } else {
+      await prisma.calendarEvent.delete({ where: { id: existing.id } });
+    }
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

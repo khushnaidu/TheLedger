@@ -23,7 +23,7 @@ export default function TicketDetail() {
       }).catch(console.error).finally(() => setLoading(false));
   }, [id]);
 
-  const handleSave = async () => { setSaving(true); try { const u = await api.updateTicket(id, form); setTicket(u); } catch (e) { console.error(e); } setSaving(false); };
+  const handleSave = async () => { setSaving(true); try { await api.updateTicket(id, form); navigate('/board'); } catch (e) { console.error(e); setSaving(false); } };
   const handleDelete = async () => { if (!confirm('Delete permanently?')) return; await api.deleteTicket(id); navigate('/list'); };
   const toggleLabel = (lid) => { setForm((f) => ({ ...f, labelIds: f.labelIds.includes(lid) ? f.labelIds.filter((x) => x !== lid) : [...f.labelIds, lid] })); };
 

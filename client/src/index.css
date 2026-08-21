@@ -1147,10 +1147,15 @@ b, strong, th {
 }
 
 .tv-screen-cut iframe {
+  /* the cut is ~1.15:1 but video is 16:9 — an exact-fit iframe letterboxes.
+     Instead: full height, 16:9-cover width (1.778/1.147 ≈ 155%), centered;
+     the sides run off the edge of the tube like a real CRT overscan. */
   position: absolute;
-  inset: 0;
-  width: 100%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   height: 100%;
+  width: 156%;
   border: 0;
 }
 
@@ -1241,6 +1246,108 @@ b, strong, th {
 
 /* icon-only win buttons (power / channel arrows) */
 .win-btn-ico { display: inline-flex; align-items: center; justify-content: center; line-height: 0; }
+
+/* the channel tuner — a little Win95 settings tray under the buttons */
+.tv-tuner {
+  margin-top: 4px;
+  padding: 6px;
+  background: #c0c0c0;
+  box-shadow:
+    inset -1px -1px 0 #0a0a0a,
+    inset 1px 1px 0 #ffffff,
+    inset -2px -2px 0 #808080,
+    inset 2px 2px 0 #dfdfdf;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tv-tuner-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  text-transform: uppercase;
+  color: #26272b;
+  text-align: center;
+  margin-bottom: 2px;
+}
+
+.tv-tuner-list {
+  max-height: 168px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tv-tuner-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+/* a row in the guide — click to tune */
+.tv-tuner-tune {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 3px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.tv-tuner-tune:hover { background: #dfdfdf; }
+
+.tv-tuner-current { background: #000080; }
+.tv-tuner-current .tv-tuner-name,
+.tv-tuner-current .tv-tuner-num { color: #fff; }
+
+.tv-tuner-num {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  color: #808080;
+  flex-shrink: 0;
+}
+
+.tv-tuner-name {
+  font-family: var(--font);
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #26272b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tv-tuner-input {
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  padding: 4px 5px;
+  background: #fff;
+  border: none;
+  border-radius: 0;
+  box-shadow:
+    inset 1px 1px 0 #0a0a0a,
+    inset -1px -1px 0 #ffffff,
+    inset 2px 2px 0 #808080,
+    inset -2px -2px 0 #dfdfdf;
+  outline: none;
+  text-transform: none;
+}
+
+.tv-tuner-error {
+  font-family: var(--font);
+  font-size: 0.4375rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--stamp);
+}
 
 /* dimmed backdrop behind the big screen */
 .tv-overlay {
@@ -1669,6 +1776,9 @@ aside {
 
 .wall-day-events {
   margin-top: 24px;
+  /* sits above any taped-in photo so titles stay readable */
+  position: relative;
+  z-index: 3;
 }
 
 .wall-event {
@@ -1679,6 +1789,17 @@ aside {
   text-overflow: ellipsis;
   text-transform: none;
   transform: rotate(-0.8deg);
+  /* paper-coloured chip so the text reads over a busy gif */
+  background: rgba(255, 253, 248, 0.82);
+  width: fit-content;
+  max-width: 100%;
+  padding: 0 3px;
+}
+
+.wall-event-time {
+  font-size: 0.62rem;
+  opacity: 0.6;
+  margin-right: 3px;
 }
 
 .wall-event:nth-child(2n) { transform: rotate(0.6deg); }

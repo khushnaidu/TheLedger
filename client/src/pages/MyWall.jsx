@@ -92,6 +92,19 @@ function localToday() {
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
 
+// UTC-stamped feed times get shifted to the viewer's clock (the date can move with them);
+// wall-clock times pass through as-is
+function withLocalTime(ev) {
+  if (!ev.time) return { ...ev, displayTime: null };
+  if (!ev.timeIsUtc) return { ...ev, displayTime: ev.time };
+  const dt = new Date(`${ev.date}T${ev.time}:00Z`);
+  return {
+    ...ev,
+    date: `${dt.getFullYear()}-${pad2(dt.getMonth() + 1)}-${pad2(dt.getDate())}`,
+    displayTime: `${pad2(dt.getHours())}:${pad2(dt.getMinutes())}`,
+  };
+}
+
 function buildCells(y, m) {
   const first = new Date(y, m, 1).getDay();
   const days = new Date(y, m + 1, 0).getDate();
@@ -120,6 +133,7 @@ function buildCells(y, m) {
 // The day sheet — slides in from the right when a day is opened
 function DaySheet({ date, events, onClose, onChanged }) {
   const [title, setTitle] = useState('');
+  const [time, setTime] = useState('');
   const [gifQuery, setGifQuery] = useState('');
   const [gifResults, setGifResults] = useState([]);
   const [searching, setSearching] = useState(false);
@@ -147,8 +161,8 @@ function DaySheet({ date, events, onClose, onChanged }) {
     if (!title.trim() || saving) return;
     setSaving(true);
     try {
-      await api.createEvent({ title, date, imageUrl: chosenImage || urlInput.trim() || null });
-      setTitle(''); setChosenImage(null); setUrlInput(''); setGifResults([]); setGifQuery('');
+      await api.createEvent({ title, date, time: time || null, imageUrl: chosenImage || urlInput.trim() || null });
+      setTitle(''); setTime(''); setChosenImage(null); setUrlInput(''); setGifResults([]); setGifQuery('');
       onChanged();
     } catch (err) { console.error(err); }
     setSaving(false);
@@ -179,17 +193,25 @@ function DaySheet({ date, events, onClose, onChanged }) {
             {events.map((ev) => (
               <div key={ev.id} className="flex items-center gap-3 py-2.5 border-b border-[var(--ink-08)]">
                 {ev.imageUrl && <img src={ev.imageUrl} alt="" className="w-9 h-9 object-cover border border-[var(--line)]" />}
+                {ev.displayTime && (
+                  <span className="text-[0.625rem] tracking-[0.08em] whitespace-nowrap" style={{ color: 'var(--ink-30)', fontVariantNumeric: 'tabular-nums' }}>
+                    {ev.displayTime}
+                  </span>
+                )}
                 <div className="flex-1 min-w-0">
                   <p className="text-[0.75rem] truncate" style={{ textTransform: 'none' }}>{ev.title}</p>
                   {ev.source !== 'manual' && (
                     <p className="text-[0.4375rem] tracking-[0.16em] uppercase text-[var(--ink-30)]">via {ev.source}</p>
                   )}
                 </div>
-                {ev.source === 'manual' && (
-                  <button type="button" onClick={() => remove(ev.id)} className="btn-ghost p-1" title="Remove">
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => remove(ev.id)}
+                  className="btn-ghost p-1"
+                  title={ev.source === 'manual' ? 'Remove' : `Remove from the wall (stays in your ${ev.source} calendar)`}
+                >
+                  <X className="w-3 h-3" />
+                </button>
               </div>
             ))}
           </div>
@@ -198,14 +220,23 @@ function DaySheet({ date, events, onClose, onChanged }) {
         )}
 
         <p className="t-label mb-3">Pin something</p>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') save(); }}
-          placeholder="What's happening?"
-          className="input-field w-full mb-4 text-[0.75rem]"
-        />
+        <div className="flex gap-2 mb-4">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') save(); }}
+            placeholder="What's happening?"
+            className="input-field flex-1 text-[0.75rem]"
+          />
+          <input
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="input-field w-[110px] text-[0.6875rem]"
+            title="Time (optional)"
+          />
+        </div>
 
         {chosenImage ? (
           <div className="mb-4">
@@ -289,7 +320,7 @@ export default function MyWall() {
   const cells = useMemo(() => buildCells(cursor.y, cursor.m), [cursor]);
 
   const load = useCallback(() => {
-    api.getEvents(monthKey).then(setEvents).catch(console.error);
+    api.getEvents(monthKey).then((evs) => setEvents(evs.map(withLocalTime))).catch(console.error);
   }, [monthKey]);
 
   useEffect(() => { load(); }, [load]);
@@ -333,6 +364,8 @@ export default function MyWall() {
   const byDate = useMemo(() => {
     const map = {};
     events.forEach((ev) => { (map[ev.date] = map[ev.date] || []).push(ev); });
+    // all-day pins first, then timed ones in clock order
+    Object.values(map).forEach((list) => list.sort((a, b) => (a.displayTime || '') < (b.displayTime || '') ? -1 : 1));
     return map;
   }, [events]);
 
@@ -417,7 +450,10 @@ export default function MyWall() {
                   )}
                   <div className="wall-day-events">
                     {dayEvents.slice(0, 2).map((ev) => (
-                      <p key={ev.id} className="wall-event" title={ev.title}>{ev.title}</p>
+                      <p key={ev.id} className="wall-event" title={ev.displayTime ? `${ev.displayTime} — ${ev.title}` : ev.title}>
+                        {ev.displayTime && <span className="wall-event-time">{ev.displayTime}</span>}
+                        {ev.title}
+                      </p>
                     ))}
                     {dayEvents.length > 2 && (
                       <p className="wall-event wall-event-more">+{dayEvents.length - 2} more</p>

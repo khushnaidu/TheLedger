@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Power, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Power, List, X } from 'lucide-react';
+import { api } from '../api';
 
-// The channel lineup. Add a channel: { name: 'MTV', src: 'https://www.youtube.com/embed/VIDEO_ID?autoplay=1' }
-// (playlists: 'https://www.youtube.com/embed/videoseries?list=PLAYLIST_ID&autoplay=1')
-const CHANNELS = [
+// The built-in lineup. Playlists: 'https://www.youtube.com/embed/videoseries?list=PLAYLIST_ID&autoplay=1'
+const BUILTIN_CHANNELS = [
   { name: 'French Touch', src: 'https://www.youtube.com/embed/-AgKZEBkDFA?autoplay=1' },
   { name: 'Frutiger Aero', src: 'https://www.youtube.com/embed/Cz2YCRmDOFk?autoplay=1' },
   { name: 'Batman Noir Jazz', src: 'https://www.youtube.com/embed/OQJ9_HHRWis?autoplay=1' },
@@ -12,8 +12,76 @@ const CHANNELS = [
   { name: 'Modern RnB', src: 'https://www.youtube.com/embed/dHU8B76kR_s?autoplay=1' },
 ];
 
+const CUSTOM_KEY = 'ledger_tv_channels'; // legacy browser-local storage, migrated to the account on load
+
+// Accepts watch/share/shorts/live/embed/playlist YouTube links → embed src, or null if unrecognized
+function toEmbedSrc(raw) {
+  let u;
+  try { u = new URL(raw.trim()); } catch { return null; }
+  const host = u.hostname.replace(/^(www|m|music)\./, '');
+  if (!['youtube.com', 'youtu.be', 'youtube-nocookie.com'].includes(host)) return null;
+  const list = u.searchParams.get('list');
+  if (list && /^[\w-]+$/.test(list)) {
+    return `https://www.youtube.com/embed/videoseries?list=${list}&autoplay=1`;
+  }
+  let id = null;
+  if (host === 'youtu.be') id = u.pathname.slice(1).split('/')[0];
+  else if (/^\/(embed|shorts|live)\//.test(u.pathname)) id = u.pathname.split('/')[2];
+  else id = u.searchParams.get('v');
+  if (!id || !/^[\w-]{6,20}$/.test(id)) return null;
+  return `https://www.youtube.com/embed/${id}?autoplay=1`;
+}
+
 export default function TvSet() {
   const [channel, setChannel] = useState(0);
+  const [customChannels, setCustomChannels] = useState([]);
+  const [managing, setManaging] = useState(false);
+  const [draftName, setDraftName] = useState('');
+  const [draftUrl, setDraftUrl] = useState('');
+  const [draftError, setDraftError] = useState(null);
+  const [adding, setAdding] = useState(false);
+
+  const CHANNELS = [...BUILTIN_CHANNELS, ...customChannels];
+
+  // channels live on the account; sweep any pre-account browser-local ones into it once
+  useEffect(() => {
+    api.getChannels().then(async (chs) => {
+      const migrated = [];
+      try {
+        const local = JSON.parse(localStorage.getItem(CUSTOM_KEY) || '[]');
+        if (Array.isArray(local)) {
+          for (const c of local.filter((c) => c?.name && c?.src)) {
+            try { migrated.push(await api.addChannel({ name: c.name, src: c.src })); } catch { /* skip */ }
+          }
+        }
+      } catch { /* corrupted legacy value */ }
+      localStorage.removeItem(CUSTOM_KEY);
+      setCustomChannels([...chs, ...migrated]);
+    }).catch(() => {});
+  }, []);
+
+  const addCustomChannel = async () => {
+    if (adding) return;
+    const src = toEmbedSrc(draftUrl);
+    if (!src) { setDraftError('bad link — paste a youtube video or playlist url'); return; }
+    const name = draftName.trim().slice(0, 20) || `CH ${CHANNELS.length + 1}`;
+    setAdding(true);
+    try {
+      const saved = await api.addChannel({ name, src });
+      setCustomChannels((cs) => [...cs, saved]);
+      setDraftName(''); setDraftUrl(''); setDraftError(null);
+    } catch (err) {
+      setDraftError(err.message);
+    }
+    setAdding(false);
+  };
+
+  const removeCustomChannel = async (id) => {
+    const absolute = CHANNELS.findIndex((c) => c.id === id);
+    try { await api.deleteChannel(id); } catch { return; }
+    setCustomChannels((cs) => cs.filter((c) => c.id !== id));
+    setChannel((c) => (c === absolute ? 0 : c > absolute ? c - 1 : c));
+  };
   const [powered, setPowered] = useState(false);
   const [tuning, setTuning] = useState(false);
   const [big, setBig] = useState(false);
@@ -56,7 +124,6 @@ export default function TvSet() {
   };
 
   const nextChannel = () => changeChannel(powered ? (channel + 1) % CHANNELS.length : channel);
-  const prevChannel = () => changeChannel(powered ? (channel - 1 + CHANNELS.length) % CHANNELS.length : channel);
 
   const openBig = () => {
     if (!powered) changeChannel(channel);
@@ -118,14 +185,56 @@ export default function TvSet() {
         <button type="button" className="win-btn win-btn-sm win-btn-ico" onClick={togglePower} title="Power">
           <Power size={10} strokeWidth={3} />
         </button>
-        <button type="button" className="win-btn win-btn-sm win-btn-ico" onClick={prevChannel} title="Prev channel">
-          <ChevronLeft size={10} strokeWidth={3} />
-        </button>
-        <button type="button" className="win-btn win-btn-sm win-btn-ico" onClick={nextChannel} title="Next channel">
-          <ChevronRight size={10} strokeWidth={3} />
+        <button type="button" className="win-btn win-btn-sm win-btn-ico" onClick={() => setManaging((m) => !m)} title="Channel guide">
+          <List size={10} strokeWidth={3} />
         </button>
         <button type="button" className="win-btn win-btn-sm" onClick={openBig}>Big Screen</button>
       </div>
+
+      {managing && (
+        <div className="tv-tuner">
+          <p className="tv-tuner-title">Channel Guide</p>
+          <div className="tv-tuner-list">
+            {CHANNELS.map((c, i) => (
+              <div key={c.id || c.src} className="tv-tuner-row">
+                <button
+                  type="button"
+                  className={`tv-tuner-tune ${powered && i === channel ? 'tv-tuner-current' : ''}`}
+                  onClick={() => changeChannel(i)}
+                >
+                  <span className="tv-tuner-num">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="tv-tuner-name">{c.name}</span>
+                </button>
+                {c.id && (
+                  <button type="button" className="win-btn win-btn-sm win-btn-ico" onClick={() => removeCustomChannel(c.id)} title={`Remove ${c.name}`}>
+                    <X size={8} strokeWidth={3} />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          <input
+            type="text"
+            value={draftName}
+            onChange={(e) => setDraftName(e.target.value)}
+            maxLength={20}
+            placeholder="channel name (max 20)"
+            className="tv-tuner-input"
+          />
+          <input
+            type="text"
+            value={draftUrl}
+            onChange={(e) => { setDraftUrl(e.target.value); setDraftError(null); }}
+            onKeyDown={(e) => { if (e.key === 'Enter') addCustomChannel(); }}
+            placeholder="youtube link"
+            className="tv-tuner-input"
+          />
+          {draftError && <p className="tv-tuner-error">{draftError}</p>}
+          <button type="button" className="win-btn win-btn-sm w-full" onClick={addCustomChannel} disabled={!draftUrl.trim()}>
+            Add Channel
+          </button>
+        </div>
+      )}
 
       <div className="tv-status-row">
         <span className="tv-brand">Ledgervision</span>

@@ -35,6 +35,13 @@ async function syncFeed(feed) {
   const occurrences = expandOccurrences(parseICS(text), dateStr(start), dateStr(end))
     .slice(0, MAX_OCCURRENCES);
 
+  // the replace below wipes the feed's rows, so remember which ones the user hid
+  const hiddenRows = await prisma.calendarEvent.findMany({
+    where: { userId: feed.userId, externalId: { startsWith: `${feed.id}:` }, hidden: true },
+    select: { externalId: true },
+  });
+  const hiddenIds = new Set(hiddenRows.map((r) => r.externalId));
+
   await prisma.$transaction([
     prisma.calendarEvent.deleteMany({
       where: { userId: feed.userId, externalId: { startsWith: `${feed.id}:` } },
@@ -43,8 +50,11 @@ async function syncFeed(feed) {
       data: occurrences.map((o) => ({
         title: o.title,
         date: o.date,
+        time: o.time,
+        timeIsUtc: o.timeIsUtc,
         source: feed.kind,
         externalId: `${feed.id}:${o.uid}:${o.date}`,
+        hidden: hiddenIds.has(`${feed.id}:${o.uid}:${o.date}`),
         userId: feed.userId,
       })),
     }),
