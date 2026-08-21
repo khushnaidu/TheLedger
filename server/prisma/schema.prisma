@@ -24,6 +24,7 @@ model User {
   events     CalendarEvent[]
   feeds      CalendarFeed[]
   channels   TvChannel[]
+  notebooks  Notebook[]
 
   sentInvites     Connection[]  @relation("connRequester")
   receivedInvites Connection[]  @relation("connAddressee")
@@ -153,4 +154,34 @@ model CanvasIntegration {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id])
+}
+
+// ── The Study: vintage notebooks ──────────────────────────────
+// A page's content is one JSON document ({ v, items }) — items are
+// heterogeneous (text/ink/image/sticker) and the page is the atomic
+// load/save/undo unit, so per-item rows would buy nothing. See ADR-0004.
+
+model Notebook {
+  id         String   @id @default(uuid())
+  title      String
+  coverStyle String   @default("composition") // composition | cloth | leather | kraft
+  paperStyle String   @default("ruled") // ruled | grid | dot | plain
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pages      NotebookPage[]
+
+  @@index([userId, updatedAt])
+}
+
+model NotebookPage {
+  id         String   @id @default(uuid())
+  notebookId String
+  notebook   Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  pageNumber Int
+  content    Json     @default("{\"v\": 1, \"items\": []}")
+  updatedAt  DateTime @updatedAt
+
+  @@unique([notebookId, pageNumber])
 }

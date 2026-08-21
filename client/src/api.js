@@ -96,4 +96,37 @@ export const api = {
   // AI Assistant
   generateTicket: (data) => request('/ai/generate-ticket', { method: 'POST', body: JSON.stringify(data) }),
   createTicketsFromGus: (data) => request('/ai/create-tickets', { method: 'POST', body: JSON.stringify(data) }),
+
+  // Notebooks (the study)
+  getNotebooks: () => request('/notebooks'),
+  createNotebook: (data) => request('/notebooks', { method: 'POST', body: JSON.stringify(data) }),
+  getNotebook: (id) => request(`/notebooks/${id}`),
+  updateNotebook: (id, data) => request(`/notebooks/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteNotebook: (id) => request(`/notebooks/${id}`, { method: 'DELETE' }),
+  addNotebookPage: (id) => request(`/notebooks/${id}/pages`, { method: 'POST' }),
+  saveNotebookPage: (id, pageId, content) =>
+    request(`/notebooks/${id}/pages/${pageId}`, { method: 'PATCH', body: JSON.stringify({ content }) }),
+  deleteNotebookPage: (id, pageId) => request(`/notebooks/${id}/pages/${pageId}`, { method: 'DELETE' }),
+
+  // Blob image upload — the SDK handshake can't carry our auth header,
+  // so the JWT rides along as clientPayload (verified server-side)
+  uploadNotebookImage: async (file) => {
+    const { upload } = await import('@vercel/blob/client');
+    const token = getToken();
+    const { userId } = JSON.parse(atob(token.split('.')[1]));
+    const safeName = file.name.replace(/[^\w.-]+/g, '_').slice(-60) || 'photo';
+    try {
+      const blob = await upload(`notebooks/${userId}/${safeName}`, file, {
+        access: 'public',
+        handleUploadUrl: '/api/uploads',
+        clientPayload: token,
+      });
+      return blob.url;
+    } catch (err) {
+      if (/not configured|token/i.test(err.message || '')) {
+        throw new Error('Photo storage is not set up yet — create a Blob store on the Vercel project (Storage → Create → Blob), then add BLOB_READ_WRITE_TOKEN to server/.env for local dev.');
+      }
+      throw err;
+    }
+  },
 };

@@ -1,41 +1,12 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
 
-const { authMiddleware } = require('./middleware/auth');
-const authRoutes = require('./routes/auth');
-const ticketRoutes = require('./routes/tickets');
-const categoryRoutes = require('./routes/categories');
-const labelRoutes = require('./routes/labels');
-const statsRoutes = require('./routes/stats');
-const aiRoutes = require('./routes/ai');
-const eventRoutes = require('./routes/events');
-const feedRoutes = require('./routes/feeds');
-const channelRoutes = require('./routes/channels');
-const partnerRoutes = require('./routes/partner');
+const createApp = require('./app');
 
-const app = express();
+const app = createApp({ before: [morgan('dev')] });
 const PORT = process.env.PORT || 3001;
-
-app.use(cors());
-app.use(express.json());
-app.use(morgan('dev'));
-
-// Public routes
-app.use('/api/auth', authRoutes);
-
-// Protected routes — require auth
-app.use('/api/tickets', authMiddleware, ticketRoutes);
-app.use('/api/categories', authMiddleware, categoryRoutes);
-app.use('/api/labels', authMiddleware, labelRoutes);
-app.use('/api/stats', authMiddleware, statsRoutes);
-app.use('/api/ai', authMiddleware, aiRoutes);
-app.use('/api/events', authMiddleware, eventRoutes);
-app.use('/api/feeds', authMiddleware, feedRoutes);
-app.use('/api/channels', authMiddleware, channelRoutes);
-app.use('/api/partner', authMiddleware, partnerRoutes);
 
 // Serve static frontend in production (non-Vercel)
 if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {

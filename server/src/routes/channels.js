@@ -1,8 +1,7 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 const EMBED_RE = /^https:\/\/www\.youtube\.com\/embed\/(videoseries\?list=[\w-]+|[\w-]{6,20}\?)/;
 const MAX_CHANNELS = 30;

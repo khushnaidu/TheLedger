@@ -10,6 +10,18 @@
   font-display: swap;
 }
 
+/* notebook hands (personal-use licenses — see each folder's info.txt) */
+@font-face {
+  font-family: 'Cute Notebook';
+  src: url('/cute-notebook-font/CuteNotebookPersonalUse-7OAEV.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Cedarville Cursive';
+  src: url('/cedarville-pnkfun1-cursive-font/CedarvillePnkfun1Cursive-Z2Px.ttf') format('truetype');
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -1557,6 +1569,15 @@ b, strong, th {
   display: inline-block;
 }
 
+/* section slug above each group of rows, broadsheet-style */
+.nav-section-label {
+  font-size: 0.4375rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-30);
+  padding: 4px 20px 2px;
+}
+
 /* Tailwind .border-black markup renders as hairline ink */
 .border-black {
   border-color: var(--line);
@@ -2013,4 +2034,843 @@ aside {
 @keyframes daySheetIn {
   0% { opacity: 0; transform: translateX(24px); }
   100% { opacity: 1; transform: translateX(0); }
+}
+
+/* ============================================================
+   NOTEBOOKS — the study
+   analog paper in a digital ledger. namespace: nb-
+   ============================================================ */
+
+:root {
+  --nb-paper: #f7f2e6;
+  --nb-ink: #221c13;
+  --nb-rule: rgba(90, 120, 180, 0.28);
+  --nb-margin: rgba(196, 30, 30, 0.4);
+}
+
+/* ── the shelf ───────────────────────────── */
+
+/* the real bookcase: /art/book_shelf.png with book spines standing on
+   each measured shelf row */
+.nb-case {
+  position: relative;
+  width: 620px;
+  max-width: 100%;
+}
+.nb-case img {
+  width: 100%;
+  display: block;
+  user-select: none;
+}
+
+.nb-case-row {
+  position: absolute;
+  left: 14%;
+  right: 13%;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 0 4px;
+}
+
+.nb-spine {
+  position: relative;
+  flex: 0 1 auto;
+  min-width: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow:
+    inset -4px 0 6px rgba(0, 0, 0, 0.35),
+    inset 2px 0 2px rgba(255, 255, 255, 0.1),
+    2px 1px 3px rgba(0, 0, 0, 0.5);
+  transition: transform 0.14s ease;
+}
+.nb-spine:hover { transform: translateY(-6px); }
+
+.nb-spine-title {
+  writing-mode: vertical-rl;
+  font-family: var(--font);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  max-height: 90%;
+}
+
+.nb-spine-composition {
+  background:
+    radial-gradient(circle at 30% 20%, #111 22%, transparent 23%),
+    radial-gradient(circle at 70% 55%, #111 20%, transparent 21%),
+    radial-gradient(circle at 40% 85%, #111 22%, transparent 23%),
+    #e8e4da;
+  background-size: 14px 14px;
+}
+.nb-spine-composition .nb-spine-title {
+  background: #fffdf8;
+  border: 1px solid var(--nb-ink);
+  padding: 6px 1px;
+  color: var(--nb-ink);
+}
+
+.nb-spine-cloth {
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px),
+    #3f5445;
+}
+.nb-spine-cloth .nb-spine-title { color: rgba(255, 253, 244, 0.85); }
+
+.nb-spine-leather {
+  background: linear-gradient(90deg, #452b1c, #3a2418 55%, #2e1b11);
+  border-top: 2px solid rgba(212, 175, 55, 0.5);
+  border-bottom: 2px solid rgba(212, 175, 55, 0.5);
+}
+.nb-spine-leather .nb-spine-title { color: #d4af37; }
+
+.nb-spine-kraft {
+  background: linear-gradient(90deg, #d6bd97, #cdb48e 60%, #b89e77);
+}
+.nb-spine-kraft .nb-spine-title { color: var(--stamp); opacity: 0.85; }
+
+.nb-spine-ghost {
+  border: 1px dashed rgba(255, 253, 244, 0.4);
+  background: rgba(0, 0, 0, 0.28);
+  box-shadow: none;
+}
+.nb-spine-ghost .nb-spine-title { color: rgba(255, 253, 244, 0.55); }
+
+.nb-spine .nb-cover-burn {
+  top: -18px;
+  right: 50%;
+  transform: translateX(50%);
+}
+.nb-spine:hover .nb-cover-burn { opacity: 1; }
+
+.nb-cover {
+  position: relative;
+  aspect-ratio: 700 / 920;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border-left: 7px solid rgba(0, 0, 0, 0.35);
+}
+
+.nb-shelf-slot:hover .nb-cover {
+  transform: translateY(-6px) rotate(-0.6deg);
+  box-shadow: 5px 8px 0 rgba(0, 0, 0, 0.28);
+}
+
+.nb-cover-title {
+  font-family: var(--font);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+/* composition: marbled black & white + label plate */
+.nb-cover-composition {
+  background:
+    radial-gradient(circle at 12% 20%, #111 8%, transparent 9%),
+    radial-gradient(circle at 68% 12%, #111 10%, transparent 11%),
+    radial-gradient(circle at 34% 48%, #111 7%, transparent 8%),
+    radial-gradient(circle at 85% 42%, #111 9%, transparent 10%),
+    radial-gradient(circle at 22% 78%, #111 10%, transparent 11%),
+    radial-gradient(circle at 60% 68%, #111 8%, transparent 9%),
+    radial-gradient(circle at 88% 88%, #111 7%, transparent 8%),
+    radial-gradient(circle at 45% 90%, #111 9%, transparent 10%),
+    #e8e4da;
+  background-size: 46px 46px;
+}
+.nb-cover-composition .nb-cover-title {
+  background: #fffdf8;
+  border: 1px solid var(--nb-ink);
+  padding: 10px 8px;
+  width: 84%;
+  color: var(--nb-ink);
+}
+
+/* cloth: linen weave, debossed title */
+.nb-cover-cloth {
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.07) 0 1px, transparent 1px 3px),
+    #3f5445;
+}
+.nb-cover-cloth .nb-cover-title {
+  color: rgba(255, 253, 244, 0.85);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* leather: dark hide, blind-tooled border, foil title */
+.nb-cover-leather {
+  background:
+    radial-gradient(ellipse at 30% 25%, rgba(255, 255, 255, 0.07), transparent 55%),
+    #3a2418;
+  box-shadow: inset 0 0 0 6px #3a2418, inset 0 0 0 7px rgba(212, 175, 55, 0.45),
+    3px 4px 0 rgba(0, 0, 0, 0.25);
+}
+.nb-cover-leather .nb-cover-title {
+  color: #d4af37;
+}
+
+/* kraft: butcher paper + rubber stamp */
+.nb-cover-kraft {
+  background:
+    repeating-linear-gradient(83deg, rgba(0, 0, 0, 0.02) 0 2px, transparent 2px 5px),
+    #cdb48e;
+}
+.nb-cover-kraft .nb-cover-title {
+  color: var(--stamp);
+  border: 2px solid var(--stamp);
+  padding: 8px 6px;
+  transform: rotate(-4deg);
+  opacity: 0.85;
+}
+
+/* the blank one that binds a new book */
+.nb-cover-new {
+  background: transparent;
+  border: 1px dashed var(--ink-30);
+  border-left: 7px solid var(--ink-15);
+  box-shadow: none;
+  flex-direction: column;
+  gap: 8px;
+}
+.nb-cover-new .nb-cover-title { color: var(--ink-30); }
+.nb-cover-plus {
+  font-size: 1.8rem;
+  color: var(--ink-30);
+  line-height: 1;
+}
+
+.nb-cover-burn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 3px;
+  font-size: 0.55rem;
+  line-height: 1;
+  background: rgba(255, 253, 248, 0.9);
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.nb-shelf-slot:hover .nb-cover-burn { opacity: 1; }
+.nb-cover-burn-hot {
+  background: var(--stamp);
+  border-color: var(--stamp);
+  color: #fff;
+  opacity: 1;
+}
+
+/* cover/paper pickers in the bind form */
+.nb-swatch {
+  width: 44px;
+  height: 56px;
+  border: 1px solid var(--ink-15);
+  padding: 0;
+}
+.nb-swatch-on { outline: 2px solid var(--stamp); outline-offset: 2px; }
+.nb-swatch-paper { background-color: var(--nb-paper); }
+
+/* ── the page ────────────────────────────── */
+
+.nb-spread {
+  display: flex;
+  justify-content: center;
+}
+
+/* ── the book body ───────────────────────── */
+/* the page sits in a bound book: cover boards around it, a stitched
+   spine on the left, sheet edges stacked beneath the top leaf */
+
+.nb-spread-stage {
+  display: flex;
+  justify-content: center;
+}
+
+.nb-book {
+  --nb-bpt: 12px;
+  --nb-bpr: 16px;
+  --nb-bpb: 18px;
+  --nb-bpl: 36px;
+  position: relative;
+  padding: var(--nb-bpt) var(--nb-bpr) var(--nb-bpb) var(--nb-bpl);
+  box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.28);
+  border-left: 6px solid rgba(0, 0, 0, 0.3);
+}
+
+/* spine stitching */
+.nb-book::before {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 14px;
+  bottom: 14px;
+  border-left: 2px dashed rgba(255, 253, 244, 0.4);
+  pointer-events: none;
+}
+
+/* cover boards matching the notebook's binding */
+.nb-book-composition {
+  background:
+    radial-gradient(circle at 20% 25%, #2a2a2a 12%, transparent 13%),
+    radial-gradient(circle at 70% 60%, #2a2a2a 10%, transparent 11%),
+    #17130e;
+  background-size: 40px 40px;
+}
+.nb-book-cloth {
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.07) 0 1px, transparent 1px 3px),
+    #3f5445;
+}
+.nb-book-leather {
+  background:
+    radial-gradient(ellipse at 30% 25%, rgba(255, 255, 255, 0.06), transparent 55%),
+    #3a2418;
+}
+.nb-book-kraft {
+  background:
+    repeating-linear-gradient(83deg, rgba(0, 0, 0, 0.03) 0 2px, transparent 2px 5px),
+    #b89e77;
+}
+
+/* stacked sheet edges under the top leaf */
+.nb-book .nb-page {
+  box-shadow:
+    2px 2px 0 #efe8d6,
+    4px 4px 0 #e6ddc6,
+    6px 6px 0 #d9cdaf,
+    8px 9px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* gutter — the paper curves down into the binding */
+.nb-book .nb-page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(34, 28, 19, 0.16), rgba(34, 28, 19, 0.05) 34px, transparent 78px);
+  pointer-events: none;
+}
+
+.nb-page-slot {
+  position: relative;
+  flex: none;
+}
+
+.nb-page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+  background: var(--nb-paper);
+  box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  user-select: none;
+}
+
+.nb-page-placing { cursor: crosshair; }
+
+.nb-paper-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.nb-grain {
+  background: url('/art/papergrain.jpg') center / cover no-repeat;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+}
+
+.nb-paper-ruled {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 27px,
+    var(--nb-rule) 27px 28px
+  );
+  background-position: 0 64px;
+  background-color: var(--nb-paper);
+}
+
+.nb-margin {
+  border-left: 1px solid var(--nb-margin);
+  left: 64px;
+}
+
+.nb-paper-grid {
+  background-image:
+    repeating-linear-gradient(to bottom, transparent 0 27px, rgba(90, 120, 180, 0.18) 27px 28px),
+    repeating-linear-gradient(to right, transparent 0 27px, rgba(90, 120, 180, 0.18) 27px 28px);
+  background-color: var(--nb-paper);
+}
+
+.nb-paper-dot {
+  background-image: radial-gradient(rgba(34, 28, 19, 0.22) 1px, transparent 1.5px);
+  background-size: 28px 28px;
+  background-position: 14px 14px;
+  background-color: var(--nb-paper);
+}
+
+.nb-pageno {
+  position: absolute;
+  bottom: 10px;
+  right: 14px;
+  font-family: var(--font);
+  font-size: 0.55rem;
+  letter-spacing: 0.14em;
+  color: rgba(34, 28, 19, 0.4);
+  pointer-events: none;
+}
+
+/* page curl — the sheet peels from the corner, JS drives the fold line
+   (clip-path + reflection matrix set per frame in NotebookReader) */
+/* the turning sheet sits exactly over the page area inside the book */
+.nb-curl-overlay {
+  position: absolute;
+  top: var(--nb-bpt);
+  right: var(--nb-bpr);
+  bottom: var(--nb-bpb);
+  left: var(--nb-bpl);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.nb-curl-sheet {
+  position: relative;
+  display: flex;
+  gap: 20px;
+  filter: drop-shadow(-9px 9px 12px rgba(0, 0, 0, 0.3));
+  will-change: clip-path;
+}
+
+/* the blank backside of the turning sheet */
+.nb-curl-flap {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+  background: linear-gradient(115deg, #eee6d4 0%, var(--nb-paper) 40%, #e3d9c2 100%);
+  opacity: 0;
+  will-change: transform, clip-path;
+}
+
+/* corner grab zones — drag a right corner to turn the page forward,
+   a left corner to pull the previous page back over; on the last page
+   the forward flip lands on (and binds) a fresh sheet */
+.nb-corner {
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  z-index: 7;
+  cursor: grab;
+  touch-action: none;
+}
+.nb-corner:active { cursor: grabbing; }
+.nb-corner-tr { top: 0; right: 0; }
+.nb-corner-br { bottom: 0; right: 0; }
+.nb-corner-tl { top: 0; left: 0; }
+.nb-corner-bl { bottom: 0; left: 0; }
+
+/* a lifted-corner hint on hover */
+.nb-corner::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.16);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.nb-corner-br::after { bottom: 0; right: 0; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+.nb-corner-tr::after { top: 0; right: 0; clip-path: polygon(0 0, 100% 0, 100% 100%); }
+.nb-corner-bl::after { bottom: 0; left: 0; clip-path: polygon(0 0, 100% 100%, 0 100%); }
+.nb-corner-tl::after { top: 0; left: 0; clip-path: polygon(0 0, 100% 0, 0 100%); }
+.nb-corner:hover::after { opacity: 1; }
+
+/* tear-out: the page crumples into a jagged ball and gets tossed.
+   The 12-point clip-path morphs between keyframes; crease shadows
+   fade in on the ::after layer; deletion fires on animation end. */
+.nb-tearing {
+  position: relative;
+  z-index: 20;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+  animation: nbCrumpleToss 0.95s cubic-bezier(0.35, 0, 0.65, 1) forwards;
+}
+
+.nb-tearing::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background:
+    linear-gradient(105deg, transparent 12%, rgba(0, 0, 0, 0.16) 13%, transparent 16%, transparent 30%, rgba(0, 0, 0, 0.12) 31%, transparent 34%, transparent 62%, rgba(0, 0, 0, 0.14) 63%, transparent 66%),
+    linear-gradient(200deg, transparent 20%, rgba(0, 0, 0, 0.13) 21%, transparent 24%, transparent 55%, rgba(0, 0, 0, 0.15) 56%, transparent 59%),
+    linear-gradient(320deg, transparent 40%, rgba(0, 0, 0, 0.11) 41%, transparent 44%, transparent 70%, rgba(0, 0, 0, 0.13) 71%, transparent 74%),
+    linear-gradient(45deg, transparent 25%, rgba(255, 255, 255, 0.4) 26%, transparent 29%, transparent 60%, rgba(255, 255, 255, 0.33) 61%, transparent 64%);
+  opacity: 0;
+  animation: nbCreases 0.95s ease-in forwards;
+}
+
+@keyframes nbCreases {
+  0% { opacity: 0; }
+  20% { opacity: 0.35; }
+  60% { opacity: 0.9; }
+  100% { opacity: 1; }
+}
+
+@keyframes nbCrumpleToss {
+  0% {
+    transform: none;
+    clip-path: polygon(2% 0%, 25% 1%, 50% 0%, 75% 2%, 98% 0%, 100% 30%, 99% 60%, 100% 92%, 70% 99%, 40% 100%, 12% 98%, 0% 70%);
+    filter: none;
+    opacity: 1;
+  }
+  18% {
+    transform: scale(0.9, 0.86) rotate(-2.5deg);
+    clip-path: polygon(6% 4%, 26% 8%, 49% 3%, 72% 9%, 94% 5%, 95% 32%, 91% 58%, 96% 88%, 69% 94%, 42% 97%, 15% 92%, 4% 66%);
+  }
+  38% {
+    transform: scale(0.66, 0.6) rotate(4deg);
+    clip-path: polygon(12% 10%, 30% 16%, 48% 8%, 68% 16%, 86% 12%, 89% 36%, 82% 55%, 88% 80%, 66% 86%, 45% 92%, 22% 84%, 10% 60%);
+    filter: brightness(0.97) contrast(1.02);
+  }
+  58% {
+    transform: scale(0.42, 0.38) rotate(-9deg);
+    clip-path: polygon(22% 18%, 34% 24%, 48% 16%, 64% 26%, 78% 22%, 80% 42%, 73% 55%, 80% 70%, 62% 76%, 46% 84%, 28% 74%, 20% 52%);
+    filter: brightness(0.94) contrast(1.05);
+  }
+  72% {
+    transform: scale(0.3, 0.28) rotate(6deg) translateY(6%);
+    clip-path: polygon(28% 24%, 38% 30%, 50% 22%, 62% 32%, 72% 28%, 74% 44%, 68% 54%, 74% 66%, 58% 70%, 46% 76%, 32% 68%, 26% 50%);
+    filter: brightness(0.92) contrast(1.06);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.22, 0.2) rotate(55deg) translate(70%, 500%);
+    clip-path: polygon(28% 24%, 38% 30%, 50% 22%, 62% 32%, 72% 28%, 74% 44%, 68% 54%, 74% 66%, 58% 70%, 46% 76%, 32% 68%, 26% 50%);
+    filter: brightness(0.9);
+    opacity: 0;
+  }
+}
+
+/* ── ink ─────────────────────────────────── */
+
+.nb-ink {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* a committed stroke — one svg per stroke so ink stacks in item order */
+.nb-stroke {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ── placed items + selection chrome ─────── */
+
+.nb-item {
+  position: absolute;
+  cursor: grab;
+}
+.nb-item:active { cursor: grabbing; }
+
+.nb-item-selected {
+  outline: 1px solid var(--ink);
+}
+
+.nb-handle {
+  position: absolute;
+  z-index: 5;
+}
+
+.nb-handle-delete {
+  top: -10px;
+  right: -10px;
+  width: 18px;
+  height: 18px;
+  background: var(--stamp);
+  color: #fff;
+  font-size: 0.7rem;
+  line-height: 1;
+  border: none;
+  cursor: pointer;
+}
+
+.nb-handle-resize {
+  bottom: -7px;
+  right: -7px;
+  width: 13px;
+  height: 13px;
+  background: #fff;
+  border: 1px solid var(--ink);
+  cursor: nwse-resize;
+}
+
+.nb-handle-rotate {
+  top: -22px;
+  left: 50%;
+  margin-left: -6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid var(--ink);
+  cursor: grab;
+}
+
+/* stacking controls — bring to front / send to back */
+.nb-handle-front,
+.nb-handle-back {
+  left: -10px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  font-size: 0.65rem;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 6;
+}
+.nb-handle-front { top: -10px; }
+.nb-handle-back { top: 12px; }
+.nb-handle-front:hover,
+.nb-handle-back:hover { background: var(--ink); color: #fff; }
+
+/* ── text items ──────────────────────────── */
+
+.nb-text {
+  min-height: 1.2em;
+  line-height: 1.35;
+  text-transform: none;
+  outline: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.nb-text-empty { opacity: 0.35; }
+
+.nb-text-editing {
+  cursor: text;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.nb-text-controls {
+  position: absolute;
+  top: -30px;
+  left: 0;
+  display: flex;
+  gap: 2px;
+  background: #fff;
+  border: 1px solid var(--ink);
+  padding: 2px;
+  z-index: 6;
+}
+
+.nb-text-ctl {
+  min-width: 22px;
+  height: 20px;
+  padding: 0 4px;
+  font-size: 0.6rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nb-text-ctl:hover { background: var(--ink-08); }
+.nb-text-ctl-on { background: #000; color: #fff; }
+
+.nb-text-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+}
+
+/* ── photos ──────────────────────────────── */
+
+.nb-photo { position: relative; display: inline-block; }
+
+.nb-photo-plain img { box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.25); }
+
+.nb-photo-polaroid {
+  background: #fffdf8;
+  padding: 8px 8px 26px;
+  box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.nb-photo-tape img { box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.22); }
+.nb-photo-tape::before,
+.nb-photo-tape::after {
+  content: '';
+  position: absolute;
+  width: 52px;
+  height: 18px;
+  background: rgba(228, 220, 190, 0.75);
+  border-left: 1px dashed rgba(0, 0, 0, 0.12);
+  border-right: 1px dashed rgba(0, 0, 0, 0.12);
+  z-index: 2;
+}
+.nb-photo-tape::before { top: -8px; left: -14px; transform: rotate(-38deg); }
+.nb-photo-tape::after { top: -8px; right: -14px; transform: rotate(38deg); }
+
+/* ── stickers ────────────────────────────── */
+
+.nb-sticker-stamp {
+  font-family: var(--font);
+  font-size: 0.55rem;
+  letter-spacing: 0.14em;
+  color: var(--stamp);
+  border: 2px solid var(--stamp);
+  padding: 3px 6px;
+  transform: rotate(-8deg);
+  opacity: 0.8;
+}
+.nb-sticker-stamp-ink {
+  color: var(--nb-ink);
+  border-color: var(--nb-ink);
+}
+
+/* ── the pen tray ────────────────────────── */
+
+.nb-palette {
+  flex: none;
+  width: 108px;
+  border: 1px solid var(--ink);
+  background: #fff;
+  padding: 8px 8px 10px;
+  position: sticky;
+  top: 16px;
+}
+
+.nb-palette-title {
+  font-size: 0.4375rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-30);
+  margin-bottom: 6px;
+}
+
+.nb-tool {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 5px 6px;
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-top: 1px solid var(--line);
+  color: var(--ink-50);
+  cursor: pointer;
+  background: transparent;
+}
+.nb-tool:hover:not(:disabled) { color: var(--ink); }
+.nb-tool:disabled { opacity: 0.35; cursor: default; }
+.nb-tool-on { background: #000; color: #fff; }
+.nb-tool-on:hover { color: #fff; }
+
+.nb-subtray {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 4px;
+  border-top: 1px solid var(--line);
+}
+
+.nb-pen-swatch {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--ink-15);
+  cursor: pointer;
+  padding: 0;
+}
+.nb-pen-swatch-on { outline: 2px solid var(--ink); outline-offset: 1px; }
+
+.nb-pen-size {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ink-15);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+.nb-pen-size span { background: var(--nb-ink); border-radius: 50%; display: block; }
+.nb-pen-size-on { outline: 2px solid var(--ink); outline-offset: 1px; }
+
+.nb-sticker-tray {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  padding: 6px 0;
+  border-top: 1px solid var(--line);
+}
+
+.nb-sticker-cell {
+  aspect-ratio: 1;
+  padding: 1px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+/* every sticker draws in a 64px box, scaled down to the tray cell so
+   nothing (looking at you, URGENT stamp) spills over its neighbours */
+.nb-sticker-fit {
+  display: block;
+  width: 64px;
+  height: 64px;
+  transform: scale(0.38);
+  transform-origin: 0 0;
+}
+.nb-sticker-cell:hover { border-color: var(--ink-15); }
+.nb-sticker-cell-on { border-color: var(--stamp); }
+
+.nb-palette-foot {
+  margin-top: 6px;
+  border-top: 1px solid var(--ink);
+}
+
+/* ── the save stamp ──────────────────────── */
+
+.nb-savestamp {
+  display: inline-block;
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-30);
+  border: 1px solid var(--ink-15);
+  padding: 3px 7px;
+  transform: rotate(2deg);
+}
+.nb-savestamp-hot {
+  color: var(--stamp);
+  border-color: var(--stamp);
+  animation: nbStampPulse 1.2s steps(2) infinite;
+}
+@keyframes nbStampPulse {
+  50% { opacity: 0.55; }
 }

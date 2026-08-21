@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { api, isAuthenticated, setToken } from './api';
 import Sidebar from './components/Sidebar';
@@ -6,16 +6,11 @@ import Masthead from './components/Masthead';
 import Colophon from './components/Colophon';
 import Entrance from './components/Entrance';
 import GusAssistant from './components/GusAssistant';
-import Dashboard from './pages/Dashboard';
-import Board from './pages/Board';
-import MyWall from './pages/MyWall';
-import FaceOff from './pages/FaceOff';
-import ListView from './pages/ListView';
-import TicketDetail from './pages/TicketDetail';
-import CreateTicket from './pages/CreateTicket';
+import RouteLoader from './components/RouteLoader';
+import { TOOLS, HIDDEN_ROUTES } from './tools/registry';
 import Auth from './pages/Auth';
 import ResetPassword from './pages/ResetPassword';
-import { clearEdition } from './lib/edition';
+import { clearEdition, isPersonal } from './lib/edition';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -79,16 +74,17 @@ function App() {
             <main className="flex-1 ml-[220px] px-10 py-6 overflow-y-auto overflow-x-clip flex flex-col min-h-screen">
               <Masthead />
               <div className="flex-1">
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/board" element={<Board />} />
-                  <Route path="/wall" element={<MyWall />} />
-                  <Route path="/faceoff" element={<FaceOff />} />
-                  <Route path="/list" element={<ListView />} />
-                  <Route path="/tickets/new" element={<CreateTicket />} />
-                  <Route path="/tickets/:id" element={<TicketDetail />} />
-                  <Route path="*" element={<Navigate to="/" />} />
-                </Routes>
+                <Suspense fallback={<RouteLoader />}>
+                  <Routes>
+                    {TOOLS.filter((t) => !t.personalOnly || isPersonal()).map((tool) => (
+                      <Route key={tool.route} path={tool.route} element={<tool.Component />} />
+                    ))}
+                    {HIDDEN_ROUTES.map((tool) => (
+                      <Route key={tool.route} path={tool.route} element={<tool.Component />} />
+                    ))}
+                    <Route path="*" element={<Navigate to="/" />} />
+                  </Routes>
+                </Suspense>
               </div>
               <footer className="pt-10 pb-4">
                 <Colophon />

@@ -1,9 +1,8 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const { parseICS, expandOccurrences } = require('../lib/ics');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 const SYNC_STALE_MS = 10 * 60 * 1000; // auto-resync at most every 10 min
 const MAX_OCCURRENCES = 1000;

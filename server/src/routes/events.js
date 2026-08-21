@@ -1,8 +1,7 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // GET /api/events?month=2026-07 — all events in a month (or ?date=2026-07-24 for one day)
 router.get('/', async (req, res) => {

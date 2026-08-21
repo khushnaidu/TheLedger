@@ -5,14 +5,20 @@ import { getLevelInfo, getTotalXP } from '../lib/xp';
 import { APP_TITLE, ASSETS } from '../lib/theme';
 import { isPersonal } from '../lib/edition';
 import TvSet from './TvSet';
+import { SECTIONS, TOOLS } from '../tools/registry';
 
-const navItems = [
-  { to: '/', label: 'Dashboard' },
-  { to: '/board', label: 'Board' },
-  { to: '/wall', label: 'My Wall' },
-  { to: '/faceoff', label: 'Face-Off' },
-  { to: '/list', label: 'Archive' },
-];
+// Sections of the paper, each with its tools in registry order.
+// Empty sections don't print; numbering runs continuously like a
+// broadsheet index column.
+function buildNav() {
+  let index = 0;
+  return SECTIONS.map((section) => ({
+    ...section,
+    tools: TOOLS
+      .filter((t) => t.section === section.id && (!t.personalOnly || isPersonal()))
+      .map((t) => ({ ...t, index: ++index })),
+  })).filter((section) => section.tools.length > 0);
+}
 
 export default function Sidebar({ user, onLogout }) {
   const navigate = useNavigate();
@@ -74,24 +80,29 @@ export default function Sidebar({ user, onLogout }) {
         </p>
       </div>
 
-      {/* Nav — numbered index */}
-      <nav className="pt-2 pb-2 space-y-0">
-        {navItems.map(({ to, label }, i) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === '/'}
-            className={({ isActive }) =>
-              `block px-5 py-2 text-[0.6875rem] uppercase tracking-[0.12em] border-t border-[var(--ink)] ${
-                isActive
-                  ? 'bg-black text-white'
-                  : 'text-[var(--ink-50)] hover:text-[var(--ink)]'
-              }`
-            }
-          >
-            <span className="nav-index-num">{String(i + 1).padStart(2, '0')}</span>
-            {label}
-          </NavLink>
+      {/* Nav — the paper's sections, numbered index. Elastic: scrolls before anything clips. */}
+      <nav className="pt-1 pb-1 space-y-0 overflow-y-auto min-h-0" style={{ scrollbarWidth: 'none' }}>
+        {buildNav().map((section) => (
+          <div key={section.id}>
+            <p className="nav-section-label">§ {section.label}</p>
+            {section.tools.map(({ id, route, name, end, index }) => (
+              <NavLink
+                key={id}
+                to={route}
+                end={!!end}
+                className={({ isActive }) =>
+                  `block px-5 py-[6px] text-[0.6875rem] uppercase tracking-[0.12em] border-t border-[var(--ink)] ${
+                    isActive
+                      ? 'bg-black text-white'
+                      : 'text-[var(--ink-50)] hover:text-[var(--ink)]'
+                  }`
+                }
+              >
+                <span className="nav-index-num">{String(index).padStart(2, '0')}</span>
+                {name}
+              </NavLink>
+            ))}
+          </div>
         ))}
       </nav>
 
