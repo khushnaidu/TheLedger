@@ -9,6 +9,10 @@ export const GUS_FACE = '/gus/idle.png';
 
 export const GUS_PERSONA = { name: 'Augustus "Gus"', role: 'Filing Clerk', status: 'On Duty', nameplate: 'Augustus' };
 
+// Jane, the Reading Room's resident consultant — PS1 head texture
+export const JANE_FACE = '/art/simon-clean.png';
+export const JANE_HEAD = '/art/simon_head.png';
+
 export const LEVEL_TITLES = ['Intern', 'Filing Clerk', 'Junior Archivist', 'Archivist', 'Senior Archivist', 'Records Officer', 'Chief of Records', 'Ledger Master', 'Bureau Director', 'Grand Archivist'];
 
 export const STATUS_LABELS = { BACKLOG: 'Backlog', TODO: 'To Do', IN_PROGRESS: 'In Progress', REVIEW: 'Review', DONE: 'Done' };

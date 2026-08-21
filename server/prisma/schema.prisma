@@ -25,6 +25,8 @@ model User {
   feeds      CalendarFeed[]
   channels   TvChannel[]
   notebooks  Notebook[]
+  collections Collection[]
+  papers      Paper[]
 
   sentInvites     Connection[]  @relation("connRequester")
   receivedInvites Connection[]  @relation("connAddressee")
@@ -184,4 +186,65 @@ model NotebookPage {
   updatedAt  DateTime @updatedAt
 
   @@unique([notebookId, pageNumber])
+}
+
+// ── The Study: reading room (papers + annotations) ────────────
+// Page text is extracted client-side by pdfjs and stored per page for
+// FTS retrieval; annotation rects are % of the rendered page box so
+// they survive any zoom. See ADR-0005.
+
+model Collection {
+  id        String   @id @default(uuid())
+  name      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  papers    Paper[]
+  createdAt DateTime @default(now())
+
+  @@unique([name, userId])
+}
+
+model Paper {
+  id           String      @id @default(uuid())
+  title        String
+  authors      String      @default("")
+  year         Int?
+  blobUrl      String
+  fileName     String      @default("")
+  pageCount    Int         @default(0)
+  status       String      @default("processing") // processing | ready | scanned
+  collectionId String?
+  collection   Collection? @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  pages        PaperPage[]
+  annotations  Annotation[]
+
+  @@index([userId, updatedAt])
+}
+
+model PaperPage {
+  id         String @id @default(uuid())
+  paperId    String
+  paper      Paper  @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  pageNumber Int
+  text       String
+
+  @@unique([paperId, pageNumber])
+}
+
+model Annotation {
+  id        String   @id @default(uuid())
+  paperId   String
+  paper     Paper    @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  page      Int
+  rects     Json     // [{x,y,w,h}] as % of the rendered page box — zoom-invariant
+  quote     String
+  note      String   @default("")
+  color     String   @default("marigold") // marigold | rose | sage | ink
+  createdAt DateTime @default(now())
+
+  @@index([paperId, page])
 }

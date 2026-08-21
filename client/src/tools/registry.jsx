@@ -28,6 +28,8 @@ export const TOOLS = [
   // ── the study ──
   { id: 'notebooks', name: 'Notebooks', route: '/notebooks', section: 'study',
     Component: lazy(() => import('./notebooks/NotebooksShelf')) },
+  { id: 'research', name: 'Reading Room', route: '/research', section: 'study',
+    Component: lazy(() => import('./research/ReadingRoom')) },
   // ── the parlor ──
   { id: 'wall', name: 'My Wall', route: '/wall', section: 'parlor',
     Component: lazy(() => import('../pages/MyWall')) },
@@ -40,4 +42,5 @@ export const HIDDEN_ROUTES = [
   { route: '/tickets/new', Component: lazy(() => import('../pages/CreateTicket')) },
   { route: '/tickets/:id', Component: lazy(() => import('../pages/TicketDetail')) },
   { route: '/notebooks/:id', Component: lazy(() => import('./notebooks/NotebookReader')) },
+  { route: '/research/:paperId', Component: lazy(() => import('./research/PaperReader')) },
 ];

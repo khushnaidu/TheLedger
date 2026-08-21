@@ -2910,3 +2910,994 @@ aside {
 @keyframes nbStampPulse {
   50% { opacity: 0.55; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   READING ROOM — the study, no. 02 (rr-)
+   card catalog + pdf reader + margins
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --rr-marigold: rgba(232, 183, 58, 0.42);
+  --rr-rose: rgba(214, 96, 128, 0.34);
+  --rr-sage: rgba(122, 158, 116, 0.36);
+  --rr-inkmark: rgba(40, 40, 40, 0.28);
+}
+
+/* ── the cabinet bank: the real photo, drawers mapped onto it ── */
+.rr-cabbank {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+}
+
+.rr-cabinet-photo {
+  position: relative;
+  width: 330px;
+}
+
+.rr-cabinet-photo > img {
+  display: block;
+  width: 100%;
+  user-select: none;
+}
+
+/* retire a whole cabinet — quiet ghost until hovered */
+.rr-cab-x {
+  position: absolute;
+  top: 0;
+  right: 4%;
+  z-index: 5;
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-30);
+  padding: 2px 5px;
+  opacity: 0.4;
+  transition: opacity 0.12s;
+}
+
+.rr-cabinet-photo:hover .rr-cab-x { opacity: 1; }
+.rr-cab-x:hover { color: var(--stamp); }
+
+.rr-cabslot {
+  position: absolute;
+}
+
+.rr-cab-open { z-index: 6; }
+
+/* the front is an exact photo crop, so it can pop forward when open */
+/* the face IS the photo — the front is just a transparent hit zone, so
+   nothing can ever misalign. Hover/open read through inset light rings. */
+.rr-cabslot-front {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 3.5%;
+  cursor: pointer;
+  background: none;
+  transition: box-shadow 0.16s ease;
+}
+
+.rr-cabslot-front:hover {
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4);
+}
+
+.rr-cabslot-front:focus { outline: none; }
+
+.rr-cabslot-front:focus-visible {
+  outline: 2px solid var(--stamp);
+  outline-offset: -2px;
+}
+
+.rr-cab-open .rr-cabslot-front {
+  box-shadow:
+    inset 0 0 0 2px rgba(0, 0, 0, 0.4),
+    inset 0 -8px 12px rgba(0, 0, 0, 0.35);
+}
+
+.rr-cabslot-plate {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  max-width: 72%;
+  background: #f7f4ea;
+  border: 1px solid #565b61;
+  box-shadow: inset 0 0 0 2px #a9afb6, inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  padding: 4px 12px 3px;
+}
+
+.rr-cabslot-ghost {
+  border: none;
+  background: none;
+}
+
+.rr-cabslot-plate-ghost {
+  background: rgba(247, 244, 234, 0.75);
+  border-style: dashed;
+  box-shadow: none;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.rr-cab-label {
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rr-cab-count {
+  font-size: 0.4375rem;
+  letter-spacing: 0.1em;
+  color: var(--ink-30);
+}
+
+.rr-cab-burn {
+  position: absolute;
+  top: 5px;
+  right: 8px;
+  font-size: 0.5625rem;
+  color: rgba(0, 0, 0, 0.4);
+  opacity: 0.35;
+  transition: opacity 0.12s;
+}
+
+.rr-cabslot-front:hover .rr-cab-burn { opacity: 1; }
+.rr-cab-burn:hover { color: var(--stamp); }
+
+.rr-cab-input {
+  width: 120px;
+  border: none;
+  border-bottom: 1px solid var(--ink);
+  background: transparent;
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+  outline: none;
+}
+
+/* the drawer's dark interior slides out beneath the front */
+/* only rendered while its drawer is open — closed drawers have no tray
+   element at all (a collapsed one still painted its border as a stray
+   gray line across whatever was open above it) */
+.rr-cabslot-tray {
+  position: absolute;
+  top: calc(100% - 4px); /* swallow the photo's bright lip under the face */
+  left: -2%;
+  width: 104%;
+  z-index: 8;
+  max-height: 200px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #33373c, #24272b);
+  border: 1px solid #565b61;
+  border-top: none;
+  box-shadow: inset 0 8px 12px rgba(0, 0, 0, 0.55), 0 12px 20px rgba(0, 0, 0, 0.45);
+  animation: rrTrayOpen 0.28s ease;
+}
+
+@keyframes rrTrayOpen {
+  from { max-height: 0; }
+  to { max-height: 200px; }
+}
+
+.rr-cab-files {
+  display: flex;
+  align-items: flex-end;
+  gap: 7px;
+  height: 186px;
+  padding: 22px 14px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
+.rr-cab-empty {
+  align-self: center;
+  width: 100%;
+  text-align: center;
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.25);
+  padding-bottom: 60px;
+}
+
+/* a paper in the drawer: sunk to its tab, lifted on hover */
+.rr-file {
+  position: relative;
+  flex: 0 0 150px;
+  height: 175px;
+  background: #fdfbf4;
+  border: 1px solid var(--ink);
+  border-bottom: none;
+  padding: 8px 10px;
+  cursor: pointer;
+  transform: translateY(64px);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.rr-file:hover {
+  transform: translateY(6px);
+  box-shadow: 0 -3px 0 var(--stamp), 0 6px 14px rgba(0, 0, 0, 0.5);
+  z-index: 2;
+}
+
+.rr-file-title {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.rr-file-byline {
+  font-size: 0.5rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-50);
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rr-file-facts {
+  font-size: 0.4375rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-30);
+  margin-top: 6px;
+}
+
+.rr-file-tools {
+  position: absolute;
+  right: 6px;
+  bottom: 44px;
+  display: flex;
+  gap: 2px;
+  opacity: 0.3;
+  transition: opacity 0.12s;
+}
+
+.rr-file:hover .rr-file-tools { opacity: 1; }
+
+/* the + slot: a ghost file standing at the end of the row */
+.rr-file-add {
+  background: transparent;
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 14px;
+}
+
+.rr-file-add:hover {
+  border-color: rgba(255, 255, 255, 0.7);
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+}
+
+.rr-file-add-stage {
+  font-size: 0.4375rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.6;
+  padding: 0 8px;
+  animation: rrPulse 1.1s steps(2) infinite;
+}
+
+.rr-tray-error {
+  position: absolute;
+  top: 4px;
+  left: 14px;
+}
+
+/* ── acquisitions: a dashed ghost the exact size of the cabinet ──
+   the PNG carries transparent margins; the painted cabinet is x 8.6–92.7%,
+   y 3.0–95.8% of it (alpha-measured), so at 330px display width the body
+   is 278×395 starting 13px down */
+.rr-drop {
+  flex: 0 0 278px;
+  width: 278px;
+  aspect-ratio: 370 / 526;
+  margin-top: 13px;
+  cursor: pointer;
+}
+
+.rr-drop-body {
+  height: 100%;
+  border: 1px dashed var(--ink-30);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 30px;
+  text-align: center;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.rr-drop:hover .rr-drop-body,
+.rr-drop-over .rr-drop-body {
+  border-color: var(--ink);
+  background: var(--ink-04);
+}
+
+.rr-drop-busy { cursor: progress; }
+
+.rr-drop-title {
+  font-size: 0.5625rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-50);
+}
+
+.rr-drop-hint {
+  font-size: 0.5rem;
+  line-height: 1.9;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-30);
+}
+
+.rr-drop-stage {
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  animation: rrPulse 1.1s steps(2) infinite;
+}
+
+@keyframes rrPulse { 50% { opacity: 0.45; } }
+
+.rr-drop-error {
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  color: var(--stamp);
+}
+
+/* ── the records desk ── */
+.rr-desk {
+  border: 1px solid var(--ink);
+  background: #fff;
+  padding: 14px;
+  margin-top: 18px;
+}
+
+.rr-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 5px;
+  border: 1px solid var(--stamp);
+  color: var(--stamp);
+  font-size: 0.4375rem;
+  letter-spacing: 0.12em;
+  transform: rotate(-1.5deg);
+}
+
+.rr-card-move {
+  min-width: 0;
+  border: none;
+  border-bottom: 1px solid var(--ink-15);
+  background: transparent;
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-50);
+  outline: none;
+  cursor: pointer;
+}
+
+.rr-card-btn {
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-30);
+  padding: 2px 4px;
+}
+
+.rr-card-btn:hover { color: var(--ink); }
+.rr-card-btn-hot { color: var(--stamp) !important; font-weight: 700; }
+
+.rr-card-input {
+  display: block;
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--ink-15);
+  background: transparent;
+  font-size: 0.6875rem;
+  padding: 3px 0;
+  margin-bottom: 4px;
+  outline: none;
+}
+
+.rr-card-input-year { width: 70px; }
+
+/* ── the reader ── */
+.rr-reader {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 96px);
+  min-height: 0;
+}
+
+.rr-reader-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.rr-reader-title { flex: 1; min-width: 0; }
+
+.rr-reader-title .t-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rr-reader-byline {
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-30);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rr-reader-zoom { display: flex; border: 1px solid var(--ink); }
+
+.rr-zoom-btn {
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  padding: 4px 7px;
+  border-right: 1px solid var(--ink-15);
+  color: var(--ink-50);
+}
+
+.rr-zoom-btn:last-child { border-right: none; }
+.rr-zoom-on { background: var(--ink); color: #fff; }
+
+.rr-reader-folio {
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  color: var(--ink-50);
+  white-space: nowrap;
+}
+
+.rr-reader-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  gap: 0;
+}
+
+.rr-pagecol {
+  flex: 1;
+  min-width: 0;
+  overflow: auto; /* zoomed pages scroll sideways instead of clipping */
+  padding: 20px 16px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  background: #e8e4d9;
+}
+
+.rr-page {
+  position: relative;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+  flex-shrink: 0;
+}
+
+.rr-page-canvas { display: block; width: 100%; height: 100%; }
+
+.rr-page-folio {
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.4375rem;
+  letter-spacing: 0.14em;
+  color: var(--ink-30);
+}
+
+/* pdfjs v4 text layer — ours, not pdf_viewer.css.
+   text-transform none matters: Chrome applies inherited uppercase to
+   selection.toString(), which would corrupt saved quotes */
+.rr-textlayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  line-height: 1;
+  z-index: 3;
+  text-transform: none;
+}
+
+.rr-textlayer span {
+  position: absolute;
+  transform-origin: 0 0;
+  color: transparent;
+  white-space: pre;
+  cursor: text;
+}
+
+/* keep the parse glyphs invisible even mid-selection — without the
+   transparent fill Chrome paints the hidden text over the canvas */
+.rr-textlayer ::selection {
+  background: rgba(90, 120, 160, 0.3);
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* highlight marks live between canvas and text layer */
+.rr-mark {
+  position: absolute;
+  z-index: 2;
+  mix-blend-mode: multiply;
+  cursor: pointer;
+}
+
+.rr-mark-marigold { background: var(--rr-marigold); }
+.rr-mark-rose { background: var(--rr-rose); }
+.rr-mark-sage { background: var(--rr-sage); }
+.rr-mark-ink { background: var(--rr-inkmark); }
+
+.rr-mark-flash { animation: rrFlash 0.8s ease 2; }
+
+@keyframes rrFlash { 50% { filter: brightness(0.6); } }
+
+/* ── selection popover ── */
+.rr-popover {
+  position: fixed;
+  z-index: 60;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 1px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink-15);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 240px;
+}
+
+.rr-popover-note {
+  border: none;
+  border-bottom: 1px solid var(--ink-15);
+  font-size: 0.625rem;
+  padding: 3px 0;
+  outline: none;
+  background: transparent;
+}
+
+.rr-popover-ask {
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  border: 1px solid var(--ink);
+  padding: 4px 8px;
+}
+
+.rr-popover-ask:hover { background: var(--ink-04); }
+
+.rr-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--ink-15);
+}
+
+.rr-dot-marigold { background: rgb(232, 183, 58); }
+.rr-dot-rose { background: rgb(214, 96, 128); }
+.rr-dot-sage { background: rgb(122, 158, 116); }
+.rr-dot-ink { background: #444; }
+.rr-dot-on { outline: 2px solid var(--ink); outline-offset: 1px; }
+
+/* ── the rail ── */
+.rr-rail {
+  width: 340px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--ink);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: #fff;
+}
+
+.rr-rail-tabs { display: flex; border-bottom: 1px solid var(--ink); }
+
+.rr-rail-tab {
+  flex: 1;
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  padding: 8px 4px;
+  color: var(--ink-30);
+  border-right: 1px solid var(--ink-15);
+}
+
+.rr-rail-tab:last-child { border-right: none; }
+.rr-rail-tab-on { background: var(--ink); color: #fff; }
+
+.rr-rail-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rr-markcard {
+  border: 1px solid var(--ink-15);
+  border-left-width: 4px;
+  padding: 8px 10px;
+}
+
+.rr-markcard-marigold { border-left-color: rgb(232, 183, 58); }
+.rr-markcard-rose { border-left-color: rgb(214, 96, 128); }
+.rr-markcard-sage { border-left-color: rgb(122, 158, 116); }
+.rr-markcard-ink { border-left-color: #444; }
+
+.rr-markcard-quote {
+  font-size: 0.625rem;
+  line-height: 1.45;
+  text-align: left;
+  font-style: italic;
+  color: var(--ink-50);
+}
+
+.rr-markcard-quote:hover { color: var(--ink); }
+
+.rr-markcard-page {
+  font-size: 0.4375rem;
+  letter-spacing: 0.14em;
+  color: var(--ink-30);
+  margin-top: 3px;
+}
+
+.rr-markcard-note {
+  font-size: 0.625rem;
+  margin-top: 6px;
+  cursor: text;
+  white-space: pre-wrap;
+}
+
+.rr-markcard-note-empty { color: var(--ink-15); }
+
+.rr-markcard-note-edit {
+  width: 100%;
+  font-size: 0.625rem;
+  border: 1px solid var(--ink-15);
+  padding: 4px 6px;
+  margin-top: 6px;
+  outline: none;
+  resize: vertical;
+  min-height: 44px;
+}
+
+.rr-markcard-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.rr-markcard-tools .rr-dot { width: 11px; height: 11px; }
+
+.rr-markcard-ask {
+  font-size: 0.4375rem;
+  letter-spacing: 0.14em;
+  border: 1px solid var(--ink);
+  padding: 2px 6px;
+}
+
+.rr-markcard-ask:hover { background: var(--ink); color: #fff; }
+
+/* ═══════════════════════════════════════════════════════════════
+   JANE — the consultant's case file (jn-)
+   sharp white & black, ledger type, one red stamp
+   ═══════════════════════════════════════════════════════════════ */
+
+.jn-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: #fff;
+}
+
+.jn-panel-docked { flex: 1; }
+
+.jn-panel-drawer {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 50;
+  width: 400px;
+  height: min(600px, calc(100vh - 120px));
+  border: 1px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--ink-15);
+}
+
+/* folder tab on the floating file */
+.jn-panel-drawer::before {
+  content: 'CASE FILE';
+  position: absolute;
+  top: -19px;
+  left: 14px;
+  background: #fff;
+  border: 1px solid var(--ink);
+  border-bottom: none;
+  font-size: 0.4375rem;
+  letter-spacing: 0.22em;
+  padding: 4px 12px 2px;
+}
+
+.jn-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.jn-name {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.jn-role {
+  font-size: 0.4rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-30);
+  margin-top: 3px;
+}
+
+/* red stamp while he works the case — the ledger's one accent */
+.jn-stamp {
+  position: absolute;
+  right: 36px;
+  top: 14px;
+  font-size: 0.4375rem;
+  letter-spacing: 0.2em;
+  color: var(--stamp);
+  border: 1px solid var(--stamp);
+  padding: 2px 6px;
+  transform: rotate(4deg);
+  animation: rrPulse 1.2s steps(2) infinite;
+}
+
+.jn-close {
+  margin-left: auto;
+  font-size: 0.6875rem;
+  color: var(--ink-30);
+}
+
+.jn-close:hover { color: var(--ink); }
+
+.jn-avatar {
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.jn-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* the consultant's photo — square, hairline, no fuss */
+.jn-avatar-crop {
+  border: 1px solid var(--ink);
+  background: #fff;
+}
+
+.jn-avatar-crop img {
+  object-fit: cover;
+  object-position: 50% 8%;
+  transform: scale(1.45);
+  transform-origin: 50% 14%;
+  filter: grayscale(1) contrast(1.05);
+}
+
+.jn-avatar-fallback {
+  border: 1px solid var(--ink);
+  font-size: 1.1rem;
+  font-weight: 700;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jn-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jn-msg {
+  max-width: 97%;
+  text-transform: none;
+  white-space: pre-wrap;
+}
+
+/* Jane's notes: white cards off the ledger's rule — small type, full
+   width, because he does go on */
+.jn-msg-jane {
+  align-self: stretch;
+  background: #fff;
+  border: 1px solid var(--ink-15);
+  border-left: 2px solid var(--ink);
+  padding: 7px 10px;
+  font-size: 0.625rem;
+  line-height: 1.6;
+}
+
+/* the client's words: black label strips */
+.jn-msg-user {
+  align-self: flex-end;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.5625rem;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  padding: 6px 9px;
+}
+
+/* pencilled musings while he thinks */
+.jn-msg-thinking {
+  background: transparent;
+  border: 1px dashed var(--ink-15);
+  border-left: 1px dashed var(--ink-15);
+}
+
+.jn-msg-thinking p {
+  color: var(--ink-30);
+  font-style: italic;
+  animation: rrPulse 1.4s steps(2) infinite;
+}
+
+/* citations as small filed tags */
+.jn-cite {
+  display: inline-block;
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  border: 1px solid var(--ink);
+  background: #fff;
+  padding: 0 5px;
+  margin: 0 2px;
+  vertical-align: baseline;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jn-cite:hover { background: var(--ink); color: #fff; }
+
+.rr-markcard-quote, .rr-markcard-note, .rr-markcard-note-edit, .rr-popover-note { text-transform: none; }
+
+.jn-inputrow {
+  display: flex;
+  align-items: stretch;
+  border-top: 1px solid var(--ink);
+  background: #fff;
+}
+
+.jn-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  resize: none;
+  font-size: 0.625rem;
+  padding: 9px 10px;
+  background: transparent;
+  text-transform: none;
+  font-family: inherit;
+}
+
+.jn-input::placeholder { color: var(--ink-30); }
+
+.jn-send {
+  font-size: 0.5rem;
+  letter-spacing: 0.18em;
+  padding: 0 14px;
+  background: var(--ink);
+  color: #fff;
+}
+
+.jn-send:disabled { opacity: 0.3; }
+
+/* ── Jane peeking from the right edge (research routes only) ── */
+.jn-peek {
+  position: fixed;
+  top: 40vh;
+  right: 0;
+  z-index: 100;
+  cursor: pointer;
+  font-family: var(--font);
+  text-transform: uppercase;
+}
+
+.jn-peek-bust {
+  width: 150px;
+  height: 150px;
+  overflow: hidden;
+  transform: translateX(34%) rotate(-6deg);
+  transform-origin: 80% 100%;
+  animation: janeLean 11s ease-in-out infinite;
+  transition: transform 0.25s ease;
+}
+
+/* the source canvas is mostly empty below the chin — zoom to the head */
+.jn-peek-face {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 0;
+  transform: scale(1.7);
+  transform-origin: 50% 6%;
+}
+
+.jn-peek:hover .jn-peek-bust {
+  animation: none;
+  transform: translateX(6%) rotate(-9deg);
+}
+
+/* mostly still; every loop he leans in for a look */
+@keyframes janeLean {
+  0%, 80%, 100% { transform: translateX(34%) rotate(-6deg); }
+  85% { transform: translateX(18%) rotate(-10deg); }
+  91% { transform: translateX(30%) rotate(-4deg); }
+}
+
+.jn-peek-tab {
+  position: absolute;
+  left: -14px;
+  top: 46%;
+  writing-mode: vertical-rl;
+  font-size: 0.4375rem;
+  letter-spacing: 0.22em;
+  background: var(--ink);
+  color: #fff;
+  padding: 6px 2px;
+}
+
+.jn-peek-bubble {
+  position: absolute;
+  right: 78%;
+  top: -6px;
+  white-space: nowrap;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  background: #fff;
+  border: 1px solid var(--ink);
+  padding: 4px 8px;
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.jn-peek:hover .jn-peek-bubble {
+  opacity: 1;
+  transform: translateX(0);
+}

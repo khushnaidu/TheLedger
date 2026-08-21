@@ -24,15 +24,24 @@ router.post('/', async (req, res) => {
         } catch {
           throw new Error('Authentication required');
         }
-        if (!pathname.startsWith(`notebooks/${payload.userId}/`)) {
+        const isNotebook = pathname.startsWith(`notebooks/${payload.userId}/`);
+        const isPaper = pathname.startsWith(`papers/${payload.userId}/`);
+        if (!isNotebook && !isPaper) {
           throw new Error('Uploads must live under your own shelf');
         }
-        return {
-          allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
-          maximumSizeInBytes: 4_000_000,
-          addRandomSuffix: true,
-          tokenPayload: JSON.stringify({ userId: payload.userId }),
-        };
+        return isPaper
+          ? {
+              allowedContentTypes: ['application/pdf'],
+              maximumSizeInBytes: 25_000_000,
+              addRandomSuffix: true,
+              tokenPayload: JSON.stringify({ userId: payload.userId }),
+            }
+          : {
+              allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+              maximumSizeInBytes: 4_000_000,
+              addRandomSuffix: true,
+              tokenPayload: JSON.stringify({ userId: payload.userId }),
+            };
       },
       // fires via webhook from Vercel's infra — unreachable in local dev; nothing to do
       onUploadCompleted: async () => {},

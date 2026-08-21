@@ -129,4 +129,45 @@ export const api = {
       throw err;
     }
   },
+
+  // Reading Room (the study)
+  getCollections: () => request('/research/collections'),
+  createCollection: (name) => request('/research/collections', { method: 'POST', body: JSON.stringify({ name }) }),
+  updateCollection: (id, name) => request(`/research/collections/${id}`, { method: 'PATCH', body: JSON.stringify({ name }) }),
+  deleteCollection: (id) => request(`/research/collections/${id}`, { method: 'DELETE' }),
+  getPapers: () => request('/research/papers'),
+  createPaper: (data) => request('/research/papers', { method: 'POST', body: JSON.stringify(data) }),
+  getPaper: (id) => request(`/research/papers/${id}`),
+  updatePaper: (id, data) => request(`/research/papers/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deletePaper: (id) => request(`/research/papers/${id}`, { method: 'DELETE' }),
+  clearPaperPages: (id) => request(`/research/papers/${id}/pages`, { method: 'DELETE' }),
+  postPaperPages: (id, pages) => request(`/research/papers/${id}/pages`, { method: 'POST', body: JSON.stringify({ pages }) }),
+  createAnnotation: (paperId, data) =>
+    request(`/research/papers/${paperId}/annotations`, { method: 'POST', body: JSON.stringify(data) }),
+  updateAnnotation: (paperId, annId, data) =>
+    request(`/research/papers/${paperId}/annotations/${annId}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteAnnotation: (paperId, annId) =>
+    request(`/research/papers/${paperId}/annotations/${annId}`, { method: 'DELETE' }),
+  askJane: (data) => request('/research/chat', { method: 'POST', body: JSON.stringify(data) }),
+
+  // PDF upload rides the same Blob handshake under papers/<userId>/
+  uploadPaperPdf: async (file) => {
+    const { upload } = await import('@vercel/blob/client');
+    const token = getToken();
+    const { userId } = JSON.parse(atob(token.split('.')[1]));
+    const safeName = file.name.replace(/[^\w.-]+/g, '_').slice(-60) || 'paper.pdf';
+    try {
+      const blob = await upload(`papers/${userId}/${safeName}`, file, {
+        access: 'public',
+        handleUploadUrl: '/api/uploads',
+        clientPayload: token,
+      });
+      return blob.url;
+    } catch (err) {
+      if (/not configured|token/i.test(err.message || '')) {
+        throw new Error('File storage is not set up yet — create a Blob store on the Vercel project (Storage → Create → Blob), then add BLOB_READ_WRITE_TOKEN to server/.env for local dev.');
+      }
+      throw err;
+    }
+  },
 };

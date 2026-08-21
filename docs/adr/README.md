@@ -15,3 +15,4 @@ problem and constraints), **Decision** (what we chose, concretely), and
 - [0002](0002-single-server-route-manifest.md) — Single server route manifest (`createApp`)
 - [0003](0003-route-level-code-splitting.md) — Route-level code splitting; persistent chrome stays eager
 - [0004](0004-notebooks-json-pages-and-blob-storage.md) — Notebooks: JSON pages + Vercel Blob image storage
+- [0005](0005-reading-room-pdf-text-and-retrieval.md) — Reading Room: client-side PDF extraction, FTS retrieval, page-anchored annotations

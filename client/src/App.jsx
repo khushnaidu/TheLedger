@@ -1,16 +1,28 @@
 import { useState, useEffect, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { api, isAuthenticated, setToken } from './api';
 import Sidebar from './components/Sidebar';
 import Masthead from './components/Masthead';
 import Colophon from './components/Colophon';
 import Entrance from './components/Entrance';
 import GusAssistant from './components/GusAssistant';
+import JanePeek from './components/JanePeek';
 import RouteLoader from './components/RouteLoader';
 import { TOOLS, HIDDEN_ROUTES } from './tools/registry';
 import Auth from './pages/Auth';
 import ResetPassword from './pages/ResetPassword';
 import { clearEdition, isPersonal } from './lib/edition';
+
+// The Reading Room is Jane's turf — Gus stays out of it
+function AssistantOnDuty({ user }) {
+  const { pathname } = useLocation();
+  if (pathname.startsWith('/research')) return <JanePeek />;
+  return (
+    <GusAssistant user={user} onTicketsCreated={() => {
+      window.dispatchEvent(new Event('gus-tickets-created'));
+    }} />
+  );
+}
 
 function App() {
   const [user, setUser] = useState(null);
@@ -90,9 +102,7 @@ function App() {
                 <Colophon />
               </footer>
             </main>
-            <GusAssistant user={user} onTicketsCreated={() => {
-              window.dispatchEvent(new Event('gus-tickets-created'));
-            }} />
+            <AssistantOnDuty user={user} />
           </div>
         </div>
     </Router>
