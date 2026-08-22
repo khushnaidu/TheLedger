@@ -19,11 +19,13 @@ const TIME_FILTERS = [
 export default function ListView() {
   const [tickets, setTickets] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [labels, setLabels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterPriority, setFilterPriority] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
+  const [filterLabel, setFilterLabel] = useState('');
   const [filterTime, setFilterTime] = useState('');
   const [sortBy, setSortBy] = useState('urgency');
   const [sortOrder, setSortOrder] = useState('asc');
@@ -39,13 +41,16 @@ export default function ListView() {
     if (filterStatus) params.status = filterStatus;
     if (filterPriority) params.priority = filterPriority;
     if (filterCategory) params.categoryId = filterCategory;
+    // the tickets route already understands labelId and already returns
+    // labels on every row; the archive simply never asked
+    if (filterLabel) params.labelId = filterLabel;
     params.sortBy = sortBy; params.sortOrder = sortOrder;
-    Promise.all([api.getTickets(params), api.getCategories()])
-      .then(([t, c]) => { setTickets(t); setCategories(c); })
+    Promise.all([api.getTickets(params), api.getCategories(), api.getLabels()])
+      .then(([t, c, l]) => { setTickets(t); setCategories(c); setLabels(l); })
       .catch(console.error).finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchData(); }, [filterStatus, filterPriority, filterCategory, sortBy, sortOrder]);
+  useEffect(() => { fetchData(); }, [filterStatus, filterPriority, filterCategory, filterLabel, sortBy, sortOrder]);
 
   // Refresh when Gus creates tickets
   useEffect(() => {
@@ -158,6 +163,12 @@ export default function ListView() {
           <option value="">All Categories</option>
           {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
+        {labels.length > 0 && (
+          <select value={filterLabel} onChange={(e) => { setFilterLabel(e.target.value); setLoading(true); }} className="select-field">
+            <option value="">All Labels</option>
+            {labels.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+          </select>
+        )}
         <select value={filterTime} onChange={(e) => setFilterTime(e.target.value)} className="select-field">
           {TIME_FILTERS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
         </select>
@@ -205,12 +216,17 @@ export default function ListView() {
                 { key: 'status', label: 'Status' },
                 { key: 'priority', label: 'Priority' },
                 { key: 'category', label: 'Category' },
+                // a relation, so there is nothing to sort on
+                { key: 'labels', label: 'Labels', sortable: false },
                 { key: 'dueDate', label: 'Due' },
                 { key: 'createdAt', label: 'Filed' },
-              ].map(({ key, label }) => (
-                <th key={key} onClick={() => toggleSort(key === 'category' ? 'categoryId' : key)}
-                  className="text-left px-0 pr-4 py-2.5 t-label cursor-pointer hover:text-black">
-                  <div className="flex items-center gap-1">{label}<ArrowUpDown className="w-2.5 h-2.5 opacity-30" /></div>
+              ].map(({ key, label, sortable = true }) => (
+                <th key={key}
+                  onClick={sortable ? () => toggleSort(key === 'category' ? 'categoryId' : key) : undefined}
+                  className={`text-left px-0 pr-4 py-2.5 t-label ${sortable ? 'cursor-pointer hover:text-black' : ''}`}>
+                  <div className="flex items-center gap-1">
+                    {label}{sortable && <ArrowUpDown className="w-2.5 h-2.5 opacity-30" />}
+                  </div>
                 </th>
               ))}
               <th className="w-8" />
@@ -218,7 +234,7 @@ export default function ListView() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={9} className="py-20 text-center">
+              <tr><td colSpan={10} className="py-20 text-center">
                 <div className="flex flex-col items-center">
                   <div className="loader mb-4"><div className="loader-bar" /><div className="loader-bar" /><div className="loader-bar" /><div className="loader-bar" /></div>
                   <p className="t-label">Loading entries...</p>
@@ -226,7 +242,7 @@ export default function ListView() {
               </td></tr>
             ) : visibleTickets.length === 0 ? (
               <tr>
-                <td colSpan={9} className="py-16 text-center">
+                <td colSpan={10} className="py-16 text-center">
                   <img src="/art/keepgoing.png" alt="" className="w-[110px] mx-auto mb-4" />
                   <p className="t-small">No entries found — i tried, i'm trying</p>
                 </td>
@@ -251,6 +267,13 @@ export default function ListView() {
                 <td className="py-2.5 pr-4"><StatusBadge status={ticket.status} /></td>
                 <td className="py-2.5 pr-4"><PriorityBadge priority={ticket.priority} /></td>
                 <td className="py-2.5 pr-4 t-small">{ticket.category?.name || '—'}</td>
+                <td className="py-2.5 pr-4 max-w-[180px]">
+                  {ticket.labels?.length
+                    ? ticket.labels.map((l) => (
+                      <span key={l.id} className="tag-box tag-box-mute">{l.name}</span>
+                    ))
+                    : <span className="t-small">—</span>}
+                </td>
                 <td className="py-2.5 pr-4 t-small counter-num">{ticket.dueDate ? new Date(ticket.dueDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '.') : '—'}</td>
                 <td className="py-2.5 pr-4 t-small counter-num">{new Date(ticket.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '.')}</td>
                 <td className="py-2.5">
