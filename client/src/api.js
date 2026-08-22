@@ -4,9 +4,17 @@ function getToken() {
   return localStorage.getItem('ledger_token');
 }
 
+// The entrance ceremony is tied to the session, not the tab's history, so
+// dropping the token always resets it — see ENTERED_KEY in App.jsx.
+export const ENTERED_KEY = 'ledger_entered';
+
 export function setToken(token) {
-  if (token) localStorage.setItem('ledger_token', token);
-  else localStorage.removeItem('ledger_token');
+  if (token) {
+    localStorage.setItem('ledger_token', token);
+  } else {
+    localStorage.removeItem('ledger_token');
+    try { sessionStorage.removeItem(ENTERED_KEY); } catch { /* private mode */ }
+  }
 }
 
 export function isAuthenticated() {
@@ -123,7 +131,11 @@ export const api = {
       });
       return blob.url;
     } catch (err) {
-      if (/not configured|token/i.test(err.message || '')) {
+      // Only claim this when the server actually said so. Matching a bare
+      // "token" swallowed every upload failure — the Blob SDK says "client
+      // token" whenever the handshake is refused for any reason — and
+      // reported it as unconfigured storage.
+      if (/BLOB_READ_WRITE_TOKEN|storage not configured/i.test(err.message || '')) {
         throw new Error('Photo storage is not set up yet — create a Blob store on the Vercel project (Storage → Create → Blob), then add BLOB_READ_WRITE_TOKEN to server/.env for local dev.');
       }
       throw err;
@@ -150,6 +162,23 @@ export const api = {
     request(`/research/papers/${paperId}/annotations/${annId}`, { method: 'DELETE' }),
   askJane: (data) => request('/research/chat', { method: 'POST', body: JSON.stringify(data) }),
 
+  // The Accounts (the household book)
+  getEntries: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/finance/entries${qs ? `?${qs}` : ''}`);
+  },
+  createEntry: (data) => request('/finance/entries', { method: 'POST', body: JSON.stringify(data) }),
+  postEntries: (entries) => request('/finance/entries/batch', { method: 'POST', body: JSON.stringify({ entries }) }),
+  updateEntry: (id, data) => request(`/finance/entries/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteEntry: (id) => request(`/finance/entries/${id}`, { method: 'DELETE' }),
+  getFinanceSummary: (month) => request(`/finance/summary${month ? `?month=${month}` : ''}`),
+  getTrend: () => request('/finance/trend'),
+  recategorize: (ids, category) =>
+    request('/finance/entries/bulk', { method: 'PATCH', body: JSON.stringify({ ids, category }) }),
+  sortCategories: (descriptions) =>
+    request('/finance/categorize', { method: 'POST', body: JSON.stringify({ descriptions }) }),
+  askVera: (messages) => request('/finance/vera', { method: 'POST', body: JSON.stringify({ messages }) }),
+
   // PDF upload rides the same Blob handshake under papers/<userId>/
   uploadPaperPdf: async (file) => {
     const { upload } = await import('@vercel/blob/client');
@@ -161,10 +190,19 @@ export const api = {
         access: 'public',
         handleUploadUrl: '/api/uploads',
         clientPayload: token,
+        // Some machines hand a .pdf to the file input as octet-stream or with
+        // no type at all, and the server's allowlist is exact — which failed
+        // the upload for one user and nobody else. The extension is already
+        // checked before we get here, so state the type outright.
+        contentType: 'application/pdf',
       });
       return blob.url;
     } catch (err) {
-      if (/not configured|token/i.test(err.message || '')) {
+      // Only claim this when the server actually said so. Matching a bare
+      // "token" swallowed every upload failure — the Blob SDK says "client
+      // token" whenever the handshake is refused for any reason — and
+      // reported it as unconfigured storage.
+      if (/BLOB_READ_WRITE_TOKEN|storage not configured/i.test(err.message || '')) {
         throw new Error('File storage is not set up yet — create a Blob store on the Vercel project (Storage → Create → Blob), then add BLOB_READ_WRITE_TOKEN to server/.env for local dev.');
       }
       throw err;

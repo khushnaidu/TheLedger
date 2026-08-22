@@ -90,6 +90,11 @@ function applyFold(sheet, flap, overlay, W, H, P0, M, fade) {
 
 const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t));
 
+// how big the leaf sits, as a multiple of the fitted size. Remembered, so a
+// reader who wants a big book only says so once.
+const ZOOMS = [0.85, 1, 1.2, 1.45, 1.75];
+const ZOOM_KEY = 'nb_zoom';
+
 const STATUS_LABEL = {
   saved: (at) => `saved ${at ? at.toTimeString().slice(0, 5) : ''}`,
   saving: () => 'saving…',
@@ -127,8 +132,16 @@ export default function NotebookReader() {
   const curlOverlayRef = useRef(null);
   const curlCtx = useRef(null); // { W, H, P0, TARGET, left, top, apply } while a flip is mounted
   const dragging = useRef(false);
+  const [zoom, setZoom] = useState(() => {
+    const saved = Number(localStorage.getItem(ZOOM_KEY));
+    return ZOOMS.includes(saved) ? saved : 1;
+  });
   const dragInfo = useRef(null); // { target, phantom, prevSpread }
   const lastM = useRef(null);
+
+  useEffect(() => {
+    try { localStorage.setItem(ZOOM_KEY, String(zoom)); } catch { /* private mode */ }
+  }, [zoom]);
 
   useEffect(() => {
     const el = stageRef.current;
@@ -140,7 +153,9 @@ export default function NotebookReader() {
 
   // always one page — a bound book shows one leaf at a time
   const perSpread = 1;
-  const scale = Math.min(0.68, (stageW - 64) / PAGE_W);
+  // 0.68 is the widest the leaf ever sat on its own; the reader multiplies
+  // that, and the stage scrolls if the book outgrows it
+  const scale = Math.min(0.68, (stageW - 64) / PAGE_W) * zoom;
   const spreadCount = Math.max(1, Math.ceil(pages.length / perSpread));
   const spread = Math.min(spreadStart, spreadCount - 1);
   const visiblePages = pages.slice(spread * perSpread, spread * perSpread + perSpread);
@@ -410,7 +425,7 @@ export default function NotebookReader() {
   }
 
   return (
-    <div className="max-w-[1200px] stagger relative">
+    <div className="stagger relative" style={{ maxWidth: Math.round(1200 * Math.max(1, zoom)) }}>
       <div className="flex items-baseline justify-between">
         <div>
           <Link data-clicky to="/notebooks" className="t-label hover:text-[var(--stamp)]">← The Shelf</Link>
@@ -423,6 +438,19 @@ export default function NotebookReader() {
           <p className="t-label mt-2">
             page {String(spread + 1).padStart(2, '0')} / {String(spreadCount).padStart(2, '0')}
           </p>
+          <div className="nb-zoom mt-2">
+            <button
+              onClick={() => setZoom(ZOOMS[Math.max(0, ZOOMS.indexOf(zoom) - 1)])}
+              disabled={zoom === ZOOMS[0]}
+              title="Smaller"
+            >−</button>
+            <span>{Math.round(zoom * 100)}%</span>
+            <button
+              onClick={() => setZoom(ZOOMS[Math.min(ZOOMS.length - 1, ZOOMS.indexOf(zoom) + 1)])}
+              disabled={zoom === ZOOMS[ZOOMS.length - 1]}
+              title="Bigger"
+            >+</button>
+          </div>
         </div>
       </div>
 

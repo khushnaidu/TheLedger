@@ -1,6 +1,6 @@
 import { useState, useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { api, isAuthenticated, setToken } from './api';
+import { api, isAuthenticated, setToken, ENTERED_KEY } from './api';
 import Sidebar from './components/Sidebar';
 import Masthead from './components/Masthead';
 import Colophon from './components/Colophon';
@@ -27,27 +27,35 @@ function AssistantOnDuty({ user }) {
 
 function App() {
   const [user, setUser] = useState(null);
-  const [checking, setChecking] = useState(true);
-  const [entered, setEntered] = useState(false);
+  // nothing to check when there is no token, so do not set state to say so
+  const [checking, setChecking] = useState(() => isAuthenticated());
+  // Per-tab, so a refresh drops you back where you were instead of replaying
+  // the entrance, while a genuinely new session still gets the ceremony.
+  const [entered, setEntered] = useState(() => {
+    try { return sessionStorage.getItem(ENTERED_KEY) === '1'; } catch { return false; }
+  });
   const [exiting, setExiting] = useState(false);
 
   useEffect(() => initClicky(), []);
 
   useEffect(() => {
-    if (isAuthenticated()) {
-      api.getMe()
-        .then(setUser)
-        .catch(() => setToken(null))
-        .finally(() => setChecking(false));
-    } else {
-      setChecking(false);
-    }
+    if (!isAuthenticated()) return;
+    api.getMe()
+      .then(setUser)
+      .catch((err) => {
+        // a real 401 has already cleared the token inside request(); a
+        // network blip must not throw away a perfectly good session
+        if (!/session expired/i.test(err.message || '')) {
+          console.error('Could not reach the front desk:', err);
+        }
+      })
+      .finally(() => setChecking(false));
   }, []);
 
   const handleLogin = (userData) => setUser(userData);
 
   const handleLogout = () => {
-    setToken(null);
+    setToken(null); // also clears the entrance flag
     clearEdition();
     setUser(null);
     setEntered(false);
@@ -56,7 +64,10 @@ function App() {
 
   const handleEnter = () => {
     setExiting(true);
-    setTimeout(() => setEntered(true), 500);
+    setTimeout(() => {
+      try { sessionStorage.setItem(ENTERED_KEY, '1'); } catch { /* private mode */ }
+      setEntered(true);
+    }, 500);
   };
 
   if (checking) return null;

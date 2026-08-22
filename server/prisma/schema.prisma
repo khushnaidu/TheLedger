@@ -27,6 +27,7 @@ model User {
   notebooks  Notebook[]
   collections Collection[]
   papers      Paper[]
+  entries     LedgerEntry[]
 
   sentInvites     Connection[]  @relation("connRequester")
   receivedInvites Connection[]  @relation("connAddressee")
@@ -247,4 +248,28 @@ model Annotation {
   createdAt DateTime @default(now())
 
   @@index([paperId, page])
+}
+
+// ── The Accounts: the household book ──────────────────────────
+// One row per line in the book. `amount` is always positive and
+// `kind` carries the sign, so the column foots without sign errors
+// on import. `externalKey` is a per-user dedupe hash so re-importing
+// the same statement is idempotent (NULLs are distinct in Postgres,
+// so hand-typed lines never collide). See ADR-0007.
+
+model LedgerEntry {
+  id          String   @id @default(uuid())
+  kind        String   @default("expense") // expense | income
+  amount      Decimal  @db.Decimal(12, 2) // money is never a Float
+  category    String   @default("uncategorized")
+  description String   @default("")
+  date        DateTime
+  source      String   @default("manual") // manual | csv | vera
+  externalKey String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, externalKey])
+  @@index([userId, date])
 }

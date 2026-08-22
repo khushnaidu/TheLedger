@@ -16,3 +16,5 @@ problem and constraints), **Decision** (what we chose, concretely), and
 - [0003](0003-route-level-code-splitting.md) — Route-level code splitting; persistent chrome stays eager
 - [0004](0004-notebooks-json-pages-and-blob-storage.md) — Notebooks: JSON pages + Vercel Blob image storage
 - [0005](0005-reading-room-pdf-text-and-retrieval.md) — Reading Room: client-side PDF extraction, FTS retrieval, page-anchored annotations
+- [0006](0006-jobs-wire-aggregator-cron.md) — Jobs Wire: aggregator API + daily cron (proposed, unbuilt)
+- [0007](0007-finance-manual-csv-ledger.md) — The Accounts: manual + CSV ledger, income and expense, Vera the bookkeeper

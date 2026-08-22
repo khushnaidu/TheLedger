@@ -56,6 +56,8 @@ export default function useIngest(onDone) {
       setStage(null);
       onDone?.(updated);
     } catch (err) {
+      // the real cause matters when a user reports a failed intake
+      console.error('Reading Room intake failed:', err);
       setStage(null);
       setError(err.message || 'The intake desk jammed. Try again.');
       // paper row without text still opens in the reader; leave it be

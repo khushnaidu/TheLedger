@@ -27,6 +27,7 @@ router.post('/', async (req, res) => {
         const isNotebook = pathname.startsWith(`notebooks/${payload.userId}/`);
         const isPaper = pathname.startsWith(`papers/${payload.userId}/`);
         if (!isNotebook && !isPaper) {
+          console.error(`Upload path rejected: "${pathname}" for user ${payload.userId}`);
           throw new Error('Uploads must live under your own shelf');
         }
         return isPaper
@@ -48,6 +49,9 @@ router.post('/', async (req, res) => {
     });
     res.json(jsonResponse);
   } catch (err) {
+    // The client only ever sees the Blob SDK's wrapper around this, so the
+    // reason a handshake was refused has to be recoverable from the logs.
+    console.error('Upload handshake refused:', err.message);
     res.status(400).json({ error: err.message });
   }
 });

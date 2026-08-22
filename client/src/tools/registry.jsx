@@ -30,6 +30,9 @@ export const TOOLS = [
     Component: lazy(() => import('./notebooks/NotebooksShelf')) },
   { id: 'research', name: 'Reading Room', route: '/research', section: 'study',
     Component: lazy(() => import('./research/ReadingRoom')) },
+  // ── the accounts ──
+  { id: 'finance', name: 'The Book', route: '/finance', section: 'accounts',
+    Component: lazy(() => import('./finance/Overview')) },
   // ── the parlor ──
   { id: 'wall', name: 'My Wall', route: '/wall', section: 'parlor',
     Component: lazy(() => import('../pages/MyWall')) },
@@ -43,4 +46,5 @@ export const HIDDEN_ROUTES = [
   { route: '/tickets/:id', Component: lazy(() => import('../pages/TicketDetail')) },
   { route: '/notebooks/:id', Component: lazy(() => import('./notebooks/NotebookReader')) },
   { route: '/research/:paperId', Component: lazy(() => import('./research/PaperReader')) },
+  { route: '/finance/lines', Component: lazy(() => import('./finance/LedgerLines')) },
 ];

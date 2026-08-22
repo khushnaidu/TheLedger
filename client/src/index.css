@@ -3901,3 +3901,877 @@ aside {
   opacity: 1;
   transform: translateX(0);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   THE ACCOUNTS — the household book (fin-)
+   overview reads the month; /finance/lines is the green-bar sheet
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --fin-bar: rgba(24, 92, 56, 0.085);
+  --fin-credit: #14663c;
+  --fin-paper: #fefefc;
+}
+
+.fin-page { padding-bottom: 56px; max-width: 940px; }
+
+/* buttons do not inherit the theme's uppercase from body, and half this
+   tool's text lives inside one — so say it once here */
+.fin-page button,
+.fin-modal button,
+.fin-drawer button { text-transform: uppercase; }
+
+/* ── the controls bar, shared by both views ─ */
+
+.fin-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 0 26px;
+}
+
+.fin-controls-gap { flex: 1; }
+
+/* month / year / all time */
+.fin-grain { display: flex; height: 30px; }
+
+.fin-grain button {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-right: 0;
+  font-family: inherit;
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  color: var(--ink-50);
+  padding: 0 12px;
+}
+
+.fin-grain button:last-child { border-right: 1px solid var(--line); }
+.fin-grain button:not(.fin-grain-on):hover { color: var(--ink); }
+.fin-grain .fin-grain-on { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+.fin-monthnav {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  height: 30px;
+}
+
+.fin-monthnav button {
+  width: 26px;
+  height: 100%;
+  font-size: 0.9rem;
+  line-height: 1;
+  background: transparent;
+  border: 0;
+  color: var(--ink-50);
+}
+
+.fin-monthnav button:hover:not(:disabled) { background: var(--ink); color: #fff; }
+.fin-monthnav button:disabled { opacity: 0.2; }
+
+.fin-monthlabel {
+  min-width: 106px;
+  text-align: center;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  line-height: 28px;
+}
+
+.fin-search { width: 210px; }
+.fin-sourcepick { width: 178px; }
+
+/* ── a leaf of the book ────────────────────── */
+
+.fin-leaf {
+  position: relative;
+  display: flex;
+  background: var(--fin-paper);
+  border: 1px solid var(--line);
+  margin-bottom: 30px;
+}
+
+/* the leaves underneath, so the page has a thickness */
+.fin-leaf::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  right: -5px;
+  top: 5px;
+  bottom: -5px;
+  border: 1px solid var(--ink-15);
+  background: var(--fin-paper);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* grain, kept faint enough that the figures stay crisp on top of it */
+.fin-leaf::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/art/papergrain.jpg') center / 420px auto repeat;
+  mix-blend-mode: multiply;
+  opacity: 0.16;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.fin-leaf-body, .fin-holes { position: relative; z-index: 2; }
+
+.fin-leaf-body { flex: 1; min-width: 0; padding: 0 0 16px; }
+.fin-leaf-short { margin-bottom: 8px; }
+
+/* the caption bar every printed plate carries */
+.fin-plate-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--ink-30);
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  color: var(--ink-50);
+}
+
+.fin-plate-head span:last-child { color: var(--ink); }
+
+/* ── the plate ─────────────────────────────── */
+
+.fin-plate { padding: 14px 10px 4px; }
+.fin-plate-bare { padding: 46px 16px; text-align: center; }
+
+.fin-plate-svg { width: 100%; max-width: 720px; height: auto; display: block; margin: 0 auto; }
+
+.fin-slice { cursor: url('/cursors/hand.png') 16 2, pointer; }
+.fin-slice path, .fin-slice circle { transition: none; }
+.fin-slice:hover path, .fin-slice:hover circle { stroke-width: 2.5; }
+
+.fin-lead { cursor: url('/cursors/hand.png') 16 2, pointer; }
+
+.fin-lead-name {
+  font-family: var(--font);
+  font-size: 8.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  fill: var(--ink);
+}
+
+.fin-lead-share {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 11px;
+  fill: var(--ink);
+}
+
+.fin-lead-on .fin-lead-share { fill: var(--stamp); }
+
+.fin-plate-foot {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  margin: 4px 16px 0;
+  border-top: 3px double var(--ink-30);
+  padding-top: 9px;
+}
+
+.fin-plate-foot span {
+  flex: 1;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 1.125rem;
+  font-variant-numeric: tabular-nums;
+  border-right: 1px solid var(--line);
+  padding: 0 14px;
+}
+
+.fin-plate-foot span:first-child { padding-left: 0; }
+.fin-plate-foot span:last-child { border-right: 0; }
+
+.fin-plate-foot i {
+  display: block;
+  font-style: normal;
+  margin-bottom: 3px;
+}
+
+/* ── the legend, ruled like the book ───────── */
+
+.fin-legend { margin-top: 22px; border-top: 1px solid var(--ink-30); }
+
+.fin-leg-row {
+  display: grid;
+  grid-template-columns: 20px 132px minmax(0, 1fr) 26px 34px 96px;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--ink-08);
+  padding: 8px 16px;
+  text-align: left;
+  font-size: 0.6875rem;
+}
+
+.fin-leg-block:nth-child(even) .fin-leg-row { background: var(--fin-bar); }
+.fin-leg-row:hover { box-shadow: inset 0 0 0 1px var(--ink-15); }
+.fin-leg-block.fin-leg-open .fin-leg-row { background: var(--ink); color: #fff; }
+.fin-leg-open .fin-leg-row .fin-leg-cats { color: rgba(255,255,255,0.55); }
+.fin-leg-open .fin-leg-row .fin-leg-n { color: rgba(255,255,255,0.5); }
+
+.fin-swatch { width: 14px; height: 14px; display: block; }
+.fin-leg-open .fin-swatch rect { stroke: #fff; }
+
+.fin-leg-name { letter-spacing: 0.1em; }
+
+.fin-leg-cats {
+  font-size: 0.5625rem;
+  color: var(--ink-30);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fin-leg-n { font-size: 0.5625rem; color: var(--ink-15); text-align: right; font-variant-numeric: tabular-nums; }
+.fin-leg-share { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-50); }
+.fin-leg-open .fin-leg-share { color: rgba(255,255,255,0.7); }
+
+.fin-leg-fig {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* what a slice opens onto */
+.fin-detail { border-bottom: 1px solid var(--ink-30); }
+
+.fin-detail-row {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 116px 92px;
+  gap: 10px;
+  align-items: center;
+  padding: 0 16px 0 46px;
+  min-height: 25px;
+  font-size: 0.6875rem;
+}
+
+.fin-detail-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 16px 8px 46px;
+  border-top: 1px solid var(--ink-15);
+}
+
+/* ── the year strip ────────────────────────── */
+
+.fin-year {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  padding: 18px 16px 6px;
+}
+
+.fin-yr-col {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.fin-yr-stack {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 62px;
+  width: 100%;
+  border-bottom: 1px solid var(--ink-15);
+}
+
+.fin-yr-out { width: 14px; min-height: 1px; display: block; background: var(--ink-30); }
+.fin-yr-col:hover .fin-yr-out { background: var(--ink); }
+.fin-yr-tick { font-size: 0.5rem; letter-spacing: 0.08em; color: var(--ink-30); }
+.fin-yr-on .fin-yr-out { background: var(--ink); }
+.fin-yr-on .fin-yr-tick { color: var(--stamp); }
+
+/* ── the drill-down ────────────────────────── */
+
+.fin-back {
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  color: var(--ink-50);
+  text-decoration: none;
+}
+
+.fin-back:hover { color: var(--stamp); }
+
+.fin-chip {
+  background: var(--ink);
+  color: #fff;
+  border: 0;
+  font-family: inherit;
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+}
+
+.fin-chip:hover { background: var(--stamp); }
+
+.fin-selbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.12s steps(3), opacity 0.12s steps(3);
+}
+
+.fin-selbar-on { max-height: 48px; opacity: 1; margin-bottom: 12px; }
+
+.fin-loosebar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border: 1px dashed var(--ink-30);
+  background: var(--ink-04);
+}
+.fin-selstrike { padding: 6px 12px; font-size: 0.5625rem; }
+
+.fin-check {
+  width: 11px;
+  height: 11px;
+  accent-color: #000;
+  margin: 0;
+}
+
+/* ── the sheet ─────────────────────────────── */
+
+.fin-sheet {
+  display: flex;
+  background: var(--fin-paper);
+  border: 1px solid var(--line);
+}
+
+/* The punched margin, with the printer's double red rule. The holes are
+   painted, not elements — a column of divs would set the sheet's height
+   and leave blank paper hanging below the last line. */
+.fin-holes {
+  flex: 0 0 24px;
+  border-right: 1px solid rgba(196, 30, 30, 0.35);
+  box-shadow: 2px 0 0 -1px rgba(196, 30, 30, 0.35);
+  background-color: rgba(0, 0, 0, 0.012);
+  background-image: radial-gradient(
+    circle at 12px 13px,
+    transparent 2.4px,
+    var(--ink-15) 2.4px,
+    var(--ink-15) 3.4px,
+    transparent 3.5px
+  );
+  background-size: 24px 26px;
+  background-repeat: repeat-y;
+}
+
+.fin-grid { flex: 1; min-width: 0; }
+
+.fin-line {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 108px 84px 84px 96px 20px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px 0 12px;
+  min-height: 26px;
+  font-size: 0.6875rem;
+  line-height: 1.3;
+}
+
+/* the tick column only exists where lines can be struck in bulk */
+.fin-grid-sel .fin-line {
+  grid-template-columns: 18px 52px minmax(0, 1fr) 108px 84px 84px 96px 20px;
+}
+
+.fin-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--fin-paper);
+  border-bottom: 1px solid var(--ink-30);
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  color: var(--ink-50);
+  min-height: 24px;
+}
+
+.fin-band { background: var(--fin-bar); }
+
+.fin-row:hover { box-shadow: inset 0 0 0 1px var(--ink-15); }
+
+.fin-date { color: var(--ink-50); font-variant-numeric: tabular-nums; }
+
+.fin-part { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.fin-mark {
+  font-style: normal;
+  margin-left: 6px;
+  font-size: 0.5625rem;
+  color: var(--ink-15);
+}
+
+.fin-blank { font-style: normal; color: var(--ink-15); }
+
+.fin-cat {
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  color: var(--ink-50);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fin-num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.fin-credit { color: var(--fin-credit); }
+.fin-neg { color: var(--stamp); }
+
+.fin-bal {
+  border-left: 1px solid var(--line);
+  padding-left: 8px;
+  color: var(--ink-50);
+}
+
+/* .fin-bal sets a colour, so the red needs the extra class to win */
+.fin-bal.fin-neg { color: var(--stamp); }
+
+.fin-strike {
+  opacity: 0;
+  background: transparent;
+  border: 0;
+  font-size: 0.625rem;
+  color: var(--ink-30);
+  line-height: 1;
+}
+
+.fin-row:hover .fin-strike,
+.fin-line-edit .fin-strike { opacity: 1; }
+
+.fin-strike:hover { color: var(--stamp); }
+.fin-strike-armed { opacity: 1; color: #fff; background: var(--stamp); }
+
+/* ── writing a line ────────────────────────── */
+
+.fin-line-edit {
+  min-height: 30px;
+  border-top: 1px solid var(--line);
+  background: #fff;
+}
+
+.fin-cell {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--ink-08);
+  font-family: inherit;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  color: var(--ink);
+  padding: 2px 0;
+  min-width: 0;
+}
+
+.fin-cell:focus { outline: none; border-bottom-color: var(--stamp); }
+.fin-cell-bad { border-bottom-color: var(--stamp); color: var(--stamp); }
+.fin-cell::placeholder { color: var(--ink-15); }
+.fin-cell.fin-num { text-align: right; }
+.fin-cell.fin-date { font-size: 0.5625rem; color: var(--ink-50); }
+
+.fin-post {
+  height: 22px;
+  background: var(--ink);
+  color: #fff;
+  border: 0;
+  font-family: inherit;
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0 6px;
+}
+
+.fin-post:hover:not(:disabled) { background: var(--stamp); }
+.fin-post:disabled { background: var(--ink-15); }
+
+.fin-footrow {
+  border-top: 3px double var(--ink-30);
+  min-height: 30px;
+  font-size: 0.6875rem;
+}
+
+.fin-carried { font-size: 0.5625rem; letter-spacing: 0.16em; color: var(--ink-50); }
+
+.fin-empty { padding: 30px 14px; }
+.fin-empty-sub { font-size: 0.625rem; color: var(--ink-30); margin-top: 4px; }
+.fin-note { margin-top: 8px; color: var(--ink-30); }
+.fin-error { color: var(--stamp); font-size: 0.6875rem; }
+
+.fin-linkish {
+  background: transparent;
+  border: 0;
+  font-family: inherit;
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-50);
+  border-bottom: 1px solid var(--ink-15);
+  padding: 0;
+}
+
+.fin-linkish:hover { color: var(--stamp); border-bottom-color: var(--stamp); }
+
+/* ── Vera, called out of her drawer ────────── */
+
+.fin-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.fin-drawer-body {
+  position: relative;
+  width: min(420px, 100%);
+  height: 100%;
+  background: #fff;
+  border-left: 1px solid var(--ink);
+  display: flex;
+  flex-direction: column;
+}
+
+.fin-drawer-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  background: transparent;
+  border: 0;
+  font-size: 0.75rem;
+  color: var(--ink-50);
+}
+
+.fin-drawer-close:hover { color: var(--stamp); }
+
+.fin-vera { display: flex; flex-direction: column; height: 100%; background: #fff; }
+
+.fin-vera-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.fin-face {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border: 1px solid var(--ink);
+  filter: grayscale(1) contrast(1.08);
+  flex: 0 0 auto;
+}
+
+.fin-face-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 1.25rem;
+  background: var(--ink);
+  color: #fff;
+  filter: none;
+}
+
+.fin-vera-name { font-family: var(--font-head); font-weight: 700; font-size: 0.9375rem; line-height: 1; }
+.fin-vera-role { font-size: 0.5rem; letter-spacing: 0.16em; color: var(--ink-30); margin-top: 3px; }
+
+.fin-vera-stamp {
+  margin-left: auto;
+  margin-right: 22px;
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  color: var(--stamp);
+  border: 1px solid var(--stamp);
+  padding: 2px 5px;
+}
+
+.fin-vera-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fin-msg { font-size: 0.6875rem; line-height: 1.6; }
+.fin-msg-vera { border-left: 2px solid var(--ink); padding-left: 10px; }
+
+.fin-msg-user {
+  align-self: flex-end;
+  max-width: 88%;
+  background: var(--ink);
+  color: #fff;
+  padding: 6px 9px;
+}
+
+.fin-msg-think { color: var(--ink-30); }
+
+/* the slip Vera writes, which is not the book until it is stamped */
+.fin-slip {
+  margin-top: 9px;
+  border: 1px dashed var(--ink-30);
+  padding: 9px;
+  background: var(--fin-paper);
+}
+
+.fin-slip-head { margin-bottom: 6px; }
+
+.fin-slip-line {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 70px 72px;
+  gap: 6px;
+  align-items: baseline;
+  font-size: 0.625rem;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--ink-04);
+}
+
+.fin-slip-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.fin-slip-post { padding: 5px 10px; font-size: 0.5625rem; }
+.fin-slip-posted { border-style: solid; border-color: var(--ink-15); opacity: 0.72; }
+
+.fin-vera-input { display: flex; border-top: 1px solid var(--ink); }
+
+.fin-vera-input textarea {
+  flex: 1;
+  resize: none;
+  border: 0;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--ink);
+}
+
+.fin-vera-input textarea:focus { outline: none; }
+.fin-vera-input textarea::placeholder { color: var(--ink-15); }
+
+.fin-vera-send {
+  flex: 0 0 auto;
+  padding: 0 16px;
+  background: var(--ink);
+  color: #fff;
+  border: 0;
+  font-family: inherit;
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.fin-vera-send:hover:not(:disabled) { background: var(--stamp); }
+.fin-vera-send:disabled { background: var(--ink-15); }
+
+/* ── the import counter ────────────────────── */
+
+.fin-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.38);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.fin-modal-sheet {
+  width: min(760px, 100%);
+  max-height: 88vh;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--ink);
+  padding: 20px 22px 22px;
+}
+
+.fin-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+}
+
+.fin-close { background: transparent; border: 0; font-size: 0.75rem; color: var(--ink-50); }
+.fin-close:hover { color: var(--stamp); }
+
+.fin-tabs { display: flex; gap: 0; margin-bottom: 16px; }
+
+.fin-tabs button {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-right: 0;
+  font-family: inherit;
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-50);
+  padding: 7px 16px;
+}
+
+.fin-tabs button:last-child { border-right: 1px solid var(--line); }
+.fin-tabs .fin-tab-on { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+.fin-lede {
+  font-size: 0.6875rem;
+  line-height: 1.7;
+  color: var(--ink-50);
+  max-width: 62ch;
+  margin-bottom: 12px;
+}
+
+.fin-paste {
+  width: 100%;
+  height: 220px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  background: var(--fin-paper);
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  text-transform: none;
+  padding: 10px 12px;
+  color: var(--ink);
+  white-space: pre;
+  overflow: auto;
+}
+
+.fin-paste:focus { outline: none; border-color: var(--ink); }
+.fin-paste::placeholder { color: var(--ink-15); }
+
+.fin-drop {
+  border: 1px dashed var(--ink-30);
+  padding: 52px 20px;
+  text-align: center;
+  background: var(--fin-paper);
+}
+
+.fin-drop:hover { border-color: var(--ink); background: var(--ink-04); }
+
+.fin-modal-meta { margin-bottom: 14px; }
+
+.fin-map {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 20px;
+  margin-bottom: 18px;
+}
+
+.fin-map-row { display: flex; flex-direction: column; gap: 4px; }
+.fin-map-row .select-field, .fin-map-row .input-field { width: 100%; }
+.fin-map-row .input-field { font-size: 0.75rem; padding: 6px 0; }
+
+.fin-map-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 7px;
+  align-self: end;
+  padding-bottom: 6px;
+}
+
+.fin-preview {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 0;
+  margin-bottom: 16px;
+}
+
+.fin-prev-line {
+  grid-template-columns: 46px minmax(0, 1fr) 100px 80px 80px;
+  padding: 0;
+  min-height: 22px;
+}
+
+/* nothing is dropped quietly — whatever failed is listed */
+.fin-skipped { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--ink-15); }
+.fin-skipped-result { text-align: left; max-height: 200px; overflow-y: auto; margin-bottom: 8px; }
+
+.fin-skip-row {
+  font-size: 0.5625rem;
+  color: var(--stamp);
+  padding: 2px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fin-modal-foot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+.fin-result { text-align: center; padding: 26px 0 10px; }
+.fin-result .btn-black { margin-top: 16px; }
+
+/* ── Notebook size control ─────────────────── */
+
+.nb-zoom {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  height: 22px;
+}
+
+.nb-zoom button {
+  width: 22px;
+  height: 100%;
+  background: transparent;
+  border: 0;
+  font-size: 0.75rem;
+  line-height: 1;
+  color: var(--ink-50);
+}
+
+.nb-zoom button:hover:not(:disabled) { background: var(--ink); color: #fff; }
+.nb-zoom button:disabled { opacity: 0.2; }
+
+.nb-zoom span {
+  min-width: 46px;
+  text-align: center;
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  font-variant-numeric: tabular-nums;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  line-height: 20px;
+}
+
+/* a book bigger than its stage scrolls rather than spilling over the page */
+.nb-spread-stage { overflow-x: auto; }
