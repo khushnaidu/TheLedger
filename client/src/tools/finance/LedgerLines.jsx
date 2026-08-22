@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../../api';
 import LedgerSheet from './LedgerSheet';
+import { sortBook, sortReport } from './sortLoose';
 import { monthLabel, shiftMonth, todayIso } from './money';
 
 // The book itself. Reached by drilling in from the overview, filtered by
@@ -11,7 +12,8 @@ import { monthLabel, shiftMonth, todayIso } from './money';
 const SOURCES = [
   { id: 'manual', label: 'Written by hand' },
   { id: 'csv', label: 'From a statement' },
-  { id: 'vera', label: 'Filed by Vera' },
+  { id: 'clerk', label: 'Filed by a clerk' },
+  { id: 'vera', label: 'Filed by Vera (retired)' },
 ];
 
 const thisMonth = () => todayIso().slice(0, 7);
@@ -28,11 +30,13 @@ export default function LedgerLines() {
   const [categories, setCategories] = useState([]);
   const [selected, setSelected] = useState(() => new Set());
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState('');
+  const [note, setNote] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
   const searching = query.trim().length > 0;
-  const loose = entries.filter((e) => e.category === 'uncategorized').length;
+  const [loose, setLoose] = useState(0);
 
   const set = (patch) => {
     const next = new URLSearchParams(params);
@@ -46,7 +50,7 @@ export default function LedgerLines() {
   const load = useCallback(async () => {
     setError('');
     try {
-      const [rows, sums] = await Promise.all([
+      const [rows, sums, uncat] = await Promise.all([
         api.getEntries({
           month: searching ? 'all' : month,
           ...(category && { category }),
@@ -55,9 +59,12 @@ export default function LedgerLines() {
           ...(searching && { q: query.trim() }),
         }),
         api.getFinanceSummary(month),
+        // the whole book's, not this page's — the sort works on all of it
+        api.getLooseCount(),
       ]);
       setEntries(rows);
       setCategories(sums.categories);
+      setLoose(uncat.count);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -88,34 +95,29 @@ export default function LedgerLines() {
     return next;
   });
 
-  // the same sorting the importer offers, pointed at lines already in the
-  // book — how a bad filing gets put right without retyping anything
+  // The same sorting the importer offers, pointed at lines already in the
+  // book — how a bad filing gets put right without retyping anything. It
+  // works on the WHOLE book, not the month on screen: a year imported in one
+  // go leaves every month grey, and sorting them one page at a time is
+  // twelve presses and twelve waits.
   const sortLoose = async () => {
-    const rows = entries.filter((e) => e.category === 'uncategorized');
-    if (!rows.length || busy) return;
+    if (busy) return;
     setBusy(true);
     setError('');
+    setProgress('Reading the names…');
     try {
-      const names = [...new Set(rows.map((e) => e.description).filter(Boolean))];
-      const map = {};
-      for (let i = 0; i < names.length; i += 120) {
-        const res = await api.sortCategories(names.slice(i, i + 120));
-        Object.assign(map, res.map);
-      }
-      // one call per category rather than one per line
-      const byCategory = new Map();
-      for (const e of rows) {
-        const cat = map[e.description];
-        if (!cat || cat === 'uncategorized') continue;
-        if (!byCategory.has(cat)) byCategory.set(cat, []);
-        byCategory.get(cat).push(e.id);
-      }
-      for (const [cat, ids] of byCategory) await api.recategorize(ids, cat);
+      const report = await sortBook(({ phase, done, total }) => {
+        setProgress(phase === 'reading'
+          ? `Reading the names… ${done} of ${total}`
+          : `Filing… ${done} of ${total}`);
+      });
+      setNote(sortReport(report));
       await load();
     } catch (err) {
       setError(err.message);
     } finally {
       setBusy(false);
+      setProgress('');
     }
   };
 
@@ -186,14 +188,16 @@ export default function LedgerLines() {
 
       {error && <p className="fin-error mb-3">{error}</p>}
 
-      {!!loose && !selected.size && (
+      {(!!loose || note) && !selected.size && (
         <div className="fin-loosebar">
           <span className="t-label">
-            {loose} {loose === 1 ? 'line has' : 'lines have'} no category
+            {progress || note || `${loose} ${loose === 1 ? 'line has' : 'lines have'} no category, anywhere in the book`}
           </span>
-          <button className="btn-ghost" onClick={sortLoose} disabled={busy}>
-            {busy ? 'Vera is reading them…' : 'Have Vera sort them'}
-          </button>
+          {!!loose && (
+            <button className="btn-ghost" onClick={sortLoose} disabled={busy}>
+              {busy ? 'Working…' : `Sort all ${loose}`}
+            </button>
+          )}
         </div>
       )}
 
@@ -223,7 +227,7 @@ export default function LedgerLines() {
           />}
 
       <p className="fin-note t-small">
-        Double-click a line to amend it. † came from a statement, ‡ came from Vera.
+        Double-click a line to amend it. † came from a statement, ‡ came from a clerk.
       </p>
     </div>
   );

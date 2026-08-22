@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { parseStatement, guessMapping, guessMappingFromData, mapRows } from './statement';
-import { api } from '../../api';
+import { readNames, nameKey, NAME_BATCH } from './sortLoose';
 import { fmt, shortDate } from './money';
 
 const BATCH = 500;
@@ -44,6 +44,7 @@ export default function StatementImport({ onClose, onPosted }) {
   const [showSkipped, setShowSkipped] = useState(false);
   const [sortMap, setSortMap] = useState(null);
   const [sorting, setSorting] = useState(false);
+  const [sortProgress, setSortProgress] = useState('');
   const fileRef = useRef(null);
 
   const headers = useMemo(() => {
@@ -88,7 +89,7 @@ export default function StatementImport({ onClose, onPosted }) {
     if (!mapped || !sortMap) return mapped;
     return {
       ...mapped,
-      entries: mapped.entries.map((e) => ({ ...e, category: sortMap[e.description] || e.category })),
+      entries: mapped.entries.map((e) => ({ ...e, category: sortMap[nameKey(e.description)] || e.category })),
     };
   }, [mapped, sortMap]);
 
@@ -96,23 +97,22 @@ export default function StatementImport({ onClose, onPosted }) {
 
   // a statement names merchants, not categories. Reading "SAFEWAY #1842 SAN
   // JOSE CA" as groceries is the one part of this that wants a model, so the
-  // distinct descriptions go to Vera and the answer is applied to every row.
+  // distinct descriptions go to the sorter and the answer is applied to every row.
   const sort = async () => {
     if (!final?.entries.length || sorting) return;
     setSorting(true);
     setError('');
     try {
-      const names = [...new Set(final.entries.map((e) => e.description).filter(Boolean))];
-      const map = {};
-      for (let i = 0; i < names.length; i += 120) {
-        const res = await api.sortCategories(names.slice(i, i + 120));
-        Object.assign(map, res.map);
-      }
+      const { map } = await readNames(
+        final.entries.map((e) => e.description),
+        ({ done, total }) => setSortProgress(total > NAME_BATCH ? `Reading the names… ${done} of ${total}` : ''),
+      );
       setSortMap(map);
     } catch (err) {
       setError(err.message);
     } finally {
       setSorting(false);
+      setSortProgress('');
     }
   };
 
@@ -320,7 +320,7 @@ export default function StatementImport({ onClose, onPosted }) {
               </button>
               {!!loose && (
                 <button className="btn-ghost" onClick={sort} disabled={sorting}>
-                  {sorting ? 'Vera is reading them…' : `Have Vera sort the ${loose} loose ones`}
+                  {sorting ? (sortProgress || 'Reading the names…') : `Sort the ${loose} loose ones`}
                 </button>
               )}
               <p className="fin-empty-sub">Importing the same statement twice will not double the book.</p>

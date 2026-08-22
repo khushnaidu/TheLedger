@@ -17,4 +17,5 @@ problem and constraints), **Decision** (what we chose, concretely), and
 - [0004](0004-notebooks-json-pages-and-blob-storage.md) — Notebooks: JSON pages + Vercel Blob image storage
 - [0005](0005-reading-room-pdf-text-and-retrieval.md) — Reading Room: client-side PDF extraction, FTS retrieval, page-anchored annotations
 - [0006](0006-jobs-wire-aggregator-cron.md) — Jobs Wire: aggregator API + daily cron (proposed, unbuilt)
-- [0007](0007-finance-manual-csv-ledger.md) — The Accounts: manual + CSV ledger, income and expense, Vera the bookkeeper
+- [0007](0007-finance-manual-csv-ledger.md) — The Accounts: manual + CSV ledger, income and expense, the printed plate
+- [0008](0008-two-clerks-marx-and-friedman.md) — The Accounts: two clerks (Marx and Friedman), headings split by steward, rationed commentary

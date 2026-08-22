@@ -7,7 +7,9 @@ import {
 // with it, the total footed at the bottom. New lines are written on the
 // blank rule at the foot, which is where a pen would go.
 
-const SOURCE_MARK = { manual: '', csv: '†', vera: '‡' };
+// 'vera' is the bookkeeper who had this desk before the clerks; her rows
+// are still in the book and still need a mark (see ADR-0008)
+const SOURCE_MARK = { manual: '', csv: '†', clerk: '‡', vera: '‡' };
 
 function AmountPair({ kind, amount, onChange, autoFocus }) {
   // a real book has two money columns; whichever one you write in
@@ -197,7 +199,7 @@ export default function LedgerSheet({
         {!rows.length && (
           <div className="fin-empty">
             <p className="t-label">No lines entered for {monthLabel(month)}</p>
-            <p className="fin-empty-sub">Write one on the rule below, drop a statement, or tell Vera.</p>
+            <p className="fin-empty-sub">Write one on the rule below, drop a statement, or tell a clerk.</p>
           </div>
         )}
 

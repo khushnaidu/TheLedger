@@ -4438,7 +4438,7 @@ aside {
 
 .fin-linkish:hover { color: var(--stamp); border-bottom-color: var(--stamp); }
 
-/* ── Vera, called out of her drawer ────────── */
+/* ── the two clerks, called out of the drawer ────────── */
 
 .fin-drawer {
   position: fixed;
@@ -4472,9 +4472,9 @@ aside {
 
 .fin-drawer-close:hover { color: var(--stamp); }
 
-.fin-vera { display: flex; flex-direction: column; height: 100%; background: #fff; }
+.fin-clerk { display: flex; flex-direction: column; height: 100%; background: #fff; }
 
-.fin-vera-head {
+.fin-clerk-head {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -4487,11 +4487,14 @@ aside {
   height: 40px;
   object-fit: cover;
   border: 1px solid var(--ink);
+  border-radius: 50%;
+  background: var(--fin-paper);
   filter: grayscale(1) contrast(1.08);
   flex: 0 0 auto;
 }
 
 .fin-face-fallback {
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4503,10 +4506,10 @@ aside {
   filter: none;
 }
 
-.fin-vera-name { font-family: var(--font-head); font-weight: 700; font-size: 0.9375rem; line-height: 1; }
-.fin-vera-role { font-size: 0.5rem; letter-spacing: 0.16em; color: var(--ink-30); margin-top: 3px; }
+.fin-clerk-name { font-family: var(--font-head); font-weight: 700; font-size: 0.9375rem; line-height: 1; }
+.fin-clerk-role { font-size: 0.5rem; letter-spacing: 0.16em; color: var(--ink-30); margin-top: 3px; }
 
-.fin-vera-stamp {
+.fin-clerk-stamp {
   margin-left: auto;
   margin-right: 22px;
   font-size: 0.5rem;
@@ -4516,7 +4519,7 @@ aside {
   padding: 2px 5px;
 }
 
-.fin-vera-body {
+.fin-clerk-body {
   flex: 1;
   overflow-y: auto;
   padding: 14px;
@@ -4525,8 +4528,8 @@ aside {
   gap: 12px;
 }
 
-.fin-msg { font-size: 0.6875rem; line-height: 1.6; }
-.fin-msg-vera { border-left: 2px solid var(--ink); padding-left: 10px; }
+.fin-msg { font-size: 0.6875rem; line-height: 1.6; text-transform: none; }
+.fin-msg-clerk { border-left: 2px solid var(--ink); padding-left: 10px; }
 
 .fin-msg-user {
   align-self: flex-end;
@@ -4538,7 +4541,7 @@ aside {
 
 .fin-msg-think { color: var(--ink-30); }
 
-/* the slip Vera writes, which is not the book until it is stamped */
+/* the slip a clerk writes, which is not the book until it is stamped */
 .fin-slip {
   margin-top: 9px;
   border: 1px dashed var(--ink-30);
@@ -4569,9 +4572,9 @@ aside {
 .fin-slip-post { padding: 5px 10px; font-size: 0.5625rem; }
 .fin-slip-posted { border-style: solid; border-color: var(--ink-15); opacity: 0.72; }
 
-.fin-vera-input { display: flex; border-top: 1px solid var(--ink); }
+.fin-clerk-input { display: flex; border-top: 1px solid var(--ink); }
 
-.fin-vera-input textarea {
+.fin-clerk-input textarea {
   flex: 1;
   resize: none;
   border: 0;
@@ -4583,10 +4586,10 @@ aside {
   color: var(--ink);
 }
 
-.fin-vera-input textarea:focus { outline: none; }
-.fin-vera-input textarea::placeholder { color: var(--ink-15); }
+.fin-clerk-input textarea:focus { outline: none; }
+.fin-clerk-input textarea::placeholder { color: var(--ink-15); }
 
-.fin-vera-send {
+.fin-clerk-send {
   flex: 0 0 auto;
   padding: 0 16px;
   background: var(--ink);
@@ -4598,8 +4601,8 @@ aside {
   text-transform: uppercase;
 }
 
-.fin-vera-send:hover:not(:disabled) { background: var(--stamp); }
-.fin-vera-send:disabled { background: var(--ink-15); }
+.fin-clerk-send:hover:not(:disabled) { background: var(--stamp); }
+.fin-clerk-send:disabled { background: var(--ink-15); }
 
 /* ── the import counter ────────────────────── */
 
@@ -4775,3 +4778,245 @@ aside {
 
 /* a book bigger than its stage scrolls rather than spilling over the page */
 .nb-spread-stage { overflow-x: auto; }
+
+/* ── the two clerks: the pair peeking, the swap, the remarks ──────────
+   Marx and Friedman replace Gus on /finance the way Jane replaces him in
+   the Reading Room. Both portraits are normalised to one contract (320px
+   square, head centred at 86% of the canvas), so nothing below needs a
+   per-man constant. See ADR-0008. */
+
+.fin-peek-stack {
+  position: fixed;
+  top: 24vh;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fin-peek {
+  position: relative;
+  cursor: pointer;
+  font-family: var(--font);
+  text-transform: uppercase;
+}
+
+.fin-peek-bust {
+  width: 128px;
+  height: 128px;
+  transform: translateX(38%) rotate(-6deg);
+  transform-origin: 80% 100%;
+  animation: clerkLean 13s ease-in-out infinite;
+  transition: transform 0.25s ease;
+}
+
+/* the head already fills its canvas, so unlike Jane's bust there is
+   nothing to zoom past — contain it and leave it alone */
+.fin-peek-face {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: grayscale(1) contrast(1.06);
+}
+
+.fin-peek:hover .fin-peek-bust {
+  animation: none;
+  transform: translateX(6%) rotate(-10deg);
+}
+
+/* mostly still; every loop one of them leans in for a look. the two are
+   offset by a negative animation-delay so they never bob in unison */
+@keyframes clerkLean {
+  0%, 82%, 100% { transform: translateX(38%) rotate(-6deg); }
+  87% { transform: translateX(22%) rotate(-11deg); }
+  93% { transform: translateX(34%) rotate(-3deg); }
+}
+
+/* Marx pivots from the top, so the pair read as two men leaning rather
+   than one animation played twice */
+.fin-peek-marx .fin-peek-bust { transform-origin: 80% 6%; }
+
+.fin-peek-bubble {
+  position: absolute;
+  right: 74%;
+  top: 4px;
+  white-space: nowrap;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  background: #fff;
+  border: 1px solid var(--ink);
+  padding: 4px 8px;
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.fin-peek-bubble b { font-weight: 700; }
+
+.fin-peek:hover .fin-peek-bubble {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* the controls button carries both faces, because the drawer is one desk
+   with two men at it rather than two separate features */
+.fin-ask {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+
+.fin-ask img {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  background: var(--fin-paper);
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.1);
+}
+
+.fin-ask img:first-of-type { margin-right: -5px; }
+.fin-ask img:last-of-type { margin-right: 7px; }
+
+.fin-clerk-who { min-width: 0; }
+
+.fin-clerk-swap {
+  margin-left: auto;
+  margin-right: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: 1px solid var(--ink-15);
+  padding: 3px 6px 3px 3px;
+  font-size: 0.4375rem;
+  letter-spacing: 0.12em;
+  color: var(--ink-50);
+  flex: 0 0 auto;
+}
+
+.fin-clerk-swap:hover { border-color: var(--ink); color: var(--ink); }
+/* the stamp already claims the right side while a clerk is working */
+.fin-clerk-stamp + .fin-clerk-swap { margin-left: 8px; }
+
+/* ── rationed commentary: what the steward says about an open heading ─ */
+
+.fin-remark-wait {
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-30);
+  padding: 8px 2px 10px;
+}
+
+.fin-remarks {
+  border: 1px solid var(--ink-15);
+  background: #fff;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* a contested heading gets the heavier rule, because two of them showing
+   up is the exception and should look like one */
+.fin-remarks-two { border-color: var(--ink); }
+
+.fin-remarks-head { color: var(--stamp); }
+
+.fin-remarks-two .fin-remark + .fin-remark {
+  border-top: 1px solid var(--ink-15);
+  padding-top: 10px;
+}
+
+.fin-remark {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.fin-remark-face {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--ink);
+  background: var(--fin-paper);
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.08);
+  flex: 0 0 auto;
+}
+
+.fin-remark-say { min-width: 0; }
+
+.fin-remark-who {
+  display: block;
+  font-size: 0.4375rem;
+  letter-spacing: 0.18em;
+  font-weight: 700;
+}
+
+.fin-remark-say p {
+  font-size: 0.6875rem;
+  line-height: 1.6;
+  text-transform: none;
+  margin-top: 3px;
+}
+
+/* ── duplicates, and emptying the book ────────────────────────────────
+   Both are destructive, so both read as warnings rather than as controls. */
+
+.fin-dupebar { border-color: var(--stamp); }
+.fin-dupebar .t-label { color: var(--stamp); }
+
+/* a quiet way out, deliberately not a button — this should be findable
+   and never hittable by accident */
+.fin-startover {
+  margin-left: 2px;
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+  color: var(--ink-30);
+}
+
+.fin-startover:hover { color: var(--stamp); }
+
+.fin-reset-sheet { width: min(460px, 100%); }
+
+/* the sheet already carries its own padding */
+.fin-reset { padding: 0; }
+
+.fin-reset-warn {
+  font-size: 0.6875rem;
+  line-height: 1.65;
+  text-transform: none;
+  border-left: 2px solid var(--stamp);
+  padding-left: 11px;
+}
+
+.fin-reset-ask {
+  margin-top: 16px;
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  color: var(--ink-50);
+}
+
+.fin-reset-ask b { color: var(--stamp); font-weight: 700; }
+
+.fin-reset-input {
+  width: 100%;
+  margin-top: 7px;
+  font-family: var(--font);
+  letter-spacing: 0.12em;
+}
+
+.fin-reset-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 18px;
+}
+
+.fin-reset-go:not(:disabled) { background: var(--stamp); }
+.fin-reset-go:disabled { background: var(--ink-15); }

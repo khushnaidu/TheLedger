@@ -13,6 +13,14 @@ export const GUS_PERSONA = { name: 'Augustus "Gus"', role: 'Filing Clerk', statu
 export const JANE_FACE = '/art/simon-clean.png';
 export const JANE_HEAD = '/art/simon_head.png';
 
+// The two clerks of The Accounts. Both normalised to the same contract:
+// 320px square, transparent, head centred, head height 86% of the canvas.
+// That is what lets one avatar rule place either of them. They live here
+// rather than in tools/finance so the peek, which is eager chrome, can
+// name them without dragging the finance chunk into the main bundle.
+export const MARX_FACE = '/art/clerk/marx.webp';
+export const FRIEDMAN_FACE = '/art/clerk/friedman.webp';
+
 export const LEVEL_TITLES = ['Intern', 'Filing Clerk', 'Junior Archivist', 'Archivist', 'Senior Archivist', 'Records Officer', 'Chief of Records', 'Ledger Master', 'Bureau Director', 'Grand Archivist'];
 
 export const STATUS_LABELS = { BACKLOG: 'Backlog', TODO: 'To Do', IN_PROGRESS: 'In Progress', REVIEW: 'Review', DONE: 'Done' };

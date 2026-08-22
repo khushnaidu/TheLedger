@@ -1,11 +1,19 @@
 // Eleven thin slices is not a pie, it is a barcode. Categories roll up into
 // a handful of headings a person actually thinks in, and the plate is drawn
-// from those. Matching is on the category name Vera already assigned, so this
-// stays deterministic — no second model call to decide what a chart looks like.
+// from those. Matching is on the category name already filed against the line,
+// so this stays deterministic — no second model call decides what a chart looks
+// like, and no clerk's opinion can move a wedge.
+//
+// Each heading also carries a steward: which of the two clerks speaks for it
+// when the slice is opened. Marx has the money that leaves before you get a
+// say, Friedman has the money you chose to spend, and 'keeping' is contested
+// because a gym membership is either a consumption choice or the cost of
+// staying able to work, depending on which of them you ask. See ADR-0008.
 
 export const GROUPS = [
   {
     id: 'roof',
+    steward: 'marx',
     photo: '/art/pie/roof.webp',
     ink: '#1f3f6e',
     screen: 'stipple',
@@ -14,6 +22,7 @@ export const GROUPS = [
   },
   {
     id: 'table',
+    steward: 'friedman',
     photo: '/art/pie/table.webp',
     ink: '#c4341f',
     screen: 'dots',
@@ -22,22 +31,27 @@ export const GROUPS = [
   },
   {
     id: 'moving',
+    steward: 'friedman',
     photo: '/art/pie/moving.webp',
     ink: '#1c7a6e',
     screen: 'hatch',
     label: 'Getting about',
-    match: [/transit/, /fuel|petrol|gasoline/, /^gas$/, /parking/, /uber|lyft|rideshare/, /car|auto/, /flight|airline/, /train/],
+    // \b on car, or "credit card" lands here instead of with Marx —
+    // "car" is a substring of "card" and this heading is matched first
+    match: [/transit/, /fuel|petrol|gasoline/, /^gas$/, /parking/, /uber|lyft|rideshare/, /\bcar\b|\bcars\b|\bauto\b|automobile/, /flight|airline/, /train/],
   },
   {
     id: 'keeping',
+    steward: 'both',
     photo: '/art/pie/keeping.webp',
     ink: '#6a4a96',
     screen: 'hatchb',
     label: 'Keeping going',
-    match: [/health/, /pharmac/, /medical|doctor|dentist/, /fitness|gym/, /grooming|haircut/, /laundry/, /household|home/, /childcare/, /pet/],
+    match: [/health/, /pharmac/, /medical|doctor|dentist/, /fitness|gym/, /grooming|haircut|personal care/, /laundry/, /household|home/, /childcare/, /pet/],
   },
   {
     id: 'standing',
+    steward: 'marx',
     photo: '/art/pie/standing.webp',
     ink: '#b3861f',
     screen: 'horz',
@@ -46,23 +60,25 @@ export const GROUPS = [
   },
   {
     id: 'pleasure',
+    steward: 'friedman',
     photo: '/art/pie/pleasure.webp',
     ink: '#b83a72',
     screen: 'vert',
     label: 'For pleasure',
-    match: [/fun/, /entertain/, /shopping/, /travel|holiday|vacation/, /hobby|hobbies/, /game|gaming/, /book/, /gift/],
+    match: [/fun/, /entertain/, /shopping/, /clothing|apparel|shoes/, /travel|holiday|vacation/, /hobby|hobbies/, /game|gaming/, /book/, /gift/],
   },
   {
     id: 'owed',
+    steward: 'marx',
     photo: '/art/pie/owed.webp',
     ink: '#3f7a35',
     screen: 'cross',
     label: 'Owed elsewhere',
-    match: [/school|tuition|course/, /loan|debt|credit card/, /tax/, /fee|fees/, /charity|donation/, /savings|invest/],
+    match: [/school|tuition|course|education/, /loan|debt|credit card/, /tax/, /fee|fees/, /charity|donation/, /savings|invest/],
   },
 ];
 
-const OTHER = { id: 'other', photo: '/art/pie/other.webp', ink: '#6f6f6f', screen: 'ink', label: 'Unaccounted' };
+const OTHER = { id: 'other', steward: 'friedman', photo: '/art/pie/other.webp', ink: '#6f6f6f', screen: 'ink', label: 'Unaccounted' };
 
 export function groupOf(category) {
   const c = String(category || '').toLowerCase();

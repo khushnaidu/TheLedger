@@ -173,11 +173,24 @@ export const api = {
   deleteEntry: (id) => request(`/finance/entries/${id}`, { method: 'DELETE' }),
   getFinanceSummary: (month) => request(`/finance/summary${month ? `?month=${month}` : ''}`),
   getTrend: () => request('/finance/trend'),
+  // how many lines in the whole book still have no category
+  getLooseCount: () => request('/finance/loose'),
+  // same day, amount, kind and description — twins a second import let in
+  getDuplicates: () => request('/finance/duplicates'),
+  strikeDuplicates: () => request('/finance/duplicates/strike', { method: 'POST' }),
+  // total and irreversible; the server refuses without the exact phrase
+  resetBook: (confirm) =>
+    request('/finance/entries/all', { method: 'DELETE', body: JSON.stringify({ confirm }) }),
   recategorize: (ids, category) =>
     request('/finance/entries/bulk', { method: 'PATCH', body: JSON.stringify({ ids, category }) }),
   sortCategories: (descriptions) =>
     request('/finance/categorize', { method: 'POST', body: JSON.stringify({ descriptions }) }),
-  askVera: (messages) => request('/finance/vera', { method: 'POST', body: JSON.stringify({ messages }) }),
+  // who is 'marx' | 'friedman'; the two keep separate transcripts client-side
+  askClerk: (who, messages) =>
+    request('/finance/chat', { method: 'POST', body: JSON.stringify({ who, messages }) }),
+  // one heading's worth of commentary. `both` runs the contested pair, where
+  // Marx answers Friedman rather than the two of them talking past each other.
+  getRemark: (body) => request('/finance/remark', { method: 'POST', body: JSON.stringify(body) }),
 
   // PDF upload rides the same Blob handshake under papers/<userId>/
   uploadPaperPdf: async (file) => {

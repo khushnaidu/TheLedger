@@ -7,6 +7,7 @@ import Colophon from './components/Colophon';
 import Entrance from './components/Entrance';
 import GusAssistant from './components/GusAssistant';
 import JanePeek from './components/JanePeek';
+import ClerkPeek from './components/ClerkPeek';
 import RouteLoader from './components/RouteLoader';
 import { TOOLS, HIDDEN_ROUTES } from './tools/registry';
 import Auth from './pages/Auth';
@@ -14,10 +15,12 @@ import ResetPassword from './pages/ResetPassword';
 import { clearEdition, isPersonal } from './lib/edition';
 import { initClicky } from './lib/clicky';
 
-// The Reading Room is Jane's turf — Gus stays out of it
+// Gus does not work every floor. The Reading Room is Jane's, and The
+// Accounts belongs to Marx and Friedman, who lean in as a pair.
 function AssistantOnDuty({ user }) {
   const { pathname } = useLocation();
   if (pathname.startsWith('/research')) return <JanePeek />;
+  if (pathname.startsWith('/finance')) return <ClerkPeek />;
   return (
     <GusAssistant user={user} onTicketsCreated={() => {
       window.dispatchEvent(new Event('gus-tickets-created'));

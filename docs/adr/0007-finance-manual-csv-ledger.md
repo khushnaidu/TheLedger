@@ -2,7 +2,10 @@
 
 **Status**: accepted (2026-08-21). Proposed and built the same day; the
 proposal is kept below as written, with an **As built** section recording
-where implementation refined it.
+where implementation refined it. The AI bookkeeper described here (Vera) is
+**superseded by [ADR-0008](0008-two-clerks-marx-and-friedman.md)**, which
+replaced her with two clerks; the ledger, importer, and plate below still
+describe what is running.
 
 ## Context
 

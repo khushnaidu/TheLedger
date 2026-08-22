@@ -2,9 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import StatementImport from './StatementImport';
-import VeraDrawer from './VeraDrawer';
+import ClerkDrawer from './ClerkDrawer';
 import PiePlate from './PiePlate';
 import { buildSlices } from './groups';
+import { CLERKS, CLERK_IDS, DEFAULT_CLERK, clerkOf } from './clerks';
+import { sortBook, sortReport } from './sortLoose';
+import ResetBook from './ResetBook';
 import { fmt, monthLabel, shiftMonth, shortDate, todayIso, MONTHS } from './money';
 
 // A leaf out of the book: punched paper, a printed plate of where the money
@@ -36,6 +39,99 @@ function Swatch({ id, photo, ink, screen }) {
       <rect x="0.5" y="0.5" width="13" height="13" fill={`url(#fin-${screen})`} opacity="0.26" />
       <rect x="0.5" y="0.5" width="13" height="13" fill="none" stroke="#111" strokeWidth="1" />
     </svg>
+  );
+}
+
+// A remark costs a model call, so it is fetched once per heading per period
+// and held for the life of the page. Re-opening a slice you already opened
+// must not bill for the same sentence twice.
+const REMARKS = new Map();
+
+// Who the money actually went to, folded by name. A merchant that appears
+// twelve times for the same figure is a subscription whether or not anybody
+// filed it as one, and that recurrence is the single most useful thing a
+// clerk can be told about a heading. Descriptions are normalised loosely so
+// "NETFLIX.COM" and "NETFLIX.COM  #4471" fold together.
+function merchantsIn(lines) {
+  const fold = new Map();
+  for (const e of lines) {
+    const raw = String(e.description || '').trim();
+    if (!raw) continue;
+    const key = raw.toUpperCase().replace(/[#*]?\d{3,}/g, '').replace(/\s+/g, ' ').trim().slice(0, 40) || raw;
+    if (!fold.has(key)) fold.set(key, { name: raw.slice(0, 40), n: 0, total: 0 });
+    const m = fold.get(key);
+    m.n += 1;
+    m.total += Number(e.amount) || 0;
+  }
+  return [...fold.values()].sort((a, b) => b.total - a.total).slice(0, 12);
+}
+
+function Remark({ slice, period }) {
+  const key = `${slice.id}:${period}:${Math.round(slice.total * 100)}`;
+  const cached = REMARKS.get(key);
+  const [fetched, setFetched] = useState(null);
+
+  useEffect(() => {
+    if (cached) return undefined;
+    let live = true;
+    api.getRemark({
+      who: slice.steward,
+      both: slice.steward === 'both',
+      label: slice.label,
+      period,
+      total: slice.total,
+      share: slice.share,
+      lines: slice.lines.length,
+      top: slice.categories.slice(0, 5).map((c) => ({ name: c.name, total: c.total })),
+      // The actual merchants behind the wedge. Without these a remark can
+      // only describe the total, which reads as "the shopping line is doing
+      // a lot of work and the book does not show what it contains" — true,
+      // useless, and the same sentence for every heading. The client already
+      // holds these lines, so specificity costs nothing but payload.
+      merchants: merchantsIn(slice.lines),
+      biggest: slice.lines.slice(0, 5).map((e) => ({
+        date: String(e.date).slice(0, 10),
+        description: e.description,
+        amount: Number(e.amount),
+      })),
+    })
+      .then((d) => {
+        const got = { remarks: d.remarks || [] };
+        REMARKS.set(key, got);
+        if (live) setFetched({ key, ...got });
+      })
+      // a clerk with nothing to say is not an error worth a red banner on
+      // a chart, so this fails quietly and the slice just opens
+      .catch(() => { if (live) setFetched({ key, remarks: [] }); });
+    return () => { live = false; };
+  }, [key, cached, slice, period]);
+
+  const shown = cached || (fetched?.key === key ? fetched : null);
+
+  if (!shown) {
+    const waiting = slice.steward === 'both'
+      ? 'Both of them are looking at this one…'
+      : `${clerkOf(slice.steward).short} is looking at it…`;
+    return <p className="fin-remark-wait">{waiting}</p>;
+  }
+  if (!shown.remarks.length) return null;
+
+  return (
+    <div className={`fin-remarks ${shown.remarks.length > 1 ? 'fin-remarks-two' : ''}`}>
+      {shown.remarks.length > 1 && <p className="t-label fin-remarks-head">The desks disagree</p>}
+      {shown.remarks.map((r) => {
+        const c = clerkOf(r.who);
+        return (
+          <div key={r.who} className="fin-remark">
+            <img className="fin-remark-face" src={c.face} alt="" />
+            <div className="fin-remark-say">
+              <span className="fin-remark-who" style={{ color: c.ink }}>{c.short}</span>
+              <p>{r.message}</p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -75,9 +171,33 @@ export default function Overview() {
   const [trend, setTrend] = useState(null);
   const [active, setActive] = useState(null);
   const [importing, setImporting] = useState(false);
-  const [vera, setVera] = useState(false);
+  // which clerk's desk is open, or null. The peek at the right edge decides
+  // who by which head you poke, so this is set from the event too.
+  const [consult, setConsult] = useState(null);
+  const [lastClerk, setLastClerk] = useState(DEFAULT_CLERK);
   const [error, setError] = useState('');
   const [reload, setReload] = useState(0);
+  // lines with no category anywhere in the book, not just this period — a
+  // year imported at once shows up here as one grey wedge and the fix is
+  // the same regardless of which month you happen to be looking at
+  const [loose, setLoose] = useState(0);
+  const [sorting, setSorting] = useState('');
+  const [sorted, setSorted] = useState('');
+  // twins let in by importing two overlapping exports — externalKey cannot
+  // catch those, so the book has to be able to find them after the fact
+  const [dupes, setDupes] = useState(null);
+  const [resetting, setResetting] = useState(false);
+  const [bookLines, setBookLines] = useState(0);
+
+  useEffect(() => {
+    const open = (e) => {
+      const who = CLERK_IDS.includes(e.detail?.who) ? e.detail.who : DEFAULT_CLERK;
+      setConsult(who);
+      setLastClerk(who);
+    };
+    window.addEventListener('clerk-consult', open);
+    return () => window.removeEventListener('clerk-consult', open);
+  }, []);
 
   // month → [1st, next 1st) · year → [Jan 1, next Jan 1) · all → no bounds
   const range = useMemo(() => {
@@ -90,11 +210,19 @@ export default function Overview() {
   // top of a newer one
   useEffect(() => {
     let live = true;
-    Promise.all([api.getEntries({ ...range, limit: LINE_CAP }), api.getTrend()])
-      .then(([rows, t]) => {
+    Promise.all([
+      api.getEntries({ ...range, limit: LINE_CAP }),
+      api.getTrend(),
+      api.getLooseCount(),
+      api.getDuplicates(),
+    ])
+      .then(([rows, t, uncat, dup]) => {
         if (!live) return;
         setEntries(rows);
         setTrend(t);
+        setLoose(uncat.count);
+        setDupes(dup);
+        setBookLines(t.months.reduce((a, m) => a + (m.n || 0), 0));
         setActive(null);
         setError('');
       })
@@ -136,6 +264,44 @@ export default function Overview() {
 
   const atEnd = grain === 'month' ? month >= thisMonth() : year >= todayIso().slice(0, 4);
 
+  // A year of statements arrives with every line uncategorized, which draws
+  // as one grey wedge covering most of the plate. This is the way out of
+  // that, offered where the grey actually is.
+  const sortLoose = async () => {
+    if (sorting) return;
+    setSorting('Reading the names…');
+    setSorted('');
+    try {
+      const report = await sortBook(({ phase, done, total }) => {
+        setSorting(phase === 'reading'
+          ? `Reading the names… ${done} of ${total}`
+          : `Filing… ${done} of ${total}`);
+      });
+      setSorted(sortReport(report));
+      setReload((n) => n + 1);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSorting('');
+    }
+  };
+
+  const strikeDupes = async () => {
+    if (sorting) return;
+    setSorting('Striking the extras…');
+    try {
+      const { struck, groups } = await api.strikeDuplicates();
+      setSorted(struck
+        ? `${struck} duplicate ${struck === 1 ? 'line' : 'lines'} struck across ${groups} ${groups === 1 ? 'group' : 'groups'}. The earliest of each was kept.`
+        : 'No duplicates left to strike.');
+      setReload((n) => n + 1);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSorting('');
+    }
+  };
+
   const postBatch = async (rows) => {
     const out = await api.postEntries(rows);
     setReload((n) => n + 1);
@@ -152,7 +318,7 @@ export default function Overview() {
       <h1 className="t-display">The Accounts</h1>
       <div className="meta-strip mt-2">
         <span>Household book</span>
-        <span>Kept by Vera</span>
+        <span>Two clerks, one book</span>
         <span>{entries.length}{truncated ? '+' : ''} lines on this plate</span>
       </div>
 
@@ -178,10 +344,44 @@ export default function Overview() {
         <span className="fin-controls-gap" />
         <button className="btn-ghost" onClick={() => toSheet()}>The sheet</button>
         <button className="btn-ghost" onClick={() => setImporting(true)}>Import statement</button>
-        <button className={vera ? 'btn-black' : 'btn-ghost'} onClick={() => setVera(true)}>Vera</button>
+        {!!bookLines && (
+          <button className="fin-linkish fin-startover" onClick={() => setResetting(true)}>Start over</button>
+        )}
+        <button
+          className={consult ? 'btn-black fin-ask' : 'btn-ghost fin-ask'}
+          onClick={() => setConsult(lastClerk)}
+          title="Both of them keep this book"
+        >
+          <img src={CLERKS.marx.face} alt="" />
+          <img src={CLERKS.friedman.face} alt="" />
+          Ask a clerk
+        </button>
       </div>
 
       {error && <p className="fin-error mb-4">{error}</p>}
+
+      {(!!loose || sorting || sorted) && (
+        <div className="fin-loosebar">
+          <span className="t-label">
+            {sorting || sorted || `${loose} ${loose === 1 ? 'line has' : 'lines have'} no category, so ${loose === 1 ? 'it sits' : 'they sit'} in Unaccounted`}
+          </span>
+          {!!loose && !sorting && (
+            <button className="btn-ghost" onClick={sortLoose}>Sort all {loose}</button>
+          )}
+        </div>
+      )}
+
+      {!!dupes?.extra && !sorting && (
+        <div className="fin-loosebar fin-dupebar">
+          <span className="t-label">
+            {dupes.extra} duplicate {dupes.extra === 1 ? 'line' : 'lines'} across {dupes.groupCount}{' '}
+            {dupes.groupCount === 1 ? 'group' : 'groups'}, same day, amount and description
+          </span>
+          <button className="btn-ghost" onClick={() => toSheet({ month: 'all' })}>Look first</button>
+          <button className="btn-ghost" onClick={strikeDupes}>Strike the extras</button>
+        </div>
+      )}
+
       {truncated && (
         <p className="fin-error mb-4">
           Only the most recent {LINE_CAP} lines are on this plate. Narrow the period for an exact total.
@@ -227,6 +427,7 @@ export default function Overview() {
 
                     {on && (
                       <div className="fin-detail">
+                        <Remark slice={s} period={label} />
                         {shown.map((e, i) => (
                           <div key={e.id} className={`fin-detail-row ${i % 2 ? 'fin-band' : ''}`}>
                             <span className="fin-date">{shortDate(e.date)}</span>
@@ -275,7 +476,25 @@ export default function Overview() {
       )}
 
       {importing && <StatementImport onClose={() => setImporting(false)} onPosted={postBatch} />}
-      {vera && <VeraDrawer onClose={() => setVera(false)} onPosted={postBatch} />}
+      {resetting && (
+        <ResetBook
+          lines={bookLines}
+          onClose={() => setResetting(false)}
+          onDone={(deleted) => {
+            setResetting(false);
+            setSorted(`${deleted} ${deleted === 1 ? 'line' : 'lines'} struck. The book is empty.`);
+            setReload((n) => n + 1);
+          }}
+        />
+      )}
+      {consult && (
+        <ClerkDrawer
+          who={consult}
+          onSwitch={(who) => { setConsult(who); setLastClerk(who); }}
+          onClose={() => setConsult(null)}
+          onPosted={postBatch}
+        />
+      )}
     </div>
   );
 }

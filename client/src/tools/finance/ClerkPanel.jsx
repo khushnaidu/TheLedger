@@ -1,27 +1,30 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../api';
+import { CLERKS, CLERK_IDS, clerkOf } from './clerks';
 import { fmt, shortDate } from './money';
 
-// Vera drafts, the user posts. Nothing she writes touches the book until
-// the slip is stamped — the same draft-then-commit posture as Gus, and
-// the reason her prompt is forbidden from claiming a line is entered.
+// A clerk drafts, the user posts. Nothing either of them writes touches the
+// book until the slip is stamped — the same draft-then-commit posture as Gus,
+// and the reason both prompts are forbidden from claiming a line is entered.
+//
+// The two of them keep separate memories. They are different people and a
+// shared transcript would have each answering for the other.
 
-const VERA_FACE = '/art/vera.png';
-const STORE = 'fin_vera';
+const store = (who) => `fin_clerk_${who}`;
 
-const THINKING = [
-  'Totalling…',
-  'Checking the column…',
-  'Reading it back…',
-  'Footing the page…',
-];
-
-const GREETING = "Vera. I keep the book. Tell me what moved and I will draft the lines, or ask me what the figures say.";
-
-function Face() {
+function Face({ who, size }) {
+  const c = clerkOf(who);
   const [ok, setOk] = useState(true);
-  if (!ok) return <div className="fin-face fin-face-fallback">V</div>;
-  return <img className="fin-face" src={VERA_FACE} alt="Vera" onError={() => setOk(false)} />;
+  if (!ok) {
+    return <div className="fin-face fin-face-fallback" style={size ? { width: size, height: size } : undefined}>{c.initial}</div>;
+  }
+  return (
+    <img
+      className="fin-face" src={c.face} alt={c.name} title={c.name}
+      style={size ? { width: size, height: size } : undefined}
+      onError={() => setOk(false)}
+    />
+  );
 }
 
 function Slip({ entries, posted, onPost, busy }) {
@@ -54,19 +57,27 @@ function Slip({ entries, posted, onPost, busy }) {
   );
 }
 
-export default function VeraPanel({ onPosted }) {
-  const [messages, setMessages] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(STORE))?.messages || []; } catch { return []; }
-  });
+export default function ClerkPanel({ who, onSwitch, onPosted }) {
+  const clerk = clerkOf(who);
+  const other = CLERK_IDS.find((id) => id !== clerk.id);
+
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [posting, setPosting] = useState(null);
-  const [think, setThink] = useState(THINKING[0]);
+  const [think, setThink] = useState(clerk.thinking[0]);
   const bodyRef = useRef(null);
 
+  // swapping desks swaps the transcript with it
   useEffect(() => {
-    try { localStorage.setItem(STORE, JSON.stringify({ messages: messages.slice(-30) })); } catch { /* full */ }
-  }, [messages]);
+    try { setMessages(JSON.parse(localStorage.getItem(store(clerk.id)))?.messages || []); }
+    catch { setMessages([]); }
+  }, [clerk.id]);
+
+  useEffect(() => {
+    try { localStorage.setItem(store(clerk.id), JSON.stringify({ messages: messages.slice(-30) })); }
+    catch { /* full */ }
+  }, [messages, clerk.id]);
 
   useEffect(() => {
     bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight });
@@ -74,9 +85,11 @@ export default function VeraPanel({ onPosted }) {
 
   useEffect(() => {
     if (!loading) return;
-    const iv = setInterval(() => setThink(THINKING[Math.floor(Math.random() * THINKING.length)]), 1600);
+    const pick = () => setThink(clerk.thinking[Math.floor(Math.random() * clerk.thinking.length)]);
+    pick();
+    const iv = setInterval(pick, 1600);
     return () => clearInterval(iv);
-  }, [loading]);
+  }, [loading, clerk]);
 
   const send = async () => {
     const text = input.trim();
@@ -87,7 +100,7 @@ export default function VeraPanel({ onPosted }) {
     setLoading(true);
     try {
       // only the plain turns travel; slips are a client-side artifact
-      const data = await api.askVera(next.map(({ role, content }) => ({ role, content })));
+      const data = await api.askClerk(clerk.id, next.map(({ role, content }) => ({ role, content })));
       setMessages((ms) => [...ms, {
         role: 'assistant',
         content: data.message,
@@ -115,20 +128,28 @@ export default function VeraPanel({ onPosted }) {
   };
 
   return (
-    <div className="fin-vera">
-      <div className="fin-vera-head">
-        <Face />
-        <div>
-          <p className="fin-vera-name">Vera</p>
-          <p className="fin-vera-role">the bookkeeper</p>
+    <div className="fin-clerk">
+      <div className="fin-clerk-head">
+        <Face who={clerk.id} />
+        <div className="fin-clerk-who">
+          <p className="fin-clerk-name">{clerk.name}</p>
+          <p className="fin-clerk-role">{clerk.role}</p>
         </div>
-        {loading && <span className="fin-vera-stamp">At work</span>}
+        {loading && <span className="fin-clerk-stamp">At work</span>}
+        <button
+          className="fin-clerk-swap"
+          onClick={() => onSwitch(other)}
+          title={`Ask ${CLERKS[other].name} instead`}
+        >
+          <Face who={other} size={26} />
+          <span>Ask {CLERKS[other].short}</span>
+        </button>
       </div>
 
-      <div className="fin-vera-body" ref={bodyRef}>
-        {!messages.length && <div className="fin-msg fin-msg-vera"><p>{GREETING}</p></div>}
+      <div className="fin-clerk-body" ref={bodyRef}>
+        {!messages.length && <div className="fin-msg fin-msg-clerk"><p>{clerk.greeting}</p></div>}
         {messages.map((m, i) => (
-          <div key={i} className={`fin-msg ${m.role === 'user' ? 'fin-msg-user' : 'fin-msg-vera'}`}>
+          <div key={i} className={`fin-msg ${m.role === 'user' ? 'fin-msg-user' : 'fin-msg-clerk'}`}>
             <p>{m.content}</p>
             {m.draft && (
               <Slip
@@ -138,18 +159,18 @@ export default function VeraPanel({ onPosted }) {
             )}
           </div>
         ))}
-        {loading && <div className="fin-msg fin-msg-vera fin-msg-think"><p>{think}</p></div>}
+        {loading && <div className="fin-msg fin-msg-clerk fin-msg-think"><p>{think}</p></div>}
       </div>
 
-      <div className="fin-vera-input">
+      <div className="fin-clerk-input">
         <textarea
           rows={2}
-          placeholder="spent 62.41 at trader joes…"
+          placeholder={clerk.placeholder}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
         />
-        <button className="fin-vera-send" onClick={send} disabled={loading || !input.trim()}>Tell</button>
+        <button className="fin-clerk-send" onClick={send} disabled={loading || !input.trim()}>Tell</button>
       </div>
     </div>
   );
