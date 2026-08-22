@@ -105,7 +105,7 @@ export default function JanePanel({ mode, paperId, currentPage, askSeed, onJumpT
         currentPage: mode === 'paper' ? currentPage : undefined,
         messages: next.slice(-30),
       });
-      setMessages((ms) => [...ms, { role: 'assistant', content: data.message }]);
+      setMessages((ms) => [...ms, { role: 'assistant', content: data.message, truncated: data.truncated }]);
     } catch (err) {
       setMessages((ms) => [...ms, { role: 'assistant', content: `Hm. ${err.message}` }]);
     } finally {
@@ -134,6 +134,9 @@ export default function JanePanel({ mode, paperId, currentPage, askSeed, onJumpT
         {messages.map((m, i) => (
           <div key={i} className={`jn-msg ${m.role === 'user' ? 'jn-msg-user' : 'jn-msg-jane'}`}>
             <p>{m.role === 'assistant' ? renderWithCites(m.content, onCite) : m.content}</p>
+            {m.truncated && (
+              <p className="jn-cut">She ran out of room mid-thought. Ask her to carry on.</p>
+            )}
           </div>
         ))}
         {loading && (

@@ -5088,3 +5088,15 @@ aside {
    the whole paper selects itself as you widen the rail */
 body.rr-resizing { cursor: col-resize; user-select: none; }
 body.rr-resizing .rr-textlayer { pointer-events: none; }
+
+/* Jane hitting her token ceiling. Silent truncation reads as a finished
+   thought, which is the one thing a cited answer must never do. */
+.jn-cut {
+  margin-top: 7px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--ink-15);
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  color: var(--stamp);
+  text-transform: uppercase;
+}

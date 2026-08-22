@@ -272,6 +272,28 @@ router.delete('/papers/:id/annotations/:annId', async (req, res) => {
 // a [p:N] / [Title, p:N] micro-format the client linkifies. See ADR-0005.
 
 const JANE_MODEL = 'claude-sonnet-5';
+
+// Jane's answers were being cut off at 1500 tokens with nothing to say so.
+//
+// The cap was only half of it. Sonnet emits thinking blocks before its prose,
+// and that thinking is spent out of the SAME max_tokens. At 1500 the thinking
+// could eat most of the budget and leave a stub, or eat all of it and leave no
+// text block at all — which this route then reported as an unexplained 500.
+// Any ceiling here has to cover the thinking as well as the answer.
+//
+// The model itself will take 128,000 here, but three ceilings sit below that
+// and the lowest one wins. The SDK refuses any non-streaming request it
+// estimates could run past ten minutes, measured at ~21,340 for this model.
+// Below that, vercel.json caps the function at 60 seconds. And below THAT,
+// a paper-mode request spends the first seconds prefilling up to 150K chars
+// of context before a token comes back. What is left fits roughly four to
+// five thousand tokens of prose.
+//
+// So a ceiling far above this does not buy longer answers, it trades a
+// truncated answer for a 504 and no answer at all. 8000 is comfortably more
+// than any real reply needs while still landing inside the function.
+// Genuinely unbounded answers need streaming, which is a different change.
+const JANE_MAX_TOKENS = 8000;
 const CONTEXT_CHAR_BUDGET = 150_000; // paper mode ceiling (~38K tokens)
 const LIBRARY_LIMIT = 20;
 
@@ -396,13 +418,28 @@ router.post('/chat', async (req, res) => {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const response = await client.messages.create({
       model: JANE_MODEL,
-      max_tokens: 1500,
+      max_tokens: JANE_MAX_TOKENS,
       system,
       messages,
     });
     const text = response.content.find((b) => b.type === 'text')?.text;
-    if (!text) return res.status(500).json({ error: 'Jane stepped out for tea. Try again.' });
-    res.json({ message: text });
+    if (!text) {
+      // She thought until the budget was gone and never got to the answer.
+      // That is not a failure worth a red error, it is a question that needs
+      // narrowing, and saying so is more use than a shrug.
+      if (response.content.some((b) => b.type === 'thinking')) {
+        console.warn(`Jane ran out of room while thinking (${JANE_MAX_TOKENS} tokens)`);
+        return res.json({
+          message: 'That one needed more room than I had. Give me a narrower question, or take it a section at a time.',
+          truncated: true,
+        });
+      }
+      return res.status(500).json({ error: 'Jane stepped out for tea. Try again.' });
+    }
+    // A cut-off answer used to arrive looking finished, which is worse than
+    // arriving short — the reader has no way to tell a complete thought from
+    // half of one. Say when she ran out of room.
+    res.json({ message: text, truncated: response.stop_reason === 'max_tokens' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
