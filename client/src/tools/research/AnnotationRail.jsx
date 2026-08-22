@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 const COLORS = ['marigold', 'rose', 'sage', 'ink'];
 
-function MarkCard({ ann, onJump, onUpdate, onDelete, onAsk }) {
+function MarkCard({ ann, selected, onJump, onUpdate, onDelete, onAsk }) {
   const [note, setNote] = useState(ann.note || '');
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -22,7 +22,11 @@ function MarkCard({ ann, onJump, onUpdate, onDelete, onAsk }) {
   };
 
   return (
-    <div className={`rr-markcard rr-markcard-${ann.color}`} id={`rr-markcard-${ann.id}`}>
+    <div
+      className={`rr-markcard rr-markcard-${ann.color}${selected ? ' rr-markcard-on' : ''}`}
+      id={`rr-markcard-${ann.id}`}
+      onClick={() => onJump(ann)}
+    >
       <button className="rr-markcard-quote" onClick={() => onJump(ann)}>
         “{ann.quote.length > 160 ? `${ann.quote.slice(0, 160)}…` : ann.quote}”
       </button>
@@ -30,6 +34,7 @@ function MarkCard({ ann, onJump, onUpdate, onDelete, onAsk }) {
       {editing ? (
         <textarea
           className="rr-markcard-note-edit"
+          onClick={(e) => e.stopPropagation()}
           value={note}
           autoFocus
           maxLength={2000}
@@ -39,11 +44,11 @@ function MarkCard({ ann, onJump, onUpdate, onDelete, onAsk }) {
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveNote(); } }}
         />
       ) : (
-        <p className="rr-markcard-note" onClick={() => setEditing(true)}>
+        <p className="rr-markcard-note" onClick={(e) => { e.stopPropagation(); setEditing(true); }}>
           {ann.note || <span className="rr-markcard-note-empty">add a note…</span>}
         </p>
       )}
-      <div className="rr-markcard-tools">
+      <div className="rr-markcard-tools" onClick={(e) => e.stopPropagation()}>
         {COLORS.map((c) => (
           <button key={c} className={`rr-dot rr-dot-${c} ${ann.color === c ? 'rr-dot-on' : ''}`}
             onClick={() => onUpdate(ann.id, { color: c })} title={c} />
@@ -58,14 +63,15 @@ function MarkCard({ ann, onJump, onUpdate, onDelete, onAsk }) {
   );
 }
 
-export default function AnnotationRail({ annotations, onJump, onUpdate, onDelete, onAsk }) {
+export default function AnnotationRail({ annotations, selectedId, onJump, onUpdate, onDelete, onAsk }) {
   if (!annotations.length) {
     return <p className="fig-caption p-4">no marks yet. select any passage in the paper.</p>;
   }
   return (
     <div className="rr-rail-scroll">
       {annotations.map((a) => (
-        <MarkCard key={a.id} ann={a} onJump={onJump} onUpdate={onUpdate} onDelete={onDelete} onAsk={onAsk} />
+        <MarkCard key={a.id} ann={a} selected={selectedId === a.id}
+          onJump={onJump} onUpdate={onUpdate} onDelete={onDelete} onAsk={onAsk} />
       ))}
     </div>
   );

@@ -10,6 +10,13 @@ const JanePanel = lazy(() => import('./JanePanel'));
 const ZOOMS = [0.75, 1, 1.25, 1.5, 2];
 const COLORS = ['marigold', 'rose', 'sage', 'ink'];
 
+// How wide the margin rail sits. Remembered, because a reader who wants a
+// big chat wants it on every paper, not just this one.
+const RAIL_KEY = 'rr_rail_w';
+const RAIL_MIN = 260;
+const RAIL_MAX = 900;
+const railClamp = (w) => Math.min(Math.max(Math.round(w), RAIL_MIN), RAIL_MAX);
+
 export default function PaperReader() {
   const { paperId } = useParams();
   const navigate = useNavigate();
@@ -21,11 +28,18 @@ export default function PaperReader() {
   const [visible, setVisible] = useState([1]);
   const [railTab, setRailTab] = useState('margins'); // margins | jane
   const [flashId, setFlashId] = useState(null);
+  // which mark is currently picked out, on the page and in the rail both
+  const [selectedId, setSelectedId] = useState(null);
   const [askSeed, setAskSeed] = useState(null); // prefill for Jane from a highlight
   const [noteDraft, setNoteDraft] = useState('');
   const [pickColor, setPickColor] = useState('marigold');
   const colRef = useRef(null);
   const [colW, setColW] = useState(720);
+  const [railW, setRailW] = useState(() => {
+    const saved = Number(localStorage.getItem(RAIL_KEY));
+    return saved ? railClamp(saved) : 340;
+  });
+  const [dragging, setDragging] = useState(false);
   const { pending, capture, clear } = useSelectionHighlights();
 
   // Jane peeking at the screen edge flips the rail to her tab
@@ -34,6 +48,27 @@ export default function PaperReader() {
     window.addEventListener('jane-consult', handler);
     return () => window.removeEventListener('jane-consult', handler);
   }, []);
+
+  // Dragging the grip between the paper and the rail. Listeners go on the
+  // window rather than the grip, because a pointer moving faster than React
+  // re-renders will otherwise leave the handle behind and drop the drag.
+  useEffect(() => {
+    if (!dragging) return undefined;
+    const move = (e) => setRailW(railClamp(window.innerWidth - e.clientX));
+    const stop = () => setDragging(false);
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', stop);
+    document.body.classList.add('rr-resizing');
+    return () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', stop);
+      document.body.classList.remove('rr-resizing');
+    };
+  }, [dragging]);
+
+  useEffect(() => {
+    try { localStorage.setItem(RAIL_KEY, String(railW)); } catch { /* private mode */ }
+  }, [railW]);
 
   // paper row + the PDF itself
   useEffect(() => {
@@ -124,10 +159,14 @@ export default function PaperReader() {
   };
   const deleteAnn = async (annId) => {
     await api.deleteAnnotation(paperId, annId);
+    setSelectedId((id) => (id === annId ? null : id));
     setPaper((p) => ({ ...p, annotations: p.annotations.filter((a) => a.id !== annId) }));
   };
 
+  // a click on the paper: an annotation if one was under it, null if not
   const overlayClick = (ann) => {
+    setSelectedId(ann?.id ?? null);
+    if (!ann) return;
     setRailTab('margins');
     setTimeout(() => document.getElementById(`rr-markcard-${ann.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60);
   };
@@ -179,6 +218,7 @@ export default function PaperReader() {
                 active={n >= lo && n <= hi}
                 annotations={paper.annotations.filter((a) => a.page === n)}
                 flashId={flashId}
+                selectedId={selectedId}
                 onOverlayClick={overlayClick}
               />
             ))
@@ -189,7 +229,16 @@ export default function PaperReader() {
           )}
         </div>
 
-        <aside className="rr-rail">
+        <div
+          className={`rr-railgrip ${dragging ? 'rr-railgrip-on' : ''}`}
+          onPointerDown={(e) => { e.preventDefault(); setDragging(true); }}
+          onDoubleClick={() => setRailW(340)}
+          role="separator"
+          aria-orientation="vertical"
+          title="Drag to resize. Double-click to reset."
+        />
+
+        <aside className="rr-rail" style={{ width: railW }}>
           <div className="rr-rail-tabs">
             <button className={`rr-rail-tab ${railTab === 'margins' ? 'rr-rail-tab-on' : ''}`} onClick={() => setRailTab('margins')}>
               MARGINS ({paper.annotations.length})
@@ -201,7 +250,8 @@ export default function PaperReader() {
           {railTab === 'margins' ? (
             <AnnotationRail
               annotations={paper.annotations}
-              onJump={(a) => jumpToPage(a.page, a.id)}
+              selectedId={selectedId}
+              onJump={(a) => { setSelectedId(a.id); jumpToPage(a.page, a.id); }}
               onUpdate={updateAnn}
               onDelete={deleteAnn}
               onAsk={askJaneAbout}

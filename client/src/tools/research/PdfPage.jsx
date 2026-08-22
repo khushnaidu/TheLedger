@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, memo } from 'react';
 // selectable transparent text layer on top. Renders only while `active`
 // (the reader's IntersectionObserver decides); inactive pages keep their
 // box height so the scrollbar never jumps.
-function PdfPage({ doc, pageNumber, width, aspect, active, annotations, flashId, onOverlayClick }) {
+function PdfPage({ doc, pageNumber, width, aspect, active, annotations, flashId, selectedId, onOverlayClick }) {
   const canvasRef = useRef(null);
   const textRef = useRef(null);
   const [pageAspect, setPageAspect] = useState(aspect);
@@ -61,21 +61,45 @@ function PdfPage({ doc, pageNumber, width, aspect, active, annotations, flashId,
     };
   }, [doc, pageNumber, width, active]);
 
+  // The text layer covers the whole page and sits above the marks, because it
+  // has to be on top for the text to stay selectable. That means a click can
+  // never land on a mark, which is why they used to be unclickable. So the
+  // page hit-tests instead: a click with nothing selected is matched against
+  // the mark rects, smallest first so an overlap picks the tighter one.
+  const pick = (e) => {
+    if (!onOverlayClick) return;
+    const sel = document.getSelection();
+    if (sel && !sel.isCollapsed) return; // finishing a drag, not clicking
+    const box = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - box.left) / box.width) * 100;
+    const y = ((e.clientY - box.top) / box.height) * 100;
+    let hit = null;
+    let area = Infinity;
+    for (const a of annotations) {
+      for (const r of a.rects) {
+        if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h && r.w * r.h < area) {
+          area = r.w * r.h;
+          hit = a;
+        }
+      }
+    }
+    onOverlayClick(hit); // null clears, so clicking bare paper lets a mark go
+  };
+
   return (
     <div
       className="rr-page"
       data-rr-page={pageNumber}
       style={{ width, height: Math.round(width * pageAspect) }}
+      onClick={pick}
     >
       <canvas ref={canvasRef} className="rr-page-canvas" />
       {annotations.map((a) =>
         a.rects.map((r, i) => (
           <div
             key={`${a.id}-${i}`}
-            className={`rr-mark rr-mark-${a.color} ${flashId === a.id ? 'rr-mark-flash' : ''}`}
+            className={`rr-mark rr-mark-${a.color}${flashId === a.id ? ' rr-mark-flash' : ''}${selectedId === a.id ? ' rr-mark-on' : ''}`}
             style={{ left: `${r.x}%`, top: `${r.y}%`, width: `${r.w}%`, height: `${r.h}%` }}
-            onClick={() => onOverlayClick?.(a)}
-            title={a.note || a.quote}
           />
         )))}
       <div ref={textRef} className="rr-textlayer" />

@@ -3503,6 +3503,7 @@ aside {
 
 /* ── the rail ── */
 .rr-rail {
+  /* width is set inline and remembered — see RAIL_KEY in PaperReader */
   width: 340px;
   flex-shrink: 0;
   border-left: 1px solid var(--ink);
@@ -3746,7 +3747,7 @@ aside {
   border: 1px solid var(--ink-15);
   border-left: 2px solid var(--ink);
   padding: 7px 10px;
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   line-height: 1.6;
 }
 
@@ -3755,7 +3756,7 @@ aside {
   align-self: flex-end;
   background: var(--ink);
   color: #fff;
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   letter-spacing: 0.04em;
   line-height: 1.5;
   padding: 6px 9px;
@@ -3777,7 +3778,7 @@ aside {
 /* citations as small filed tags */
 .jn-cite {
   display: inline-block;
-  font-size: 0.5rem;
+  font-size: 0.5625rem;
   letter-spacing: 0.06em;
   border: 1px solid var(--ink);
   background: #fff;
@@ -3807,7 +3808,7 @@ aside {
   border: none;
   outline: none;
   resize: none;
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   padding: 9px 10px;
   background: transparent;
   text-transform: none;
@@ -5020,3 +5021,70 @@ aside {
 
 .fin-reset-go:not(:disabled) { background: var(--stamp); }
 .fin-reset-go:disabled { background: var(--ink-15); }
+
+/* ── a picked mark, on the page and in the rail ───────────────────────
+   The text layer has to stay above the marks for the paper to remain
+   selectable, so a mark can never receive a click of its own. The page
+   hit-tests instead (see PdfPage) and both ends light up together. */
+
+.rr-mark { pointer-events: none; }
+
+/* the mark multiplies into the paper, so the ring has to be dark enough
+   to survive the blend */
+.rr-mark-on {
+  outline: 1.5px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.rr-markcard { cursor: pointer; }
+
+.rr-markcard-on {
+  border-color: var(--ink);
+  background: rgba(17, 17, 17, 0.035);
+}
+
+/* the colour stripe is the mark's identity — never let the picked state
+   overwrite which highlight this card belongs to */
+.rr-markcard-marigold.rr-markcard-on { border-left-color: rgb(232, 183, 58); }
+.rr-markcard-rose.rr-markcard-on { border-left-color: rgb(214, 96, 128); }
+.rr-markcard-sage.rr-markcard-on { border-left-color: rgb(122, 158, 116); }
+.rr-markcard-ink.rr-markcard-on { border-left-color: #444; }
+
+/* ── the grip between the paper and the margin rail ───────────────────
+   Jane is docked in that rail, so widening it is how you get a bigger
+   chat. Six pixels of handle with a wider invisible reach, because a
+   1px border is a target nobody can hit. */
+
+.rr-railgrip {
+  flex: 0 0 6px;
+  position: relative;
+  cursor: col-resize;
+  background: var(--ink-15);
+  touch-action: none;
+}
+
+.rr-railgrip::before {
+  content: '';
+  position: absolute;
+  inset: 0 -5px; /* the reach, not the paint */
+}
+
+/* the three ticks that say "this is a handle" */
+.rr-railgrip::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 26px;
+  transform: translate(-50%, -50%);
+  background: repeating-linear-gradient(var(--ink) 0 2px, transparent 2px 5px);
+}
+
+.rr-railgrip:hover,
+.rr-railgrip-on { background: var(--stamp); }
+
+/* mid-drag the pointer is often over the PDF text layer, and without this
+   the whole paper selects itself as you widen the rail */
+body.rr-resizing { cursor: col-resize; user-select: none; }
+body.rr-resizing .rr-textlayer { pointer-events: none; }
