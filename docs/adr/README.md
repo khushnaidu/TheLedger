@@ -16,6 +16,8 @@ problem and constraints), **Decision** (what we chose, concretely), and
 - [0003](0003-route-level-code-splitting.md) — Route-level code splitting; persistent chrome stays eager
 - [0004](0004-notebooks-json-pages-and-blob-storage.md) — Notebooks: JSON pages + Vercel Blob image storage
 - [0005](0005-reading-room-pdf-text-and-retrieval.md) — Reading Room: client-side PDF extraction, FTS retrieval, page-anchored annotations
-- [0006](0006-jobs-wire-aggregator-cron.md) — Jobs Wire: aggregator API + daily cron (proposed, unbuilt)
+- [0006](0006-jobs-wire-aggregator-cron.md) — Jobs Wire: Adzuna + AI-vetted daily cron into THE CLASSIFIEDS *(superseded by 0010)*
 - [0007](0007-finance-manual-csv-ledger.md) — The Accounts: manual + CSV ledger, income and expense, the printed plate
 - [0008](0008-two-clerks-marx-and-friedman.md) — The Accounts: two clerks (Marx and Friedman), headings split by steward, rationed commentary
+- [0009](0009-rewrite-desk-ephemeral-resume-editor.md) — The Classifieds: the Rewrite Desk, ephemeral resume tailoring by docx surgery
+- [0010](0010-retire-jobs-wire-desk-becomes-hero.md) — Retire the jobs wire; the Rewrite Desk becomes the whole of THE CLASSIFIEDS
