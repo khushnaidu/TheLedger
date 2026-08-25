@@ -909,7 +909,14 @@ export default function ResumeDesk() {
         />
 
         <aside className="jb-deskrail" style={{ width: railW }}>
-          <p className="jb-deskrail-head">The clerk’s desk</p>
+          <div className="jb-clerk-head">
+            <img className="jb-clerk-face" src="/art/desk-clerk.webp" alt="" draggable={false}
+              title="The clerk, at your service" />
+            <div className="jb-clerk-titles">
+              <p className="jb-clerk-name">The clerk’s desk</p>
+              <p className="jb-clerk-sub">at your service — ask for anything</p>
+            </div>
+          </div>
           {chat.length > 0 && (
             <div className="jb-chat" ref={chatRef}>
               {chat.map((m, i) => (
