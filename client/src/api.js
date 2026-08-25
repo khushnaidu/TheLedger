@@ -192,6 +192,36 @@ export const api = {
   // Marx answers Friedman rather than the two of them talking past each other.
   getRemark: (body) => request('/finance/remark', { method: 'POST', body: JSON.stringify(body) }),
 
+  // The Rewrite Desk — masters stored, tailored copies never touch the server
+  // (the jobs wire was retired 2026-08; see ADR-0010)
+  getResumes: () => request('/jobs/resumes'),
+  addResume: (data) => request('/jobs/resumes', { method: 'POST', body: JSON.stringify(data) }),
+  updateResume: (id, data) => request(`/jobs/resumes/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteResume: (id) => request(`/jobs/resumes/${id}`, { method: 'DELETE' }),
+  tailorResume: (data) => request('/jobs/tailor', { method: 'POST', body: JSON.stringify(data) }),
+  uploadResumeDocx: async (file) => {
+    const { upload } = await import('@vercel/blob/client');
+    const token = getToken();
+    const { userId } = JSON.parse(atob(token.split('.')[1]));
+    const safeName = file.name.replace(/[^\w.-]+/g, '_').slice(-60) || 'resume.docx';
+    try {
+      const blob = await upload(`resumes/${userId}/${safeName}`, file, {
+        access: 'public',
+        handleUploadUrl: '/api/uploads',
+        clientPayload: token,
+        // stated outright: some machines hand .docx over as octet-stream
+        // and the server allowlist is exact (same lesson as the PDFs)
+        contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      });
+      return blob.url;
+    } catch (err) {
+      if (/BLOB_READ_WRITE_TOKEN|storage not configured/i.test(err.message || '')) {
+        throw new Error('File storage is not set up yet — create a Blob store on the Vercel project (Storage → Create → Blob), then add BLOB_READ_WRITE_TOKEN to server/.env for local dev.');
+      }
+      throw err;
+    }
+  },
+
   // PDF upload rides the same Blob handshake under papers/<userId>/
   uploadPaperPdf: async (file) => {
     const { upload } = await import('@vercel/blob/client');

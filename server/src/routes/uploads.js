@@ -26,9 +26,18 @@ router.post('/', async (req, res) => {
         }
         const isNotebook = pathname.startsWith(`notebooks/${payload.userId}/`);
         const isPaper = pathname.startsWith(`papers/${payload.userId}/`);
-        if (!isNotebook && !isPaper) {
+        const isResume = pathname.startsWith(`resumes/${payload.userId}/`);
+        if (!isNotebook && !isPaper && !isResume) {
           console.error(`Upload path rejected: "${pathname}" for user ${payload.userId}`);
           throw new Error('Uploads must live under your own shelf');
+        }
+        if (isResume) {
+          return {
+            allowedContentTypes: ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+            maximumSizeInBytes: 10_000_000,
+            addRandomSuffix: true,
+            tokenPayload: JSON.stringify({ userId: payload.userId }),
+          };
         }
         return isPaper
           ? {

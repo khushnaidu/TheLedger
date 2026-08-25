@@ -13,6 +13,8 @@
     "@hello-pangea/dnd": "^18.0.1",
     "@vercel/blob": "^2.8.0",
     "autoprefixer": "^10.4.27",
+    "docx-preview": "^0.4.0",
+    "jszip": "^3.10.1",
     "lucide-react": "^1.7.0",
     "nes.css": "^2.3.0",
     "pdfjs-dist": "^4.10.38",

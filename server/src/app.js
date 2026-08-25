@@ -19,6 +19,7 @@ const ROUTES = [
   ['notebooks', true],
   ['research', true],
   ['finance', true],
+  ['jobs', true],
   ['uploads', false], // Blob handshake self-authenticates via JWT clientPayload
 ];
 

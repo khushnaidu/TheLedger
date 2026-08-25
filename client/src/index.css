@@ -5100,3 +5100,506 @@ body.rr-resizing .rr-textlayer { pointer-events: none; }
   color: var(--stamp);
   text-transform: uppercase;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   THE CLASSIFIEDS — situations vacant (jb-)
+   a broadsheet classified column: dense, rule-separated, small caps
+   ═══════════════════════════════════════════════════════════════ */
+
+.jb-page { padding-bottom: 56px; max-width: 1060px; }
+.jb-page button { text-transform: uppercase; }
+
+.jb-error {
+  margin-top: 10px;
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  color: var(--stamp);
+}
+
+/* ── the master shelf ─ */
+.jb-orders-head {
+  font-size: 0.5rem;
+  letter-spacing: 0.18em;
+  color: var(--ink-50);
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--line);
+}
+
+.jb-orders-empty {
+  padding: 10px 0 4px;
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-50);
+}
+
+.jb-order {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px dashed var(--ink-15);
+  font-size: 0.625rem;
+}
+
+.jb-order-loc { font-size: 0.5625rem; color: var(--ink-50); }
+.jb-order-ran { margin-left: auto; font-size: 0.5rem; letter-spacing: 0.1em; color: var(--ink-30); }
+
+.jb-order-x {
+  border: none;
+  background: none;
+  font-size: 0.5625rem;
+  color: var(--ink-30);
+  cursor: pointer;
+}
+.jb-order-x:hover { color: var(--stamp); }
+
+.jb-order-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.jb-entry-acts {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.jb-act {
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: var(--font);
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+  color: var(--ink-50);
+  cursor: pointer;
+}
+.jb-act:hover { color: var(--ink); }
+.jb-act-spike:hover { color: var(--stamp); }
+
+/* the house display ad: the rewrite desk billed like a front-page feature,
+   not a footnote — heavy double rule, the classified display-ad manner */
+.jb-deskad {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 14px 16px 16px;
+  border: 3px double var(--ink);
+  background: transparent;
+  cursor: pointer;
+  text-align: center;
+  font-family: var(--font);
+  color: var(--ink);
+}
+.jb-deskad:hover { background: var(--ink); color: #fff; }
+.jb-deskad-kicker {
+  display: block;
+  font-size: 0.5rem;
+  letter-spacing: 0.24em;
+  opacity: 0.55;
+}
+.jb-deskad-title {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.1;
+}
+.jb-deskad-copy {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.5625rem;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+/* the banner form of the ad: a masthead now, not a link */
+.jb-deskad-still { cursor: default; }
+.jb-deskad-still:hover { background: transparent; color: var(--ink); }
+
+/* the two-step master refile: the armed state reads as a warning */
+.jb-refile-warn {
+  border-color: var(--stamp) !important;
+  color: var(--stamp) !important;
+}
+
+/* ── the rewrite desk ─ */
+.jb-desk { max-width: 1240px; }
+
+.jb-desk-body {
+  display: flex;
+  gap: 22px;
+  margin-top: 16px;
+  align-items: flex-start;
+}
+
+/* docx-preview paints Word's own page; strip the library's grey matte so
+   the sheet sits on the ledger's paper, and keep its width honest */
+.jb-preview {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+.jb-preview .docx-wrapper {
+  background: transparent !important;
+  padding: 0 !important;
+  /* the document's own casing, never the theme's shout */
+  text-transform: none;
+  /* centered when there is room, pinned left when there is not — plain
+     `center` clipped the page's left edge on overflow */
+  align-items: safe center !important;
+  /* no metric shaving: hand-aligned lines are normalized structurally at
+     preview-pack time (explicit right tab stops, see docx.js), so the
+     text renders at the fonts' true metrics on every machine */
+}
+.jb-preview .docx-wrapper > section.docx {
+  box-shadow: none;
+  border: 1px solid var(--ink);
+  margin-bottom: 18px !important;
+}
+
+.jb-deskrail {
+  flex: 0 0 360px;
+  border: 1px solid var(--line);
+  padding: 12px;
+  position: sticky;
+  top: 12px;
+}
+
+.jb-ask {
+  width: 100%;
+  margin-top: 10px;
+  margin-bottom: 8px;
+  border: 1px solid var(--line);
+  background: transparent;
+  padding: 7px 9px;
+  font-family: var(--font);
+  font-size: 0.625rem;
+  line-height: 1.5;
+  letter-spacing: 0.03em;
+  resize: vertical;
+  text-transform: none;
+}
+.jb-ask:focus { outline: none; border-color: var(--ink); }
+
+.jb-cards-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 12px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  color: var(--ink-50);
+}
+
+.jb-card {
+  padding: 9px 0;
+  border-bottom: 1px dashed var(--ink-15);
+}
+
+.jb-card-old {
+  font-size: 0.5625rem;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  text-decoration: line-through;
+  text-decoration-color: var(--stamp);
+  color: var(--ink-30);
+}
+
+.jb-card-new {
+  margin-top: 4px;
+  font-size: 0.5625rem;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.jb-shelf {
+  margin-top: 16px;
+  border: 1px solid var(--line);
+  padding: 10px 12px 12px;
+  max-width: 640px;
+}
+
+.jb-shelf-open {
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.jb-shelf-open:hover { color: var(--stamp); }
+
+.jb-startfresh {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 6px 0;
+  border: none;
+  border-top: 1px solid var(--line);
+  background: none;
+  font-family: var(--font);
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  color: var(--ink-30);
+  cursor: pointer;
+  text-align: center;
+}
+.jb-startfresh:hover { color: var(--stamp); }
+
+/* where a proposed new line will be set in */
+.jb-card-where {
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  color: var(--stamp);
+  text-transform: none;
+}
+
+/* the conversation with the clerk — ephemeral, scrolls, lowercase */
+.jb-chat {
+  margin-top: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 8px;
+}
+
+.jb-msg-you {
+  margin-top: 8px;
+  padding-left: 22px;
+  font-size: 0.5625rem;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  text-align: right;
+  color: var(--ink-50);
+}
+
+.jb-msg-clerk {
+  margin-top: 8px;
+  padding: 0 10px 0 8px;
+  border-left: 2px solid var(--stamp);
+  font-size: 0.5625rem;
+  line-height: 1.55;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-style: italic;
+  color: rgba(17, 17, 17, 0.78);
+}
+
+.jb-msg-wait { color: var(--ink-30); border-left-color: var(--ink-30); }
+
+/* ═══════════════════════════════════════════════════════════════
+   THE REWRITE DESK, SET PHOTOREAL — the galley proof on the board
+   supersedes the plain jb-desk styles above
+   ═══════════════════════════════════════════════════════════════ */
+
+.jb-desk { max-width: none; padding-bottom: 24px; }
+
+/* ── the bar, cut like the reading room's ─ */
+.jb-desk-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.jb-desk-title { flex: 1; min-width: 0; }
+.jb-desk-byline {
+  margin-top: 3px;
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+  color: var(--ink-50);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jb-zoom { display: flex; border: 1px solid var(--ink-15); }
+.jb-zoom-btn {
+  border: none;
+  background: none;
+  font-family: var(--font);
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  padding: 4px 8px;
+  border-right: 1px solid var(--ink-15);
+  color: var(--ink-50);
+  cursor: pointer;
+}
+.jb-zoom-btn:last-child { border-right: none; }
+.jb-zoom-on { background: var(--ink); color: #fff; }
+
+.jb-desk-counter {
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  color: var(--ink-50);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── the board: dark felt, vignette, grain ─ */
+.jb-desk-body { margin-top: 0; gap: 0; align-items: stretch; height: calc(100vh - 118px); }
+
+.jb-board {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 26px 26px 48px;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 252, 240, 0.055), transparent 55%),
+    radial-gradient(150% 110% at 50% 115%, rgba(0, 0, 0, 0.55), transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.16'/%3E%3C/svg%3E"),
+    linear-gradient(165deg, #37332d, #2b2823 55%, #232019);
+  border: 1px solid #17150f;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 0 60px rgba(0, 0, 0, 0.35);
+}
+
+/* the proof itself: real paper on the felt. The document renders at 100%
+   (docx-preview's tab engine measures then) and the finished sheet gets a
+   purely optical transform scale; CSS `zoom` re-lays-out and stays banned */
+.jb-board .jb-preview { overflow: visible; flex: none; }
+.jb-zoombox { margin: 0 auto; overflow: visible; }
+.jb-zoomscale { transform-origin: top left; width: max-content; }
+.jb-board .docx-wrapper > section.docx {
+  position: relative;
+  border: none;
+  border-radius: 1px;
+  margin-bottom: 26px !important;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.22),
+    0 2px 3px rgba(0, 0, 0, 0.38),
+    0 14px 34px rgba(0, 0, 0, 0.5),
+    0 30px 70px rgba(0, 0, 0, 0.4);
+}
+.jb-board .docx-wrapper > section.docx::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/art/papergrain.jpg');
+  background-size: 560px;
+  mix-blend-mode: multiply;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+/* the rubber stamp in the board's corner */
+.jb-stamp {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  z-index: 2;
+  padding: 6px 10px 5px;
+  border: 2px solid rgba(214, 66, 56, 0.75);
+  border-radius: 3px;
+  transform: rotate(3.5deg);
+  font-size: 0.5rem;
+  line-height: 1.5;
+  letter-spacing: 0.22em;
+  text-align: center;
+  color: rgba(224, 78, 66, 0.85);
+  text-shadow: 0 0 1px rgba(224, 78, 66, 0.4);
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.32' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.72 0.35'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23r)'/%3E%3C/svg%3E");
+  mask-size: 120px;
+  pointer-events: none;
+}
+
+/* ── the grip, same handshake as the reading room ─ */
+.jb-grip {
+  flex: 0 0 6px;
+  position: relative;
+  cursor: col-resize;
+  background: var(--ink-15);
+  touch-action: none;
+}
+.jb-grip::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 26px;
+  transform: translate(-50%, -50%);
+  background: repeating-linear-gradient(var(--ink) 0 2px, transparent 2px 5px);
+}
+.jb-grip:hover,
+.jb-grip-on { background: var(--stamp); }
+body.jb-resizing { cursor: col-resize; user-select: none; }
+body.jb-resizing .jb-board { pointer-events: none; }
+
+/* ── the clerk's pad ─ */
+.jb-deskrail {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-left: none;
+  padding: 12px 14px;
+  position: static;
+  overflow-y: auto;
+  /* plain stock: the steno-pad red rule read as a rendering glitch
+     ("a faint line running across the clerk interface") and is gone */
+  background: #fcfbf7;
+}
+
+/* On the desk the verdict buttons must LOOK like buttons — "so faint and
+   small its not intuitive to find them" — while the classified column's
+   quiet text actions keep their newsprint manner (unscoped .jb-act). */
+.jb-deskrail .jb-act {
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: #fff;
+  padding: 5px 14px;
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+}
+.jb-deskrail .jb-act:hover { background: #2e2e2e; color: #fff; }
+.jb-deskrail .jb-act-spike {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--ink-30);
+}
+.jb-deskrail .jb-act-spike:hover {
+  border-color: var(--stamp);
+  color: var(--stamp);
+  background: transparent;
+}
+.jb-deskrail .jb-entry-acts { margin-top: 9px; gap: 8px; }
+
+.jb-deskrail-head {
+  font-size: 0.5rem;
+  letter-spacing: 0.18em;
+  color: var(--ink-50);
+  padding-bottom: 7px;
+  border-bottom: 2px solid var(--stamp);
+}
+
+/* proof slips: cut paper, pinned slightly off-true */
+.jb-card {
+  margin-top: 12px;
+  padding: 8px 10px 9px;
+  border: 1px solid rgba(0, 0, 0, 0.13);
+  border-bottom-width: 0;
+  background: #fffef9;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 3px 8px rgba(0, 0, 0, 0.07);
+  transform: rotate(-0.35deg);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 3px), 96% 100%, 88% calc(100% - 2px), 76% 100%, 65% calc(100% - 3px), 52% 100%, 40% calc(100% - 2px), 27% 100%, 14% calc(100% - 3px), 5% 100%, 0 calc(100% - 2px));
+  padding-bottom: 13px;
+}
+.jb-card:nth-child(even) { transform: rotate(0.4deg); }
+
+.jb-proof-label {
+  font-size: 0.4375rem;
+  letter-spacing: 0.18em;
+  color: var(--stamp);
+  text-transform: uppercase;
+}
+
+.jb-card .jb-card-old { margin-top: 5px; }
+.jb-card .jb-card-new { margin-top: 5px; }
+.jb-card .jb-card-where { margin-top: 4px; }
