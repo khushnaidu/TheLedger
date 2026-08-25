@@ -135,7 +135,7 @@ export default function JanePanel({ mode, paperId, currentPage, askSeed, onJumpT
           <div key={i} className={`jn-msg ${m.role === 'user' ? 'jn-msg-user' : 'jn-msg-jane'}`}>
             <p>{m.role === 'assistant' ? renderWithCites(m.content, onCite) : m.content}</p>
             {m.truncated && (
-              <p className="jn-cut">She ran out of room mid-thought. Ask her to carry on.</p>
+              <p className="jn-cut">He ran out of room mid-thought. Ask him to carry on.</p>
             )}
           </div>
         ))}

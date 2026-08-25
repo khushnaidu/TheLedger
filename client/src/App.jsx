@@ -9,18 +9,21 @@ import GusAssistant from './components/GusAssistant';
 import JanePeek from './components/JanePeek';
 import ClerkPeek from './components/ClerkPeek';
 import RouteLoader from './components/RouteLoader';
+import PageNotice from './components/PageNotice';
 import { TOOLS, HIDDEN_ROUTES } from './tools/registry';
 import Auth from './pages/Auth';
 import ResetPassword from './pages/ResetPassword';
 import { clearEdition, isPersonal } from './lib/edition';
 import { initClicky } from './lib/clicky';
 
-// Gus does not work every floor. The Reading Room is Jane's, and The
-// Accounts belongs to Marx and Friedman, who lean in as a pair.
+// Gus does not work every floor. The Reading Room is Jane's, The
+// Accounts belongs to Marx and Friedman, who lean in as a pair, and
+// the Rewrite Desk staffs its own clerk in the rail — nobody peeks.
 function AssistantOnDuty({ user }) {
   const { pathname } = useLocation();
   if (pathname.startsWith('/research')) return <JanePeek />;
   if (pathname.startsWith('/finance')) return <ClerkPeek />;
+  if (pathname.startsWith('/jobs')) return null;
   return (
     <GusAssistant user={user} onTicketsCreated={() => {
       window.dispatchEvent(new Event('gus-tickets-created'));
@@ -102,6 +105,7 @@ function App() {
             <Sidebar user={user} onLogout={handleLogout} />
             <main className="flex-1 ml-[220px] px-10 py-6 overflow-y-auto overflow-x-clip flex flex-col min-h-screen">
               <Masthead />
+              <PageNotice />
               <div className="flex-1">
                 <Suspense fallback={<RouteLoader />}>
                   <Routes>

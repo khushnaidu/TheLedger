@@ -5089,7 +5089,7 @@ aside {
 body.rr-resizing { cursor: col-resize; user-select: none; }
 body.rr-resizing .rr-textlayer { pointer-events: none; }
 
-/* Jane hitting her token ceiling. Silent truncation reads as a finished
+/* Jane hitting his token ceiling. Silent truncation reads as a finished
    thought, which is the one thing a cited answer must never do. */
 .jn-cut {
   margin-top: 7px;
@@ -5099,6 +5099,128 @@ body.rr-resizing .rr-textlayer { pointer-events: none; }
   letter-spacing: 0.1em;
   color: var(--stamp);
   text-transform: uppercase;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NOTICE TO PATRONS — the house tutorial cards (ntc-)
+   a small printed instruction slip per page; the chip reprints it
+   ═══════════════════════════════════════════════════════════════ */
+
+/* a zero-height anchor right under the masthead: the chip prints at
+   the content's right edge, level with each page's kicker and title */
+.ntc-anchor {
+  position: relative;
+  height: 0;
+}
+
+.ntc-chip {
+  position: absolute;
+  top: 10px;
+  right: 0;
+  z-index: 60;
+  border: 1px solid var(--line);
+  background: #fcfbf7;
+  padding: 5px 10px 4px;
+  font-family: var(--font);
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-50);
+  cursor: pointer;
+}
+.ntc-chip:hover,
+.ntc-chip-on {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+.ntc-card {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  z-index: 150; /* over the page and the assistants' peeks, under their drawers */
+  width: 390px;
+  max-width: calc(100vw - 300px);
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+  background: #fcfbf7;
+  border: 1px solid var(--ink);
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.12);
+  padding: 12px 16px 14px;
+}
+.ntc-card::before {
+  content: '';
+  display: block;
+  border-top: 3px double var(--ink);
+  margin-bottom: 10px;
+}
+
+.ntc-kicker {
+  font-size: 0.5rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--stamp);
+}
+
+.ntc-title {
+  margin-top: 4px;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.ntc-lead {
+  margin-top: 4px;
+  font-size: 0.625rem;
+  line-height: 1.55;
+  letter-spacing: 0.02em;
+}
+
+.ntc-steps {
+  margin-top: 9px;
+  list-style: none;
+  counter-reset: ntc;
+  border-top: 1px solid var(--line);
+  padding-top: 3px;
+}
+.ntc-steps li {
+  counter-increment: ntc;
+  position: relative;
+  padding: 6px 0 6px 24px;
+  border-bottom: 1px dashed var(--ink-15);
+  font-size: 0.625rem;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+.ntc-steps li:last-child { border-bottom: none; }
+.ntc-steps li::before {
+  content: counter(ntc, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 7px;
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--stamp);
+}
+
+.ntc-noted {
+  margin-top: 10px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: #fff;
+  padding: 5px 14px 4px;
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.ntc-noted:hover {
+  background: transparent;
+  color: var(--ink);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -5363,6 +5485,11 @@ body.rr-resizing .rr-textlayer { pointer-events: none; }
 
 /* ── the rewrite desk ─ */
 .jb-desk { max-width: 1240px; }
+
+/* the notice chip floats at the content's top-right on every page; on
+   the desk that spot belongs to Take the copy, so the bar keeps a
+   chip-sized slot free at its right end */
+.jb-desk .jb-desk-bar { padding-right: 158px; }
 
 .jb-desk-body {
   display: flex;
@@ -5690,12 +5817,34 @@ body.jb-resizing .jb-board { pointer-events: none; }
 }
 .jb-deskrail .jb-entry-acts { margin-top: 9px; gap: 8px; }
 
-.jb-deskrail-head {
+/* the clerk himself, stood behind the counter — the stamp-red rule is
+   the counter's edge and his chin rests just on it */
+.jb-clerk-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  border-bottom: 2px solid var(--stamp);
+}
+.jb-clerk-face {
+  display: block;
+  width: 46px;
+  margin-bottom: -1px;
+  flex: none;
+}
+.jb-clerk-titles { padding-bottom: 7px; min-width: 0; }
+.jb-clerk-name {
   font-size: 0.5rem;
   letter-spacing: 0.18em;
   color: var(--ink-50);
-  padding-bottom: 7px;
-  border-bottom: 2px solid var(--stamp);
+}
+.jb-clerk-sub {
+  margin-top: 3px;
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-30);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* proof slips: cut paper, pinned slightly off-true */

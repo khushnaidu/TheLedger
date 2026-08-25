@@ -42,7 +42,7 @@ export default function PaperReader() {
   const [dragging, setDragging] = useState(false);
   const { pending, capture, clear } = useSelectionHighlights();
 
-  // Jane peeking at the screen edge flips the rail to her tab
+  // Jane peeking at the screen edge flips the rail to his tab
   useEffect(() => {
     const handler = () => setRailTab((t) => (t === 'jane' ? 'margins' : 'jane'));
     window.addEventListener('jane-consult', handler);

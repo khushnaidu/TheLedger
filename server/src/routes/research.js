@@ -424,7 +424,7 @@ router.post('/chat', async (req, res) => {
     });
     const text = response.content.find((b) => b.type === 'text')?.text;
     if (!text) {
-      // She thought until the budget was gone and never got to the answer.
+      // He thought until the budget was gone and never got to the answer.
       // That is not a failure worth a red error, it is a question that needs
       // narrowing, and saying so is more use than a shrug.
       if (response.content.some((b) => b.type === 'thinking')) {
@@ -438,7 +438,7 @@ router.post('/chat', async (req, res) => {
     }
     // A cut-off answer used to arrive looking finished, which is worse than
     // arriving short — the reader has no way to tell a complete thought from
-    // half of one. Say when she ran out of room.
+    // half of one. Say when he ran out of room.
     res.json({ message: text, truncated: response.stop_reason === 'max_tokens' });
   } catch (err) {
     res.status(500).json({ error: err.message });
