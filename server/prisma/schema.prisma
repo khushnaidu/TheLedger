@@ -28,6 +28,9 @@ model User {
   collections Collection[]
   papers      Paper[]
   entries     LedgerEntry[]
+  jobSearches JobSearch[]
+  jobPostings JobPosting[]
+  resumes     Resume[]
 
   sentInvites     Connection[]  @relation("connRequester")
   receivedInvites Connection[]  @relation("connAddressee")
@@ -256,6 +259,63 @@ model Annotation {
 // on import. `externalKey` is a per-user dedupe hash so re-importing
 // the same statement is idempotent (NULLs are distinct in Postgres,
 // so hand-typed lines never collide). See ADR-0007.
+
+// ── The Classifieds: the jobs wire ────────────────────────────
+// A standing order is a saved search the morning wire runs for; a
+// posting is one classified that survived the wire clerk's vetting.
+// Postings are never deleted by the wire — `hidden` (spiked) persists
+// across re-fetches, and the (userId, externalId) unique key makes
+// the daily upsert idempotent. See ADR-0006.
+
+model JobSearch {
+  id        String    @id @default(uuid())
+  keywords  String
+  location  String    @default("")
+  country   String    @default("us") // adzuna wants a country code in the path
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastRunAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model JobPosting {
+  id          String    @id @default(uuid())
+  externalId  String
+  title       String
+  company     String    @default("")
+  location    String    @default("")
+  url         String
+  salary      String    @default("") // display string; adzuna's numbers are too patchy to keep raw
+  description String    @default("")
+  source      String    @default("adzuna")
+  search      String    @default("") // the standing order's keywords at fetch time
+  verdict     String    @default("") // the wire clerk's one-line reason it made the column
+  postedAt    DateTime?
+  fetchedAt   DateTime  @default(now())
+  status      String    @default("new") // new | seen | applied | hidden
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, externalId])
+  @@index([userId, status, fetchedAt])
+}
+
+// A master resume for the rewrite desk. Only the master is ever stored;
+// tailored copies live in the browser and leave as downloads. See ADR-0009.
+model Resume {
+  id        String   @id @default(uuid())
+  name      String
+  blobUrl   String
+  fileName  String   @default("")
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
 
 model LedgerEntry {
   id          String   @id @default(uuid())
