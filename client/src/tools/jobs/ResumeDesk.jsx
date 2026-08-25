@@ -22,14 +22,104 @@ const RAIL_MIN = 300;
 const RAIL_MAX = 560;
 const railClamp = (w) => Math.min(Math.max(Math.round(w), RAIL_MIN), RAIL_MAX);
 
+// THE SHELF SCENE — the desk itself, photographed: the typewriter holds
+// the latest master with page one rolled into the platen (click it to sit
+// down), the rest of the masters wait in a pile beside it, and the pen
+// files a new one. Ordering is the server's updatedAt desc, so a refiled
+// master walks back into the machine on its own.
 function MasterShelf({ onOpen }) {
   const [resumes, setResumes] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [confirming, setConfirming] = useState(null);
   const fileRef = useRef(null);
+  const miniRef = useRef(null);
+  const typewRef = useRef(null);
+  const paperRef = useRef(null);
+  const pileRef = useRef(null);
 
   const load = () => api.getResumes().then(setResumes).catch((e) => setError(e.message));
   useEffect(() => { load(); }, []);
+
+  const latest = resumes?.[0] || null;
+  const pile = resumes ? resumes.slice(1) : [];
+
+  // ── carrying paper between stations ─
+  // the page in the machine can be laid on the pile, and a sheet from
+  // the pile can be rolled into the machine. "In the machine" is only
+  // updatedAt desc, so the whole move is one touch: promote the master
+  // that should hold the platen and let the ordering do the rest.
+  const DRAG_MIN = 6; // px before a press stops being a click
+  const [drag, setDrag] = useState(null); // {id, from: 'machine'|'pile', x0, y0, x, y, live}
+  const draggedRef = useRef(false); // eats the click that follows a real carry
+
+  const promote = async (id) => {
+    try {
+      await api.updateResume(id, { touch: true });
+      await load();
+    } catch (e) { setError(e.message); }
+  };
+
+  const startDrag = (e, id, from) => {
+    if (e.button !== 0 || e.target.closest('.jb-sheet-x')) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setDrag({ id, from, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, live: false });
+  };
+  const moveDrag = (e) => {
+    const { clientX, clientY } = e;
+    setDrag((d) => d && {
+      ...d,
+      x: clientX,
+      y: clientY,
+      live: d.live || Math.hypot(clientX - d.x0, clientY - d.y0) > DRAG_MIN,
+    });
+  };
+  const overStation = (ref, x, y) => {
+    const r = ref.current?.getBoundingClientRect();
+    return !!r && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+  };
+  const endDrag = (e) => {
+    const d = drag;
+    setDrag(null);
+    if (!d || !d.live) return; // a plain click; the button's onClick handles it
+    draggedRef.current = true;
+    setTimeout(() => { draggedRef.current = false; }, 0);
+    // the paper juts above the typewriter's own box, so the machine's
+    // catch area is the union of the two
+    if (d.from === 'pile' && (overStation(typewRef, e.clientX, e.clientY) || overStation(paperRef, e.clientX, e.clientY))) {
+      promote(d.id); // roll this sheet into the machine
+    } else if (d.from === 'machine' && pile.length && overStation(pileRef, e.clientX, e.clientY)) {
+      promote(pile[0].id); // the page goes on the pile; the top sheet rolls in
+    }
+  };
+  const carry = drag?.live ? { dx: drag.x - drag.x0, dy: drag.y - drag.y0 } : null;
+
+  // the page in the machine: the latest master rendered small and honest
+  // (docx-preview, same engine as the desk), clipped to what clears the
+  // platen — a render failure just leaves the paper blank and clickable
+  useEffect(() => {
+    const el = miniRef.current;
+    if (!el) return undefined;
+    if (!latest) { el.innerHTML = ''; return undefined; }
+    let dead = false;
+    (async () => {
+      try {
+        const d = await loadDocx(latest.blobUrl);
+        const blob = await packPreviewDocx(d);
+        const { renderAsync } = await import('docx-preview');
+        if (dead) return;
+        el.style.transform = 'none';
+        el.innerHTML = '';
+        await renderAsync(blob, el, undefined, { inWrapper: true, ignoreLastRenderedPageBreak: true, experimental: true });
+        if (dead) return;
+        const page = el.querySelector('section.docx');
+        const w = page ? page.offsetWidth : el.scrollWidth;
+        if (w) el.style.transform = `scale(${188 / w})`;
+      } catch { /* the paper stays blank; the click still opens the desk */ }
+    })();
+    return () => { dead = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [latest && latest.blobUrl]);
 
   const add = async (file) => {
     if (!/\.docx$/i.test(file.name)) { setError('The desk takes .docx masters only'); return; }
@@ -43,41 +133,108 @@ function MasterShelf({ onOpen }) {
     setBusy(false);
   };
 
+  // destructive, so the house two-step: first press arms, second commits
   const retire = async (id) => {
+    if (confirming !== id) {
+      setConfirming(id);
+      setTimeout(() => setConfirming((c) => (c === id ? null : c)), 2500);
+      return;
+    }
+    setConfirming(null);
     try {
       await api.deleteResume(id);
       setResumes((old) => old.filter((r) => r.id !== id));
     } catch (e) { setError(e.message); }
   };
 
+  const count = resumes ? resumes.length : 0;
   return (
-    <div className="jb-shelf">
-      <p className="jb-orders-head">The masters</p>
+    <>
       {error && <p className="jb-error">{error}</p>}
-      {resumes === null ? (
-        <p className="jb-orders-empty">Opening the drawer…</p>
-      ) : resumes.length === 0 ? (
-        <p className="jb-orders-empty">
-          No master on file. Bring the desk your resume as a .docx — Word, Pages and Google Docs all export one.
-        </p>
-      ) : (
-        resumes.map((r) => (
-          <div key={r.id} className="jb-order">
-            <button data-clicky className="jb-shelf-open" onClick={() => onOpen(r.id)}>{r.name}</button>
-            <span className="jb-order-loc">{r.fileName}</span>
-            <span className="jb-order-ran">filed {new Date(r.createdAt).toLocaleDateString()}</span>
-            <button data-clicky className="jb-order-x" title="Retire this master" onClick={() => retire(r.id)}>✕</button>
+      <div className={`jb-scene ${carry ? 'jb-carrying' : ''}`}>
+        <div className="jb-typew-slot">
+          <button type="button" data-clicky ref={typewRef}
+            className={`jb-typew ${carry && drag.from === 'pile' ? 'jb-drop-open' : ''}`}
+            disabled={!latest}
+            title={latest ? `Sit down with ${latest.name} — or drag the page onto the pile` : undefined}
+            onClick={() => { if (!draggedRef.current && latest) onOpen(latest.id); }}
+            onPointerDown={(e) => latest && startDrag(e, latest.id, 'machine')}
+            onPointerMove={moveDrag}
+            onPointerUp={endDrag}
+            onPointerCancel={() => setDrag(null)}>
+            <span className="jb-typew-paper" ref={paperRef} style={carry && drag.from === 'machine'
+              ? { transform: `translate(${carry.dx}px, ${carry.dy}px) translateX(-50%) rotate(2deg)`, zIndex: 30, transition: 'none', boxShadow: '0 10px 24px rgba(0,0,0,0.25)' }
+              : undefined}>
+              <span className="jb-mini" ref={miniRef} aria-hidden="true" />
+              {resumes !== null && !latest && (
+                <span className="jb-paper-note">no master<br />in the machine —<br />take the pen</span>
+              )}
+            </span>
+            <img className="jb-typew-img" src="/art/typewriter!.png" alt="" draggable={false} />
+          </button>
+          <p className="jb-under-label">
+            {latest ? (
+              <>
+                {latest.name} <span>· in the machine</span>
+                <button type="button" className={`jb-sheet-x jb-typew-x ${confirming === latest.id ? 'jb-sheet-x-hot' : ''}`}
+                  title="Retire this master" onClick={() => retire(latest.id)}>
+                  {confirming === latest.id ? 'SURE?' : '×'}
+                </button>
+              </>
+            ) : (
+              <span>{resumes === null ? 'opening the office…' : 'the machine stands empty'}</span>
+            )}
+          </p>
+        </div>
+
+        {pile.length > 0 && (
+          <div className={`jb-pile-slot ${carry && drag.from === 'machine' ? 'jb-drop-open' : ''}`}
+            ref={pileRef}>
+            <div className="jb-pile">
+              {pile.map((r, i) => (
+                <div key={r.id} className="jb-sheet"
+                  style={{
+                    '--tilt': `${(i % 2 ? 1 : -1) * (0.7 + (i % 3) * 0.5)}deg`,
+                    ...(carry && drag.from === 'pile' && drag.id === r.id
+                      ? { transform: `translate(${carry.dx}px, ${carry.dy}px) rotate(2deg)`, zIndex: 40, transition: 'none', boxShadow: '0 10px 24px rgba(0,0,0,0.25)' }
+                      : {}),
+                  }}>
+                  <button type="button" data-clicky className="jb-sheet-open"
+                    title={`Sit down with ${r.name} — or drag it into the machine`}
+                    onClick={() => { if (!draggedRef.current) onOpen(r.id); }}
+                    onPointerDown={(e) => startDrag(e, r.id, 'pile')}
+                    onPointerMove={moveDrag}
+                    onPointerUp={endDrag}
+                    onPointerCancel={() => setDrag(null)}>
+                    <span className="jb-sheet-name">{r.name}</span>
+                    <span className="jb-sheet-date">filed {new Date(r.createdAt).toLocaleDateString()}</span>
+                  </button>
+                  <button type="button" className={`jb-sheet-x ${confirming === r.id ? 'jb-sheet-x-hot' : ''}`}
+                    title="Retire this master" onClick={() => retire(r.id)}>
+                    {confirming === r.id ? 'SURE?' : '×'}
+                  </button>
+                </div>
+              ))}
+            </div>
+            <p className="jb-under-label"><span>the pile</span></p>
           </div>
-        ))
-      )}
-      <div className="jb-order-form">
+        )}
+
+        <div className="jb-pen-slot">
+          <button type="button" data-clicky className={`jb-pen ${busy ? 'jb-pen-busy' : ''}`} disabled={busy}
+            title="File a new master (.docx)" onClick={() => fileRef.current?.click()}>
+            <img src="/art/pen.png" alt="" draggable={false} />
+          </button>
+          <p className="jb-under-label"><span>{busy ? 'filing…' : 'file a master'}</span></p>
+        </div>
+
         <input ref={fileRef} type="file" accept=".docx" className="hidden"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) add(f); e.target.value = ''; }} />
-        <button data-clicky className="btn-black" disabled={busy} onClick={() => fileRef.current?.click()}>
-          {busy ? 'Filing…' : 'File a master'}
-        </button>
       </div>
-    </div>
+      <p className="fig-caption mt-3">
+        fig. the rewrite desk — {resumes === null ? '…' : count} {count === 1 ? 'master' : 'masters'} on file · nothing typed here is kept
+      </p>
+    </>
   );
 }
 
@@ -675,13 +832,11 @@ export default function ResumeDesk() {
   if (!resumeId) {
     return (
       <div className="jb-page stagger">
-        <div className="jb-deskad jb-deskad-still" role="banner">
-          <span className="jb-deskad-kicker">The house service · no charge · nothing is kept</span>
-          <span className="jb-deskad-title">The Rewrite Desk</span>
-          <span className="jb-deskad-copy">
-            Bring your resume as a .docx. The clerk rewords it, retypes it, lays it out, and tailors it to any posting you paste — every change is a proof you set or spike, and the copy leaves as Word or PDF with its formatting untouched.
-          </span>
-        </div>
+        <p className="t-label">The Classifieds · No. 01</p>
+        <h1 className="t-display">The Rewrite Desk</h1>
+        <p className="t-label mt-1" style={{ color: 'var(--ink-30)' }}>
+          Bring a .docx. The clerk rewords, retypes, and tailors it to any posting you paste. Nothing is kept.
+        </p>
         <MasterShelf onOpen={(id) => setParams((p) => { p.set('id', id); return p; }, { replace: false })} />
       </div>
     );

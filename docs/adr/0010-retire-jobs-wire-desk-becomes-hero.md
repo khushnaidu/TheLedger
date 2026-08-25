@@ -25,8 +25,27 @@ became the feature and the wire became overhead. The user's verdict:
   A future migration may drop them on an explicit ask.
 - **The desk is the section.** The registry's classifieds tool is now
   `The Rewrite Desk` at `/jobs`, rendering `ResumeDesk` directly;
-  `/jobs/resume` stays as a bookmark alias. The shelf landing wears
-  the double-ruled house-ad banner as its masthead.
+  `/jobs/resume` stays as a bookmark alias. The shelf landing first
+  wore the double-ruled house-ad banner; it was reworked the same day
+  (user ask: "minimalist like the reading room") into the desk scene —
+  the reading room's header idiom over three real objects on one
+  hairline desk edge: the typewriter (`/art/typewriter!.png`) holding
+  the latest master with page one live-rendered into the platen
+  (docx-preview at stamp scale; click sits you down at the desk), the
+  remaining masters fanned in a pile beside it (each sheet opens its
+  own master; hover lifts it; retiring is the house two-step ×), and
+  the pen (`/art/pen.png`) as the only way to file a new master.
+  "Latest" is the server's `updatedAt desc`, so a refiled master walks
+  back into the machine on its own. The stations also trade paper by
+  hand: dragging a pile sheet into the machine or the machine's page
+  onto the pile swaps which master holds the platen. The whole move is
+  one `PATCH {touch: true}` (bump `updatedAt` and let the ordering do
+  the rest); the drag is pointer-events with a 6px threshold below
+  which a press stays a click, the real element follows the cursor,
+  and the receiving station shows a dashed stamp-red catch outline.
+  The machine's catch area is the union of the typewriter's box and
+  the jutting page (absolutely positioned overflow is outside
+  `getBoundingClientRect`).
 - **Tailor-to-posting survives as paste.** The per-posting Tailor
   action died with the column, so the ask field and server instruction
   cap grew to 6,000 characters: pasting a job description into the

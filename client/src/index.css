@@ -5116,47 +5116,224 @@ body.rr-resizing .rr-textlayer { pointer-events: none; }
   color: var(--stamp);
 }
 
-/* ── the master shelf ─ */
-.jb-orders-head {
-  font-size: 0.5rem;
-  letter-spacing: 0.18em;
-  color: var(--ink-50);
-  padding-bottom: 7px;
-  border-bottom: 1px solid var(--line);
+/* ── the shelf scene: the desk photographed ─
+   minimalist in the reading room's manner: one hairline for the desk
+   edge, the real objects sitting on it, small engraved labels beneath.
+   The typewriter holds the latest master (page one rolled into the
+   platen, live-rendered), the pile holds the rest, the pen files new. */
+.jb-scene {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 56px;
+  margin-top: 175px; /* headroom for the page standing out of the platen */
+  padding: 0 12px;
+  max-width: 880px;
+  border-bottom: 1px solid var(--ink); /* the edge of the desk */
 }
 
-.jb-orders-empty {
-  padding: 10px 0 4px;
+.jb-typew-slot { flex: none; width: 330px; }
+
+.jb-typew {
+  position: relative;
+  display: block;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+.jb-typew:disabled { cursor: default; }
+.jb-typew-img {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+}
+
+/* the page in the machine — bottom edge tucked behind the carriage */
+.jb-typew-paper {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  bottom: 72%;
+  display: block;
+  width: 190px;
+  height: 218px;
+  background: #fff;
+  border: 1px solid var(--ink);
+  border-bottom: none;
+  overflow: hidden;
+  transform: translateX(-50%) rotate(-1.4deg);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.jb-typew:not(:disabled):hover .jb-typew-paper {
+  transform: translateX(-50%) rotate(-1.4deg) translateY(-10px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+/* the mini render: the desk's own engine at stamp size */
+.jb-mini {
+  display: block;
+  transform-origin: top left;
+  text-transform: none;
+  text-align: left;
+  pointer-events: none;
+}
+.jb-mini .docx-wrapper {
+  background: transparent !important;
+  padding: 0 !important;
+  text-transform: none;
+}
+.jb-mini .docx-wrapper > section.docx {
+  box-shadow: none;
+  margin: 0 !important;
+}
+
+.jb-paper-note {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 0.5rem;
+  line-height: 2;
+  letter-spacing: 0.14em;
+  color: var(--ink-50);
+}
+
+/* ── carrying paper between stations ─
+   drag the page out of the machine onto the pile, or a sheet from the
+   pile into the machine; the dashed slot marks where it can land */
+.jb-typew,
+.jb-sheet-open { touch-action: none; }
+
+.jb-scene.jb-carrying,
+.jb-scene.jb-carrying * {
+  cursor: grabbing !important;
+  user-select: none;
+}
+
+.jb-typew.jb-drop-open .jb-typew-paper {
+  outline: 1.5px dashed var(--stamp);
+  outline-offset: 4px;
+}
+.jb-pile-slot.jb-drop-open .jb-pile {
+  outline: 1.5px dashed var(--stamp);
+  outline-offset: 8px;
+}
+
+/* the engraved plaque under each object, sitting on the desk edge */
+.jb-under-label {
+  margin: 10px 0 8px;
+  text-align: center;
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.jb-under-label span { color: var(--ink-30); }
+
+/* ── the pile beside the machine ─ */
+.jb-pile-slot { flex: none; width: 168px; }
+.jb-pile { display: flex; flex-direction: column; }
+
+.jb-sheet {
+  position: relative;
+  height: 176px;
+  background: #fdfbf4;
+  border: 1px solid var(--ink);
+  transform: rotate(var(--tilt, 0deg));
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+.jb-sheet + .jb-sheet { margin-top: -132px; }
+.jb-sheet:hover {
+  transform: rotate(var(--tilt, 0deg)) translateY(-12px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16);
+  z-index: 5;
+}
+
+.jb-sheet-open {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  padding: 8px 22px 8px 10px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font);
+  color: var(--ink);
+}
+.jb-sheet-name {
+  display: block;
   font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.jb-sheet-date {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.5rem;
   letter-spacing: 0.08em;
   color: var(--ink-50);
 }
 
-.jb-order {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding: 7px 0;
-  border-bottom: 1px dashed var(--ink-15);
-  font-size: 0.625rem;
-}
-
-.jb-order-loc { font-size: 0.5625rem; color: var(--ink-50); }
-.jb-order-ran { margin-left: auto; font-size: 0.5rem; letter-spacing: 0.1em; color: var(--ink-30); }
-
-.jb-order-x {
+.jb-sheet-x {
+  position: absolute;
+  top: 5px;
+  right: 5px;
   border: none;
   background: none;
+  padding: 0 2px;
+  font-family: var(--font);
   font-size: 0.5625rem;
   color: var(--ink-30);
   cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s;
+  z-index: 6;
 }
-.jb-order-x:hover { color: var(--stamp); }
+.jb-sheet:hover .jb-sheet-x,
+.jb-sheet-x-hot { opacity: 1; }
+.jb-sheet-x:hover { color: var(--stamp); }
+.jb-sheet-x-hot { color: var(--stamp); font-weight: 700; }
 
-.jb-order-form {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
+/* the typewriter's retire chip lives on its plaque, not the paper */
+.jb-typew-x {
+  position: static;
+  opacity: 0;
+  margin-left: 4px;
+}
+.jb-typew-slot:hover .jb-typew-x { opacity: 1; }
+
+/* ── the pen: the only way in ─ */
+.jb-pen-slot { flex: none; width: 116px; margin-left: auto; }
+.jb-pen {
+  display: block;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.18s ease;
+}
+.jb-pen img { display: block; width: 100%; }
+.jb-pen:not(:disabled):hover { transform: translateY(-6px) rotate(-5deg); }
+.jb-pen-busy { animation: jb-pen-dip 0.9s ease-in-out infinite; }
+@keyframes jb-pen-dip {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(6px) rotate(-8deg); }
 }
 
 .jb-entry-acts {
@@ -5177,46 +5354,6 @@ body.rr-resizing .rr-textlayer { pointer-events: none; }
 }
 .jb-act:hover { color: var(--ink); }
 .jb-act-spike:hover { color: var(--stamp); }
-
-/* the house display ad: the rewrite desk billed like a front-page feature,
-   not a footnote — heavy double rule, the classified display-ad manner */
-.jb-deskad {
-  display: block;
-  width: 100%;
-  margin-top: 14px;
-  padding: 14px 16px 16px;
-  border: 3px double var(--ink);
-  background: transparent;
-  cursor: pointer;
-  text-align: center;
-  font-family: var(--font);
-  color: var(--ink);
-}
-.jb-deskad:hover { background: var(--ink); color: #fff; }
-.jb-deskad-kicker {
-  display: block;
-  font-size: 0.5rem;
-  letter-spacing: 0.24em;
-  opacity: 0.55;
-}
-.jb-deskad-title {
-  display: block;
-  margin-top: 4px;
-  font-size: 1.375rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  line-height: 1.1;
-}
-.jb-deskad-copy {
-  display: block;
-  margin-top: 6px;
-  font-size: 0.5625rem;
-  letter-spacing: 0.05em;
-  opacity: 0.75;
-}
-/* the banner form of the ad: a masthead now, not a link */
-.jb-deskad-still { cursor: default; }
-.jb-deskad-still:hover { background: transparent; color: var(--ink); }
 
 /* the two-step master refile: the armed state reads as a warning */
 .jb-refile-warn {
@@ -5317,24 +5454,6 @@ body.rr-resizing .rr-textlayer { pointer-events: none; }
   letter-spacing: 0.02em;
   text-transform: none;
 }
-
-.jb-shelf {
-  margin-top: 16px;
-  border: 1px solid var(--line);
-  padding: 10px 12px 12px;
-  max-width: 640px;
-}
-
-.jb-shelf-open {
-  border: none;
-  background: none;
-  padding: 0;
-  font-family: var(--font-head);
-  font-weight: 700;
-  font-size: 0.75rem;
-  cursor: pointer;
-}
-.jb-shelf-open:hover { color: var(--stamp); }
 
 .jb-startfresh {
   display: block;

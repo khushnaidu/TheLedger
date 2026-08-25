@@ -61,6 +61,9 @@ router.patch('/resumes/:id', async (req, res) => {
     const data = {};
     if (typeof req.body?.blobUrl === 'string' && req.body.blobUrl) data.blobUrl = req.body.blobUrl.slice(0, 500);
     if (typeof req.body?.name === 'string' && req.body.name.trim()) data.name = req.body.name.trim().slice(0, 60);
+    // a touch rolls this master into the typewriter: the shelf scene
+    // shows updatedAt desc, so bumping the stamp IS the promotion
+    if (req.body?.touch === true) data.updatedAt = new Date();
     if (!Object.keys(data).length) return res.status(400).json({ error: 'Nothing to update' });
     const updated = await prisma.resume.update({ where: { id: resume.id }, data });
     if (data.blobUrl && data.blobUrl !== resume.blobUrl) {
