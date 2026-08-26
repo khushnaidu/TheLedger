@@ -346,7 +346,7 @@ export function geoLabel(set) {
 // words, new dress)
 function EditCard({ edit, idx, onSet, onSpike }) {
   return (
-    <div className="jb-card">
+    <div className={`jb-card ${edit.adrift ? 'jb-card-adrift' : ''}`}>
       <p className="jb-proof-label">
         Proof Nº {String(idx + 1).padStart(2, '0')} · {edit.kind === 'add' ? 'new line' : edit.kind === 'format' ? 'retype' : edit.kind === 'layout' ? 'lay out' : edit.kind === 'strike' ? 'strike the line' : 'rewrite'}
       </p>
@@ -375,8 +375,15 @@ function EditCard({ edit, idx, onSet, onSpike }) {
           <p className="jb-card-new">{edit.text}</p>
         </>
       )}
+      {edit.adrift && (
+        <p className="jb-card-adrift-note">
+          Its line has changed since this was filed — the card is adrift. Spike it, or ask the clerk again.
+        </p>
+      )}
       <div className="jb-entry-acts">
-        <button data-clicky className="jb-act" onClick={onSet}>Set it</button>
+        <button data-clicky className="jb-act" disabled={edit.adrift}
+          title={edit.adrift ? 'The line this card was filed against no longer exists as filed' : undefined}
+          onClick={onSet}>Set it</button>
         <button data-clicky className="jb-act jb-act-spike" onClick={onSpike}>Spike</button>
       </div>
     </div>
@@ -658,15 +665,24 @@ export default function ResumeDesk() {
   useEffect(() => { chatRef.current?.scrollTo(0, chatRef.current.scrollHeight); }, [chat]);
 
   // After ANY mutation the segment list is rebuilt and every pending card
-  // is re-bound to its fresh target BY ITS TEXT, not by stale numbers or
-  // node references. This is what lets several cards touch the same line
-  // in one Set All: a word-scope retype splits a segment into three, and
-  // the next card simply finds its words in whichever piece holds them.
+  // is re-bound to its fresh target. The anchor of first resort is the
+  // paragraph ELEMENT — the doc mutates in place, so a line's <w:p> node
+  // survives every set, including sets that change its words (the old
+  // text-only matching lost sibling cards whenever a rewrite landed on a
+  // line another card was bound to, or when a line's text stopped being
+  // unique — "setting a change causes the rest to disappear"). Text
+  // matching stays as the fallback for after an undo, which reparses the
+  // tree and orphans every element reference. A card that still cannot
+  // find its line is kept ADRIFT — visible, unsettable, spikeable —
+  // never silently discarded.
   const rebind = (list, fresh) => {
     const paras = new Map();
+    const byPel = new Map();
     for (const s of fresh) {
       if (!paras.has(s.pn)) paras.set(s.pn, { seg: s, text: '' });
       paras.get(s.pn).text += s.text;
+      if (!byPel.has(s.pEl)) byPel.set(s.pEl, []);
+      byPel.get(s.pEl).push(s);
     }
     const segByText = (t) => {
       const hits = fresh.filter((s) => s.text === t);
@@ -676,26 +692,46 @@ export default function ResumeDesk() {
       const hits = [...paras.values()].filter((p) => p.text === t);
       return hits.length === 1 ? hits[0].seg : null;
     };
+    const paraByAnchor = (seg, text) => {
+      const kin = seg && byPel.get(seg.pEl);
+      return (kin && kin[0]) || paraByText(text);
+    };
+    const adrift = (p) => ({ ...p, adrift: true });
     return list.map((p) => {
       if (p.kind === 'add') {
-        const a = paraByText(p.bindPara);
-        const like = p.bindLike != null ? paraByText(p.bindLike) : null;
-        return a ? { ...p, afterSeg: a, likeSeg: like || a } : null;
+        const a = paraByAnchor(p.afterSeg, p.bindPara);
+        const like = p.bindLike != null ? paraByAnchor(p.likeSeg, p.bindLike) : null;
+        return a ? { ...p, adrift: false, afterSeg: a, likeSeg: like || a } : adrift(p);
       }
       if (p.kind === 'layout' || p.kind === 'strike') {
-        const s = paraByText(p.bindPara);
-        return s ? { ...p, seg: s } : null;
+        const s = paraByAnchor(p.seg, p.bindPara);
+        return s ? { ...p, adrift: false, seg: s } : adrift(p);
       }
-      let s = segByText(p.bindText);
-      if (!s && p.kind === 'format' && p.only) {
-        // the line was carved up by an earlier card; the words still name
-        // their target if exactly one piece holds them
-        const hits = fresh.filter((x) => x.text.includes(p.only));
-        if (hits.length === 1) s = { ...hits[0] };
-        if (s) return { ...p, seg: s, bindText: s.text, before: s.text };
+      // segment cards hunt inside their own paragraph first; ghosts hold
+      // no text nodes, so they can anchor a paragraph but never an edit
+      const kin = (byPel.get(p.seg && p.seg.pEl) || []).filter((x) => !x.ghost);
+      if (p.kind === 'format' && p.only) {
+        // the words name the target: in this paragraph's pieces first,
+        // then anywhere if they are unique — but a word-scope card never
+        // falls back to dressing a whole line
+        const pool = kin.filter((x) => x.text.includes(p.only));
+        let s = pool.length === 1 ? pool[0] : null;
+        if (!s) {
+          const g = fresh.filter((x) => !x.ghost && x.text.includes(p.only));
+          if (g.length === 1) s = g[0];
+        }
+        return s ? { ...p, adrift: false, seg: s, bindText: s.text, before: s.text } : adrift(p);
       }
-      return s ? { ...p, seg: s } : null;
-    }).filter(Boolean);
+      let s = kin.find((x) => x.text === p.bindText) || null;
+      if (!s && kin.length === 1) {
+        // the line was rewritten under this card; follow the paragraph
+        // and show the reader the text as it now stands
+        s = kin[0];
+        return { ...p, adrift: false, seg: s, bindText: s.text, before: s.text };
+      }
+      if (!s) s = segByText(p.bindText);
+      return s ? { ...p, adrift: false, seg: s } : adrift(p);
+    });
   };
 
   const applyProp = (prop) => {
@@ -716,7 +752,7 @@ export default function ResumeDesk() {
 
   const setEdit = (propIn, repaint = true) => {
     const prop = proposedRef.current.find((p) => p.key === propIn.key);
-    if (!prop || !doc) return;
+    if (!prop || !doc || prop.adrift) return;
     const snap = snapshotParts(doc);
     try {
       applyProp(prop);
@@ -754,7 +790,7 @@ export default function ResumeDesk() {
   // apply in filed order off the LIVE list (each apply re-binds the rest),
   // painting once at the end instead of racing a render per card
   const setAll = () => {
-    for (const p of [...proposedRef.current]) setEdit(p, false);
+    for (const p of [...proposedRef.current]) { if (!p.adrift) setEdit(p, false); }
     paint(doc);
   };
 

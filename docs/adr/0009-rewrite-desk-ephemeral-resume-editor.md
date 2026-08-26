@@ -212,6 +212,27 @@ Two decisions were locked with the user before building:
   undo re-binds through the same path. Verified: bold and italic on
   two word spans of the same bullet plus an underline elsewhere, one
   Set All, all three landed as clean run splits with no error.
+  **Element-anchored rebinding + adrift cards (2026-08-25, "setting a
+  change causes the rest of the proposed changes to disappear").**
+  Text-only rebinding had its own silent-discard hole: rebind ended in
+  `.filter(Boolean)`, so a card died whenever its bound text stopped
+  existing (a sibling rewrite changed the very line it was bound to)
+  or stopped being unique (duplicate lines, or a set that created
+  one). Now the anchor of first resort is the paragraph ELEMENT — the
+  doc mutates in place, so `pEl` survives every set — with text
+  matching as the fallback for after undo, whose `restoreParts`
+  reparse orphans every element reference. A whole-segment card whose
+  line was rewritten under it follows the paragraph and shows the
+  text as it now stands; a word-scope retype never falls back to
+  dressing a whole line. A card that still cannot find its line is
+  kept ADRIFT — greyed, Set disabled with a printed reason, spikeable
+  — never silently dropped, and the next rebind (an undo restoring
+  its line) revives it. Verified end-to-end: rewrite + bold filed on
+  one line, rewrite set first, bold survived and landed on the new
+  text; a rewrite that removed the bolded words sent the retype
+  adrift instead of vanishing, and undo brought it back. (A new
+  consult still replaces the whole proposal list by design — each
+  note's filings are the proposals.)
   **Refile hardening (same day, "update master fails often"):** the
   armed confirm no longer auto-disarms after five seconds (a reader
   pausing on the red warning clicked into a silently reset button,

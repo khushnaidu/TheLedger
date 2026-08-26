@@ -5847,6 +5847,22 @@ body.jb-resizing .jb-board { pointer-events: none; }
   text-overflow: ellipsis;
 }
 
+/* an adrift proof: its line changed under it — kept visible, never
+   silently discarded, but only spikeable until it finds its line again */
+.jb-card-adrift { opacity: 0.55; }
+.jb-card-adrift-note {
+  margin-top: 6px;
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  color: var(--stamp);
+  text-transform: none;
+}
+.jb-deskrail .jb-act:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.jb-deskrail .jb-act:disabled:hover { background: transparent; color: var(--ink); }
+
 /* proof slips: cut paper, pinned slightly off-true */
 .jb-card {
   margin-top: 12px;
