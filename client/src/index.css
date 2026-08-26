@@ -5224,6 +5224,227 @@ body.rr-resizing .rr-textlayer { pointer-events: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   THE APPLICATION LOG — the job hunt's other half (al-)
+   a bound ledger page: ruled lines, red margin, marks in a hand
+   ═══════════════════════════════════════════════════════════════ */
+
+.al-page { max-width: 980px; padding-bottom: 56px; }
+
+/* the intake slip */
+.al-intake {
+  margin-top: 22px;
+  border: 1px solid var(--line);
+  background: #fcfbf7;
+  padding: 12px 14px;
+  max-width: 760px;
+}
+.al-intake-head {
+  font-size: 0.5rem;
+  letter-spacing: 0.18em;
+  color: var(--ink-50);
+  text-transform: uppercase;
+}
+.al-paste {
+  width: 100%;
+  margin: 8px 0;
+  border: 1px solid var(--line);
+  background: transparent;
+  padding: 7px 9px;
+  font-family: var(--font);
+  font-size: 0.625rem;
+  line-height: 1.5;
+  letter-spacing: 0.03em;
+  resize: vertical;
+  text-transform: none;
+}
+.al-paste:focus { outline: none; border-color: var(--ink); }
+
+/* ── the book: cut from the accounts' cloth — the punched sheet ─ */
+.al-book {
+  margin-top: 20px;
+  position: relative;
+  display: flex;
+  background: var(--fin-paper);
+  border: 1px solid var(--line);
+}
+/* the leaf underneath, so the page has a thickness */
+.al-book::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  right: -5px;
+  top: 5px;
+  bottom: -5px;
+  border: 1px solid var(--ink-15);
+  background: var(--fin-paper);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* the punched margin with the printer's double red rule, painted the
+   same way as the accounts sheet's */
+.al-holes {
+  flex: 0 0 24px;
+  border-right: 1px solid rgba(196, 30, 30, 0.35);
+  box-shadow: 2px 0 0 -1px rgba(196, 30, 30, 0.35);
+  background-color: rgba(0, 0, 0, 0.012);
+  background-image: radial-gradient(
+    circle at 12px 13px,
+    transparent 2.4px,
+    var(--ink-15) 2.4px,
+    var(--ink-15) 3.4px,
+    transparent 3.5px
+  );
+  background-size: 24px 26px;
+  background-repeat: repeat-y;
+}
+
+.al-grid { flex: 1; min-width: 0; }
+
+/* the caption bar every printed plate carries */
+.al-plate-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--ink-30);
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  color: var(--ink-50);
+}
+.al-plate-head span:last-child { color: var(--ink); }
+
+.al-table { width: 100%; border-collapse: collapse; }
+.al-cols th {
+  padding: 6px 8px;
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-50);
+  font-weight: 400;
+  text-align: left;
+  border-bottom: 1px solid var(--ink-30);
+}
+.al-line td {
+  padding: 5px 8px;
+  vertical-align: top;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+}
+.al-band td { background: var(--fin-bar); } /* the green-bar stock */
+.al-line:hover td { box-shadow: inset 0 1px 0 var(--ink-15), inset 0 -1px 0 var(--ink-15); }
+.al-line-closed .al-company,
+.al-line-closed .al-role { text-decoration: line-through; text-decoration-color: rgba(178, 34, 34, 0.6); }
+.al-line-closed td { opacity: 0.72; }
+
+.al-no {
+  width: 40px;
+  font-size: 0.5625rem;
+  color: var(--ink-30);
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+.al-date {
+  width: 76px;
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-50);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.al-position { cursor: pointer; }
+.al-company {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-right: 8px;
+}
+.al-role { letter-spacing: 0.02em; text-transform: none; }
+.al-particulars {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-50);
+}
+
+.al-edit { display: flex; gap: 6px; }
+.al-edit-input {
+  border: 1px solid var(--ink);
+  background: #fff;
+  padding: 3px 6px;
+  font-family: var(--font);
+  font-size: 0.625rem;
+  text-transform: none;
+  width: 40%;
+}
+.al-edit-role { width: 58%; }
+.al-edit-input:focus { outline: none; }
+
+/* the tick columns: printed boxes, marks in a written hand */
+.al-tickcell { width: 50px; text-align: center; }
+th.al-tickcell { text-align: center; }
+.al-tick {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--ink-30);
+  background: transparent;
+  cursor: pointer;
+  font-family: 'Gochi Hand', cursive;
+  font-size: 0.875rem;
+  line-height: 1;
+  color: #1d3557;
+  padding: 0;
+}
+.al-tick:hover { border-color: var(--ink); }
+.al-tick-no { color: var(--stamp); }
+
+.al-strikecell { width: 40px; text-align: right; }
+.al-strike {
+  border: none;
+  background: none;
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  color: var(--ink-30);
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.al-strike:hover, .al-strike-hot { color: var(--stamp); }
+.al-strike-hot { font-weight: 700; }
+
+/* the unfolded posting under its line */
+.al-foldrow td { padding: 0 8px 10px; }
+.al-fold { padding: 6px 10px 0; }
+.al-fold-head {
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-50);
+}
+.al-fold-link { color: var(--stamp); text-decoration: none; }
+.al-fold-link:hover { text-decoration: underline; }
+.al-fold-raw {
+  margin-top: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  line-height: 1.55;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: rgba(17, 17, 17, 0.8);
+}
+
+.al-empty {
+  padding: 26px 10px;
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-50);
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════════════════════════════
    THE CLASSIFIEDS — situations vacant (jb-)
    a broadsheet classified column: dense, rule-separated, small caps
    ═══════════════════════════════════════════════════════════════ */

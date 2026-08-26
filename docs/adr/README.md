@@ -22,3 +22,4 @@ problem and constraints), **Decision** (what we chose, concretely), and
 - [0009](0009-rewrite-desk-ephemeral-resume-editor.md) — The Classifieds: the Rewrite Desk, ephemeral resume tailoring by docx surgery
 - [0010](0010-retire-jobs-wire-desk-becomes-hero.md) — Retire the jobs wire; the Rewrite Desk becomes the whole of THE CLASSIFIEDS
 - [0011](0011-notice-to-patrons-tutorial-cards.md) — Notice to Patrons: per-page tutorial cards in the house voice
+- [0012](0012-application-log.md) — The Application Log: paste a posting, it files itself as applied-for

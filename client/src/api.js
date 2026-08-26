@@ -194,6 +194,11 @@ export const api = {
 
   // The Rewrite Desk — masters stored, tailored copies never touch the server
   // (the jobs wire was retired 2026-08; see ADR-0010)
+  // The Application Log — paste a posting, it files itself (ADR-0012)
+  getApplications: () => request('/jobs/applications'),
+  fileApplication: (raw) => request('/jobs/applications', { method: 'POST', body: JSON.stringify({ raw }) }),
+  updateApplication: (id, data) => request(`/jobs/applications/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteApplication: (id) => request(`/jobs/applications/${id}`, { method: 'DELETE' }),
   getResumes: () => request('/jobs/resumes'),
   addResume: (data) => request('/jobs/resumes', { method: 'POST', body: JSON.stringify(data) }),
   updateResume: (id, data) => request(`/jobs/resumes/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),

@@ -70,6 +70,19 @@ const NOTICES = [
     ],
   },
   {
+    id: 'applog',
+    match: (p) => p.startsWith('/jobs/log'),
+    section: 'The Classifieds',
+    title: 'The application log',
+    lead: 'The job hunt’s other half: a logbook of every posting you answered, and what came of it.',
+    steps: [
+      'Paste the whole posting into the intake slip and "File it as applied" — a clerk reads the company, role, location, and pay out of the paste.',
+      'Tick the columns as word arrives: HEARD, INTV., OFFER — and NO when the door shuts. A NO strikes the line through.',
+      'Click a line to unfold the posting as you pasted it; double-click the position to correct the clerk’s reading.',
+      'The × strikes a line from the record. It asks twice.',
+    ],
+  },
+  {
     id: 'jobs',
     match: (p) => p.startsWith('/jobs'),
     section: 'The Classifieds',

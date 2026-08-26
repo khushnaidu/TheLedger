@@ -31,8 +31,10 @@ export const TOOLS = [
   { id: 'research', name: 'Reading Room', route: '/research', section: 'study',
     Component: lazy(() => import('./research/ReadingRoom')) },
   // ── the classifieds ── (the jobs wire retired 2026-08; the desk IS the section now)
-  { id: 'jobs', name: 'The Rewrite Desk', route: '/jobs', section: 'classifieds',
+  { id: 'jobs', name: 'The Rewrite Desk', route: '/jobs', end: true, section: 'classifieds',
     Component: lazy(() => import('./jobs/ResumeDesk')) },
+  { id: 'applog', name: 'The Application Log', route: '/jobs/log', section: 'classifieds',
+    Component: lazy(() => import('./jobs/ApplicationLog')) },
   // ── the accounts ──
   { id: 'finance', name: 'The Book', route: '/finance', section: 'accounts',
     Component: lazy(() => import('./finance/Overview')) },

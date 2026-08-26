@@ -31,6 +31,7 @@ model User {
   jobSearches JobSearch[]
   jobPostings JobPosting[]
   resumes     Resume[]
+  applications Application[]
 
   sentInvites     Connection[]  @relation("connRequester")
   receivedInvites Connection[]  @relation("connAddressee")
@@ -315,6 +316,27 @@ model Resume {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+}
+
+// ── The Classifieds: the application log — a pasted posting, filed as
+// applied-for; four tick columns track the reply. See ADR-0012. ──
+model Application {
+  id        String   @id @default(uuid())
+  company   String   @default("")
+  role      String   @default("")
+  location  String   @default("")
+  salary    String   @default("")
+  url       String   @default("")
+  raw       String   @default("") // the posting as pasted, for the record
+  heard     Boolean  @default(false)
+  interview Boolean  @default(false)
+  offer     Boolean  @default(false)
+  closed    Boolean  @default(false) // the "no" column
+  appliedAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, appliedAt])
 }
 
 model LedgerEntry {

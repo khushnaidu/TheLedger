@@ -93,6 +93,111 @@ router.delete('/resumes/:id', async (req, res) => {
   }
 });
 
+// ── the application log ──────────────────────────────────────
+// Paste a posting, it files itself as applied-for (ADR-0012). One
+// cheap Haiku call pulls company/role/location/salary/url out of the
+// paste; the call is fail-open — no key or a bad parse still files
+// the row, with the paste's first line standing in as the role until
+// the reader amends it. Four booleans are the logbook's tick columns.
+
+const LOG_MODEL = 'claude-haiku-4-5';
+const APP_BOOLS = ['heard', 'interview', 'offer', 'closed'];
+const APP_FIELDS = { company: 90, role: 120, location: 90, salary: 60, url: 300 };
+
+const parsePosting = async (raw) => {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const msg = await client.messages.create({
+    model: LOG_MODEL,
+    max_tokens: 400,
+    tools: [{
+      name: 'application_details',
+      description: 'File the details of one job posting.',
+      input_schema: {
+        type: 'object',
+        properties: {
+          company: { type: 'string', description: 'the employer, as the posting names it' },
+          role: { type: 'string', description: 'the job title' },
+          location: { type: 'string', description: 'city / remote / hybrid, empty if unstated' },
+          salary: { type: 'string', description: 'the pay as printed, empty if unstated' },
+          url: { type: 'string', description: 'the posting link if one appears in the text, else empty' },
+        },
+        required: ['company', 'role'],
+      },
+    }],
+    tool_choice: { type: 'tool', name: 'application_details' },
+    messages: [{ role: 'user', content: 'Extract the details of this job posting:\n\n' + raw.slice(0, 8000) }],
+  });
+  const use = msg.content.find((c) => c.type === 'tool_use');
+  return use ? use.input : null;
+};
+
+router.get('/applications', async (req, res) => {
+  try {
+    const rows = await prisma.application.findMany({
+      where: { userId: req.user.id },
+      orderBy: { appliedAt: 'desc' },
+    });
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/applications', async (req, res) => {
+  try {
+    const raw = String(req.body?.raw ?? '').trim();
+    if (!raw) return res.status(400).json({ error: 'Paste the posting first' });
+    let parsed = null;
+    try {
+      parsed = await parsePosting(raw);
+    } catch { /* fail-open: the row still gets filed */ }
+    const firstLine = raw.split('\n').map((l) => l.trim()).find(Boolean) || 'untitled posting';
+    const data = { userId: req.user.id, raw: raw.slice(0, 4000) };
+    for (const [f, cap] of Object.entries(APP_FIELDS)) {
+      data[f] = String(parsed?.[f] ?? '').trim().slice(0, cap);
+    }
+    if (!data.role) data.role = firstLine.slice(0, 120);
+    const row = await prisma.application.create({ data });
+    res.status(201).json(row);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.patch('/applications/:id', async (req, res) => {
+  try {
+    const row = await prisma.application.findFirst({
+      where: { id: req.params.id, userId: req.user.id },
+    });
+    if (!row) return res.status(404).json({ error: 'No such line in the log' });
+    const data = {};
+    for (const b of APP_BOOLS) {
+      if (typeof req.body?.[b] === 'boolean') data[b] = req.body[b];
+    }
+    for (const [f, cap] of Object.entries(APP_FIELDS)) {
+      if (typeof req.body?.[f] === 'string') data[f] = req.body[f].trim().slice(0, cap);
+    }
+    if (!Object.keys(data).length) return res.status(400).json({ error: 'Nothing to update' });
+    res.json(await prisma.application.update({ where: { id: row.id }, data }));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.delete('/applications/:id', async (req, res) => {
+  try {
+    const row = await prisma.application.findFirst({
+      where: { id: req.params.id, userId: req.user.id },
+    });
+    if (!row) return res.status(404).json({ error: 'No such line in the log' });
+    await prisma.application.delete({ where: { id: row.id } });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── the rewrite clerk ────────────────────────────────────────
 // The browser owns the document; the clerk only ever sees numbered text
 // segments and hands back replacements. Styling never crosses the wire,
