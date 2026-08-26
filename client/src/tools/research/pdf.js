@@ -26,7 +26,9 @@ export async function extractAllPages(doc, onProgress) {
       if (item.str) text += (text && !text.endsWith('\n') ? ' ' : '') + item.str;
       if (item.hasEOL) text += '\n';
     }
-    pages.push({ pageNumber: n, text: text.trim().slice(0, 15_000) });
+    // some PDFs carry NUL bytes in their text layer; Postgres refuses
+    // them, so they die here rather than killing the page batch
+    pages.push({ pageNumber: n, text: text.replace(/\u0000/g, '').trim().slice(0, 15_000) });
     onProgress?.(n, doc.numPages);
     page.cleanup();
   }

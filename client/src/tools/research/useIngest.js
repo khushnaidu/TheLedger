@@ -6,6 +6,25 @@ const BATCH = 25;
 // The intake pipeline: Blob upload → pdfjs extraction → paper row +
 // batched page text. Shared by the acquisitions drop ghost and each
 // drawer's + slot (which files straight in via collectionId).
+// Extraction alone, from an already-open pdfjs doc. The reader uses this
+// to SELF-HEAL a paper whose intake died mid-catalogue (paper row filed,
+// zero pages stored, badge stuck on CATALOGUING, Jane blind) — the
+// reader has the whole PDF open to render it, which is exactly the text
+// the catalog is missing. This is ADR-0005's promised re-extract path.
+// Unlike ingest below it must NOT destroy the doc — the reader owns it.
+export async function catalogueDoc(paperId, doc, onStage) {
+  const { extractAllPages } = await import('./pdf');
+  const pages = await extractAllPages(doc, (n, total) =>
+    onStage?.(`re-cataloguing page ${n}/${total}…`));
+  await api.clearPaperPages(paperId);
+  for (let i = 0; i < pages.length; i += BATCH) {
+    await api.postPaperPages(paperId, pages.slice(i, i + BATCH));
+  }
+  const emptyish = pages.filter((p) => p.text.length < 20).length;
+  const scanned = pages.length > 0 && emptyish / pages.length >= 0.8;
+  return api.updatePaper(paperId, { status: scanned ? 'scanned' : 'ready', pageCount: doc.numPages });
+}
+
 export default function useIngest(onDone) {
   const [stage, setStage] = useState(null); // null | {label}
   const [error, setError] = useState(null);

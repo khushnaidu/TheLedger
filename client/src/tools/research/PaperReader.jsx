@@ -31,6 +31,7 @@ export default function PaperReader() {
   // which mark is currently picked out, on the page and in the rail both
   const [selectedId, setSelectedId] = useState(null);
   const [askSeed, setAskSeed] = useState(null); // prefill for Jane from a highlight
+  const [healing, setHealing] = useState(null); // progress while finishing a died intake
   const [noteDraft, setNoteDraft] = useState('');
   const [pickColor, setPickColor] = useState('marigold');
   const colRef = useRef(null);
@@ -85,6 +86,18 @@ export default function PaperReader() {
         setAspect(vp.height / vp.width);
         page1.cleanup();
         setDoc(d);
+        // a paper still marked processing is a died intake: the badge is
+        // stuck on CATALOGUING and Jane has no text. The reader holds
+        // the whole PDF anyway, so it quietly finishes the job.
+        if (p.status === 'processing') {
+          const { catalogueDoc } = await import('./useIngest');
+          setHealing('finishing the catalogue…');
+          catalogueDoc(p.id, d, (label) => { if (!dead) setHealing(label); })
+            // merge: the PATCH payload has no annotations array, and
+            // wholesale replacement would strip the margins mid-read
+            .then((fresh) => { if (!dead) { setPaper((old) => ({ ...old, ...fresh, annotations: old?.annotations ?? fresh.annotations ?? [] })); setHealing(null); } })
+            .catch(() => { if (!dead) setHealing('the catalogue could not be finished — Jane still cannot see the text'); });
+        }
       } catch {
         setError('The volume would not open. The file may be missing from storage.');
       }
@@ -193,7 +206,10 @@ export default function PaperReader() {
         <button data-clicky className="btn-ghost" onClick={() => navigate('/research')}>← catalog</button>
         <div className="rr-reader-title">
           <p className="t-label">{paper.title}</p>
-          <p className="rr-reader-byline">{paper.authors}{paper.year ? ` · ${paper.year}` : ''}</p>
+          <p className="rr-reader-byline">
+            {paper.authors}{paper.year ? ` · ${paper.year}` : ''}
+            {healing && <span className="rr-healing"> · {healing}</span>}
+          </p>
         </div>
         <div className="rr-reader-zoom">
           {ZOOMS.map((z) => (

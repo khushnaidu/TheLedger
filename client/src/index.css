@@ -3343,6 +3343,9 @@ aside {
   text-overflow: ellipsis;
 }
 
+/* the self-heal in progress: a died intake being finished on open */
+.rr-healing { color: var(--stamp); }
+
 .rr-reader-byline {
   font-size: 0.5rem;
   letter-spacing: 0.08em;

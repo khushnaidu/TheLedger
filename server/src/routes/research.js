@@ -196,7 +196,11 @@ router.post('/papers/:id/pages', async (req, res) => {
     if (!Array.isArray(pages) || !pages.length) return res.status(400).json({ error: 'No pages' });
     const data = pages
       .filter((p) => Number.isInteger(p.pageNumber) && p.pageNumber >= 1 && typeof p.text === 'string')
-      .map((p) => ({ paperId: owned.id, pageNumber: p.pageNumber, text: p.text.slice(0, MAX_PAGE_TEXT) }));
+      // NUL bytes appear in some PDFs' text layers (font encoding
+      // artifacts) and Postgres rejects them outright — one poisoned
+      // page killed a whole intake and left the paper stuck on
+      // CATALOGUING. Strip them here so no client can be burned.
+      .map((p) => ({ paperId: owned.id, pageNumber: p.pageNumber, text: p.text.replace(/\u0000/g, '').slice(0, MAX_PAGE_TEXT) }));
     const result = await prisma.paperPage.createMany({ data, skipDuplicates: true });
     res.json({ ok: true, count: result.count });
   } catch (err) {
