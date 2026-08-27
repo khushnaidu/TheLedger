@@ -49,6 +49,18 @@ for," with tick columns for whether they heard back — a logbook, using
   and roll back on a failed PATCH.
 - A Notice to Patrons entry (ADR-0011) covers the page, matched
   before the desk's `/jobs` prefix.
+- **The tally rail (2026-08-27).** A sticky stats column beside the
+  book, computed entirely client-side from the fetched rows: the
+  tally (filed / replied % / interviews / offers / nos / still
+  waiting, with the oldest wait called out), the pace (a bar per day
+  across the last fortnight, this-week count, per-day average over
+  the hunt's whole span, best day), the beat (role keyword-bucketed
+  into ML/AI, Data, Frontend, Backend, Full-stack, Platform/Infra,
+  Security, Mobile, Robotics, Embedded, Other — first match wins,
+  broad before narrow), and the rank (Intern / New grad / Mid-level /
+  Senior / Staff+, with Staff+ matched before Senior so "Senior
+  Staff" ranks up). No server involvement; the buckets are honest
+  heuristics and misfiled roles are corrected by amending the role.
 
 ## Consequences
 

@@ -5235,7 +5235,86 @@ body.rr-resizing .rr-textlayer { pointer-events: none; }
    a bound ledger page: ruled lines, red margin, marks in a hand
    ═══════════════════════════════════════════════════════════════ */
 
-.al-page { max-width: 980px; padding-bottom: 56px; }
+.al-page { max-width: 1240px; padding-bottom: 56px; }
+
+/* the book and its tally rail side by side */
+.al-spread {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+.al-bookcol { flex: 1; min-width: 0; }
+
+/* ── the tally rail: the hunt, counted ─ */
+.al-stats {
+  flex: 0 0 236px;
+  position: sticky;
+  top: 12px;
+  margin-top: 20px;
+}
+.al-stats-box {
+  border: 1px solid var(--line);
+  background: var(--fin-paper);
+  padding: 10px 12px 11px;
+  margin-bottom: 14px;
+}
+.al-stats-head {
+  font-size: 0.5rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-50);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--ink-30);
+  margin-bottom: 4px;
+}
+.al-stat {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0 3px;
+  border-bottom: 1px dashed var(--ink-15);
+  font-size: 0.5625rem;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+}
+.al-stat:last-child { border-bottom: none; }
+.al-stat span:first-child { color: var(--ink-50); }
+.al-stats-note {
+  margin-top: 5px;
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-30);
+  text-transform: none;
+}
+
+/* the pace: a bar per day, fortnight wide */
+.al-days {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 44px;
+  margin-top: 8px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--ink-30);
+}
+.al-day { flex: 1; height: 100%; display: flex; align-items: flex-end; }
+.al-day-bar {
+  width: 100%;
+  min-height: 1px;
+  background: var(--ink);
+}
+.al-day-bar[style*='height: 0%'] { background: var(--ink-15); }
+
+/* the beat: a hairline bar under each count */
+.al-stat-barred { padding-bottom: 7px; }
+.al-beat-bar {
+  position: absolute;
+  left: 0;
+  bottom: 2px;
+  height: 2px;
+  background: var(--stamp);
+}
 
 /* the intake slip */
 .al-intake {

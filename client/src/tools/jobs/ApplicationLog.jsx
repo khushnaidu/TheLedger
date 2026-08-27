@@ -14,6 +14,127 @@ const TICKS = [
   ['closed', 'No'],
 ];
 
+// ── the tally rail ─
+// Everything is derived on the client from the rows already fetched.
+// The beat (what kind of jobs) is keyword-bucketed from the role line;
+// first match wins, so the order below is broad-before-narrow on purpose.
+const DISCIPLINES = [
+  ['ML / AI', /\b(ml|machine learning|ai|deep learning|llm|nlp|computer vision)\b/i],
+  ['Data', /\bdata\b|analytics|\betl\b/i],
+  ['Full-stack', /full[\s-]?stack/i],
+  ['Frontend', /front[\s-]?end|react|\bui\b/i],
+  ['Backend', /back[\s-]?end|\bapi\b/i],
+  ['Platform / Infra', /platform|infra|devops|\bsre\b|site reliability|cloud|systems/i],
+  ['Security', /security|appsec/i],
+  ['Mobile', /mobile|\bios\b|android/i],
+  ['Robotics', /robot/i],
+  ['Embedded', /embedded|firmware/i],
+];
+const RANKS = [
+  ['Intern', /intern/i],
+  ['New grad', /new grad|entry[\s-]?level|junior|early career|university grad/i],
+  ['Staff+', /staff|principal|distinguished|\blead\b/i],
+  ['Senior', /senior|\bsr\b/i],
+];
+const bucket = (table, text, fallback) =>
+  (table.find(([, re]) => re.test(text)) || [fallback])[0];
+const tally = (rows, table, fallback) => {
+  const m = new Map();
+  for (const r of rows) {
+    const k = bucket(table, r.role, fallback);
+    m.set(k, (m.get(k) || 0) + 1);
+  }
+  return [...m.entries()].sort((a, b) => b[1] - a[1]);
+};
+const dayKey = (d) => d.toISOString().slice(0, 10);
+
+function LogStats({ rows }) {
+  if (!rows.length) return null;
+  const n = rows.length;
+  const pad = (x) => String(x).padStart(2, '0');
+  const replied = rows.filter((r) => r.heard || r.interview || r.offer || r.closed).length;
+  const interviews = rows.filter((r) => r.interview).length;
+  const offers = rows.filter((r) => r.offer).length;
+  const nos = rows.filter((r) => r.closed).length;
+  const waiting = rows.filter((r) => !r.heard && !r.interview && !r.offer && !r.closed);
+  const oldestWait = waiting.length
+    ? Math.floor((Date.now() - Math.min(...waiting.map((r) => +new Date(r.appliedAt)))) / 86400000)
+    : 0;
+
+  // the pace: one bar per day, most recent fortnight
+  const days = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    days.push({ key: dayKey(d), count: 0 });
+  }
+  const byDay = new Map(days.map((d) => [d.key, d]));
+  let best = 0;
+  const perDay = new Map();
+  for (const r of rows) {
+    const k = dayKey(new Date(r.appliedAt));
+    perDay.set(k, (perDay.get(k) || 0) + 1);
+    if (byDay.has(k)) byDay.get(k).count += 1;
+  }
+  for (const c of perDay.values()) best = Math.max(best, c);
+  const week = days.slice(7).reduce((a, d) => a + d.count, 0);
+  const firstDay = Math.min(...rows.map((r) => +new Date(r.appliedAt)));
+  const span = Math.max(1, Math.ceil((Date.now() - firstDay) / 86400000));
+  const avg = (n / span).toFixed(1);
+  const maxBar = Math.max(1, ...days.map((d) => d.count));
+
+  const beat = tally(rows, DISCIPLINES, 'Other');
+  const ranks = tally(rows, RANKS, 'Mid-level');
+
+  return (
+    <aside className="al-stats">
+      <div className="al-stats-box">
+        <p className="al-stats-head">The tally</p>
+        <div className="al-stat"><span>Filed</span><span>{pad(n)}</span></div>
+        <div className="al-stat"><span>Replied</span><span>{pad(replied)} · {Math.round((replied / n) * 100)}%</span></div>
+        <div className="al-stat"><span>Interviews</span><span>{pad(interviews)}</span></div>
+        <div className="al-stat"><span>Offers</span><span>{pad(offers)}</span></div>
+        <div className="al-stat"><span>Nos</span><span>{pad(nos)}</span></div>
+        <div className="al-stat"><span>Still waiting</span><span>{pad(waiting.length)}</span></div>
+        {waiting.length > 0 && oldestWait > 0 && (
+          <p className="al-stats-note">the oldest has waited {oldestWait} {oldestWait === 1 ? 'day' : 'days'}</p>
+        )}
+      </div>
+
+      <div className="al-stats-box">
+        <p className="al-stats-head">The pace</p>
+        <div className="al-days" aria-hidden="true">
+          {days.map((d) => (
+            <div key={d.key} className="al-day" title={`${d.key} — ${d.count}`}>
+              <div className="al-day-bar" style={{ height: `${Math.round((d.count / maxBar) * 100)}%` }} />
+            </div>
+          ))}
+        </div>
+        <p className="al-stats-note">last fortnight, by day</p>
+        <div className="al-stat"><span>This week</span><span>{pad(week)}</span></div>
+        <div className="al-stat"><span>Per day, all told</span><span>{avg}</span></div>
+        <div className="al-stat"><span>Best day</span><span>{pad(best)}</span></div>
+      </div>
+
+      <div className="al-stats-box">
+        <p className="al-stats-head">The beat</p>
+        {beat.map(([k, c]) => (
+          <div key={k} className="al-stat al-stat-barred">
+            <span>{k}</span><span>{pad(c)}</span>
+            <div className="al-beat-bar" style={{ width: `${Math.round((c / n) * 100)}%` }} />
+          </div>
+        ))}
+      </div>
+
+      <div className="al-stats-box">
+        <p className="al-stats-head">The rank</p>
+        {ranks.map(([k, c]) => (
+          <div key={k} className="al-stat"><span>{k}</span><span>{pad(c)}</span></div>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
 const stamp = (iso) => {
   const d = new Date(iso);
   const p = (n) => String(n).padStart(2, '0');
@@ -177,7 +298,8 @@ export default function ApplicationLog() {
           <div className="loader"><div className="loader-bar" /><div className="loader-bar" /><div className="loader-bar" /><div className="loader-bar" /></div>
         </div>
       ) : (
-        <>
+        <div className="al-spread">
+          <div className="al-bookcol">
           <div className="al-book">
             <div className="al-holes" aria-hidden="true" />
             <div className="al-grid">
@@ -212,7 +334,9 @@ export default function ApplicationLog() {
           <p className="fig-caption mt-3">
             fig. the application log — {rows.length} filed · {heard} heard back
           </p>
-        </>
+          </div>
+          <LogStats rows={rows} />
+        </div>
       )}
     </div>
   );
