@@ -431,7 +431,8 @@ export default function NotebookReader() {
           <Link data-clicky to="/notebooks" className="t-label hover:text-[var(--stamp)]">← The Shelf</Link>
           <h1 className="t-display mt-1">{notebook.title}</h1>
         </div>
-        <div className="text-right">
+        {/* pr clears the notice chip printed at the content's top-right */}
+        <div className="text-right pr-[158px]">
           <span className={`nb-savestamp ${saveStatus === 'unsaved' || saveStatus === 'error' || saveStatus === 'full' ? 'nb-savestamp-hot' : ''}`}>
             {STATUS_LABEL[saveStatus](savedAt)}
           </span>

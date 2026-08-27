@@ -3332,6 +3332,10 @@ aside {
   align-items: center;
   gap: 16px;
   padding-bottom: 10px;
+  /* the notice chip floats at the content's top-right on every page;
+     here that spot belongs to the zoom dial and folio, so the bar
+     keeps a chip-sized slot free — same accommodation as the desk bar */
+  padding-right: 158px;
   border-bottom: 1px solid var(--ink);
 }
 
