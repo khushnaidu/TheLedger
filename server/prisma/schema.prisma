@@ -12,6 +12,10 @@ model User {
   email     String   @unique
   name      String
   password  String
+  // the account's experience — server-kept so it survives browsers,
+  // devices, and every road a ticket takes into DONE (was localStorage,
+  // which pinned readers at 0 XP forever)
+  xp        Int      @default(0)
   createdAt DateTime @default(now())
 
   resetTokenHash      String?
@@ -110,6 +114,8 @@ model Ticket {
   description        String?
   status             String    @default("BACKLOG")
   priority           String    @default("MEDIUM")
+  // XP paid out for this ticket reaching DONE — once, ever, by any road
+  xpAwarded          Boolean   @default(false)
   category           Category  @relation(fields: [categoryId], references: [id])
   categoryId         String
   labels             Label[]

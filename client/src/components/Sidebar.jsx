@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Plus, LogOut } from 'lucide-react';
-import { getLevelInfo, getTotalXP } from '../lib/xp';
+import { getLevelInfo } from '../lib/xp';
 import { APP_TITLE, ASSETS } from '../lib/theme';
 import { isPersonal } from '../lib/edition';
 import TvSet from './TvSet';
@@ -33,7 +33,9 @@ function sectionForPath(nav, path) {
 export default function Sidebar({ user, onLogout }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [levelInfo, setLevelInfo] = useState(() => getLevelInfo(getTotalXP()));
+  // the account's XP arrives with the user row; live awards update it
+  const [levelInfo, setLevelInfo] = useState(() => getLevelInfo(user?.xp || 0));
+  useEffect(() => { setLevelInfo(getLevelInfo(user?.xp || 0)); }, [user?.xp]);
   const nav = useMemo(() => buildNav(), []);
 
   // accordion: one section unfolded at a time so the column never outgrows
@@ -131,7 +133,7 @@ export default function Sidebar({ user, onLogout }) {
                       end={!!end}
                       tabIndex={open ? 0 : -1}
                       className={({ isActive }) =>
-                        `block px-5 py-[5px] text-[0.5625rem] uppercase tracking-[0.14em] border-t border-[var(--ink)] ${
+                        `block pl-[34px] pr-5 py-[5px] text-[0.625rem] uppercase tracking-[0.12em] border-t border-[var(--ink-15)] ${
                           isActive
                             ? 'bg-black text-white'
                             : 'text-[var(--ink-50)] hover:text-[var(--ink)]'

@@ -83,13 +83,32 @@ router.post('/', async (req, res) => {
       include: { category: true, labels: true },
     });
 
-    res.status(201).json(ticket);
+    // filed straight into DONE still pays — rare, but honest
+    const xpAward = await awardIfDone(ticket, req.user.id);
+    res.status(201).json({ ...ticket, xpAward });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 // PATCH /api/tickets/:id
+// ── XP ────────────────────────────────────────────────────────
+// The account's experience lives on the User row, not in a browser's
+// localStorage (which pinned readers at 0 XP forever). Any road into
+// DONE pays once — board drag, the detail page, a clerk — and the
+// ticket carries the paid mark so reopening and re-doing never pays
+// twice. The response rides an `xpAward` field the clients announce.
+const XP_PER_PRIORITY = { CRITICAL: 50, HIGH: 30, MEDIUM: 20, LOW: 10 };
+const awardIfDone = async (ticket, userId) => {
+  if (ticket.status !== 'DONE' || ticket.xpAwarded) return null;
+  const earned = XP_PER_PRIORITY[ticket.priority] || 10;
+  const [, user] = await prisma.$transaction([
+    prisma.ticket.update({ where: { id: ticket.id }, data: { xpAwarded: true } }),
+    prisma.user.update({ where: { id: userId }, data: { xp: { increment: earned } } }),
+  ]);
+  return { earned, totalXp: user.xp };
+};
+
 router.patch('/:id', async (req, res) => {
   try {
     const existing = await prisma.ticket.findFirst({ where: { id: req.params.id, userId: req.user.id } });
@@ -115,7 +134,8 @@ router.patch('/:id', async (req, res) => {
       include: { category: true, labels: true },
     });
 
-    res.json(ticket);
+    const xpAward = await awardIfDone(ticket, req.user.id);
+    res.json({ ...ticket, xpAward });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -146,7 +166,8 @@ router.patch('/:id/move', async (req, res) => {
       data: { status, order },
       include: { category: true, labels: true },
     });
-    res.json(ticket);
+    const xpAward = await awardIfDone(ticket, req.user.id);
+    res.json({ ...ticket, xpAward });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

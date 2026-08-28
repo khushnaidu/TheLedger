@@ -1,28 +1,13 @@
 import { LEVEL_TITLES } from './theme';
 
-const STORAGE_KEY = 'ledger_xp';
-
-const XP_PER_PRIORITY = {
-  CRITICAL: 50,
-  HIGH: 30,
-  MEDIUM: 20,
-  LOW: 10,
-};
+// XP is the ACCOUNT'S, kept on the server (User.xp) and paid out by the
+// tickets API whenever a ticket reaches DONE by any road — board drag,
+// the detail page, a clerk. The old localStorage ledger pinned readers
+// at 0 XP forever (per-browser, and blind to every completion that
+// didn't happen as a board drag). This module now only knows the level
+// table and how to dress a server award for the announcement event.
 
 const LEVEL_XP = [0, 50, 150, 300, 500, 800, 1200, 1800, 2500, 3500];
-
-export function getXPState() {
-  try {
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    return { xp: data.xp || 0, ticketsCounted: data.ticketsCounted || [] };
-  } catch {
-    return { xp: 0, ticketsCounted: [] };
-  }
-}
-
-function saveXPState(state) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
 
 export function getLevelInfo(xp) {
   const titles = LEVEL_TITLES;
@@ -48,26 +33,15 @@ export function getLevelInfo(xp) {
   };
 }
 
-export function awardXP(ticketId, priority) {
-  const state = getXPState();
-  if (state.ticketsCounted.includes(ticketId)) return null;
-
-  const earned = XP_PER_PRIORITY[priority] || 10;
-  const oldLevel = getLevelInfo(state.xp);
-  const newXp = state.xp + earned;
-  const newLevel = getLevelInfo(newXp);
-
-  const ticketsCounted = [...state.ticketsCounted, ticketId].slice(-500);
-  saveXPState({ xp: newXp, ticketsCounted });
-
+// Dress a server xpAward ({earned, totalXp}) as the gus-xp-gained
+// event detail the sidebar and Gus already understand.
+export function xpEventDetail(xpAward) {
+  const level = getLevelInfo(xpAward.totalXp);
+  const before = getLevelInfo(xpAward.totalXp - xpAward.earned);
   return {
-    earned,
-    totalXp: newXp,
-    leveledUp: newLevel.level > oldLevel.level,
-    level: newLevel,
+    earned: xpAward.earned,
+    totalXp: xpAward.totalXp,
+    leveledUp: level.level > before.level,
+    level,
   };
-}
-
-export function getTotalXP() {
-  return getXPState().xp;
 }

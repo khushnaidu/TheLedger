@@ -5,7 +5,7 @@ import { api } from '../api';
 import { STATUSES, STATUS_CONFIG } from '../constants';
 import TicketCard from '../components/TicketCard';
 import UndoToast from '../components/UndoToast';
-import { awardXP } from '../lib/xp';
+import { xpEventDetail } from '../lib/xp';
 import { updateQuestProgress } from '../lib/quests';
 import { ASSETS, STATUS_LABELS } from '../lib/theme';
 
@@ -83,15 +83,17 @@ export default function Board() {
     const ticket = tickets.find((t) => t.id === draggableId);
     const fromStatus = ticket?.status;
     setTickets((prev) => prev.map((t) => t.id === draggableId ? { ...t, status: destination.droppableId, order: destination.index } : t));
-    try { await api.moveTicket(draggableId, { status: destination.droppableId, order: destination.index }); } catch { fetchTickets(); }
+    // the server is the paymaster: the move response says whether this
+    // landing in DONE earned anything (once per ticket, ever)
+    let moved = null;
+    try { moved = await api.moveTicket(draggableId, { status: destination.droppableId, order: destination.index }); } catch { fetchTickets(); }
 
-    // Stamp animation + award XP if moved to DONE
+    // Stamp animation + announce the server's XP award if it paid
     if (destination.droppableId === 'DONE' && ticket) {
       setStampingId(draggableId);
       setTimeout(() => setStampingId(null), 1200);
-      const result = awardXP(ticket.id, ticket.priority);
-      if (result) {
-        window.dispatchEvent(new CustomEvent('gus-xp-gained', { detail: result }));
+      if (moved?.xpAward) {
+        window.dispatchEvent(new CustomEvent('gus-xp-gained', { detail: xpEventDetail(moved.xpAward) }));
       }
       const questState = updateQuestProgress('complete', ticket.priority);
       if (questState.completed) {

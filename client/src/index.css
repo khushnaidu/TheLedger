@@ -1571,15 +1571,17 @@ b, strong, th {
 
 /* section slug rows fold like a broadsheet index — click to open a
    section, and the others tuck away so the column never outgrows its slot */
+/* parents differ from their tools by size and indent alone — no bold
+   (tried, hated); the fold still reads as an index, not a flat list */
 .nav-section-head {
   width: 100%;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  font-size: 0.4375rem;
-  letter-spacing: 0.2em;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ink-30);
+  color: var(--ink);
   padding: 6px 20px 5px;
   border-top: 1px solid var(--ink);
   background: none;
@@ -1593,9 +1595,10 @@ b, strong, th {
 .nav-section-head-hot { color: var(--ink); }
 
 .nav-section-count {
-  font-size: 0.4375rem;
+  font-size: 0.5625rem;
+  font-weight: 400;
   letter-spacing: 0.08em;
-  color: inherit;
+  color: var(--ink-30);
 }
 
 .nav-section-dot { color: var(--stamp); }
@@ -3524,7 +3527,7 @@ aside {
 
 .rr-rail-tab {
   flex: 1;
-  font-size: 0.5rem;
+  font-size: 0.6875rem;
   letter-spacing: 0.16em;
   padding: 8px 4px;
   color: var(--ink-30);
@@ -5259,7 +5262,7 @@ body.rr-resizing .rr-textlayer { pointer-events: none; }
   margin-bottom: 14px;
 }
 .al-stats-head {
-  font-size: 0.5rem;
+  font-size: 0.6875rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ink-50);
@@ -5272,9 +5275,9 @@ body.rr-resizing .rr-textlayer { pointer-events: none; }
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  padding: 4px 0 3px;
+  padding: 5px 0 4px;
   border-bottom: 1px dashed var(--ink-15);
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   letter-spacing: 0.06em;
   font-variant-numeric: tabular-nums;
 }
@@ -5282,7 +5285,7 @@ body.rr-resizing .rr-textlayer { pointer-events: none; }
 .al-stat span:first-child { color: var(--ink-50); }
 .al-stats-note {
   margin-top: 5px;
-  font-size: 0.5rem;
+  font-size: 0.625rem;
   letter-spacing: 0.06em;
   color: var(--ink-30);
   text-transform: none;
