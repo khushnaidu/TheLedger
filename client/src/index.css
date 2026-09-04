@@ -5115,18 +5115,90 @@ body.rr-resizing .rr-textlayer { pointer-events: none; }
    THE SPARRING LOG — leetcode rounds in the face-off (spar-)
    ═══════════════════════════════════════════════════════════════ */
 
-.spar-form { margin: 18px 0 14px; }
-.spar-form-row {
+/* today's score, big as a hall scoreboard */
+.spar-bigscore {
   display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
+  align-items: baseline;
+  justify-content: center;
+  gap: 14px;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 3.25rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
+.spar-bigscore-sep { color: var(--ink-15); font-size: 2.25rem; }
+.spar-bigscore-red { color: var(--stamp); }
 
-.spar-kind { display: flex; }
-.spar-kind-btn {
-  border: 1px solid var(--line);
+/* ── the round slip: one line in, chips, bell ─ */
+.spar-slip {
+  border: 1px solid var(--ink);
+  background: #fffef9;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 3px 8px rgba(0, 0, 0, 0.07);
+  transform: rotate(-0.3deg);
+  padding: 10px 14px 12px;
+  margin-top: 14px;
+}
+.spar-slip-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-50);
+  padding-bottom: 7px;
+  border-bottom: 2px solid var(--stamp);
+  margin-bottom: 10px;
+}
+.spar-slip-input {
+  width: 100%;
+  border: none;
+  border-bottom: 1px dashed var(--ink-30);
+  background: transparent;
+  padding: 6px 2px 7px;
+  font-family: var(--font);
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+.spar-slip-input:focus { outline: none; border-bottom-color: var(--ink); border-bottom-style: solid; }
+
+.spar-slip-body { margin-top: 10px; }
+.spar-slip-read {
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-50);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.spar-slip-title {
+  border: none;
+  border-bottom: 1px dashed var(--ink-15);
+  background: transparent;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-transform: none;
+  min-width: 240px;
+  flex: 1;
+  padding: 0 2px 2px;
+}
+.spar-slip-title:focus { outline: none; border-bottom-color: var(--ink); }
+.spar-slip-linked { color: var(--fin-credit); font-size: 0.5625rem; letter-spacing: 0.1em; }
+
+.spar-slip-chips {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.spar-chipset { display: flex; }
+.spar-chip {
+  border: 1px solid var(--ink-30);
   background: transparent;
   padding: 6px 12px;
   font-family: var(--font);
@@ -5136,38 +5208,54 @@ body.rr-resizing .rr-textlayer { pointer-events: none; }
   color: var(--ink-50);
   cursor: pointer;
 }
-.spar-kind-btn + .spar-kind-btn { border-left: none; }
-.spar-kind-on {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: #fff;
-}
+.spar-chip + .spar-chip { border-left: none; }
+.spar-chip:hover { color: var(--ink); border-color: var(--ink); }
+.spar-chip-on { background: var(--ink); border-color: var(--ink); color: #fff; }
+.spar-chip-easy.spar-chip-on { background: var(--fin-credit); border-color: var(--fin-credit); }
+.spar-chip-hard.spar-chip-on { background: var(--stamp); border-color: var(--stamp); }
+.spar-chip-proof { border-style: dashed; }
+.spar-chip-proof.spar-chip-on { background: var(--fin-credit); border-color: var(--fin-credit); border-style: solid; }
 
-.spar-attached {
-  font-size: 0.625rem;
-  letter-spacing: 0.08em;
+/* the bell: the slam that files the round */
+.spar-bell {
+  margin-left: auto;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: #fff;
+  padding: 8px 22px;
+  font-family: var(--font);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--fin-credit);
+  cursor: pointer;
 }
+.spar-bell:hover:not(:disabled) { background: var(--stamp); border-color: var(--stamp); }
+.spar-bell:disabled { opacity: 0.35; cursor: default; }
 
 .spar-rounds { border-top: 1px solid var(--ink); }
 
 .spar-dayline {
-  padding: 8px 0 4px;
-  text-align: center;
-  font-size: 0.625rem;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0 6px;
+  font-size: 0.6875rem;
+  font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--stamp);
+  white-space: nowrap;
 }
+.spar-dayline-rule { flex: 1; border-top: 1px solid var(--ink-15); }
 
 .spar-round {
   display: flex;
   align-items: baseline;
-  gap: 9px;
-  padding: 6px 2px;
+  gap: 10px;
+  padding: 8px 2px;
   border-bottom: 1px dashed var(--ink-15);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
 }
 .spar-corner {
   flex: none;

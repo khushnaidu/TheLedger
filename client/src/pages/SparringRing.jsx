@@ -3,10 +3,10 @@ import { api } from '../api';
 import { FighterArt, FighterPortrait, TapeRow, FloorFire, fmtDate } from './FaceOff';
 
 // THE SPARRING RING — the code bout (ADR-0014). A SEPARATE rivalry from
-// the Face-Off: its own partner link (connection kind 'leetcode'), so
-// the tickets bout and the leetcode bout can be fought against
-// different rivals. Leetcode/neetcode rounds logged per day with proof;
-// both corners read the whole log, so the receipt is always inspectable.
+// the Face-Off: its own partner link (connection kind 'leetcode').
+// The flow is one slip: paste a link or name the problem, tap the
+// chips, ring the bell. Both corners read the whole log, so the
+// receipt is always inspectable.
 
 const DIFF_LETTER = { easy: 'E', medium: 'M', hard: 'H' };
 const sparDay = (d) => {
@@ -18,70 +18,117 @@ const titleFromUrl = (url) => {
   const m = String(url).match(/(?:leetcode\.com\/problems|neetcode\.io\/(?:problems|solutions))\/([\w-]+)/i);
   return m ? m[1].split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : '';
 };
+const looksLikeUrl = (s) => /^https?:\/\//i.test(s.trim());
 
-function SparringLog({ you, partner }) {
-  const [rows, setRows] = useState(null);
-  const [form, setForm] = useState({ url: '', title: '', difficulty: '', kind: 'solved', proofUrl: '', note: '' });
-  const [logBusy, setLogBusy] = useState(false);
+// ── the round slip: one line in, chips, bell ─
+function RoundSlip({ nextNo, onLogged }) {
+  const [entry, setEntry] = useState('');
+  const [title, setTitle] = useState('');
+  const [difficulty, setDifficulty] = useState('');
+  const [kind, setKind] = useState('solved');
+  const [proofUrl, setProofUrl] = useState('');
+  const [busy, setBusy] = useState(false);
   const [proofBusy, setProofBusy] = useState(false);
   const [err, setErr] = useState('');
-  const [confirming, setConfirming] = useState(null);
   const fileRef = useRef(null);
 
-  useEffect(() => { api.getProblems().then(setRows).catch(() => setRows([])); }, []);
-
-  const log = async (e) => {
-    e.preventDefault();
-    if (!form.title.trim() || logBusy || proofBusy) return;
-    setLogBusy(true);
-    setErr('');
-    try {
-      const row = await api.logProblem(form);
-      setRows((old) => [row, ...(old || [])]);
-      setForm((f) => ({ url: '', title: '', difficulty: '', kind: f.kind, proofUrl: '', note: '' }));
-    } catch (e2) { setErr(e2.message); }
-    setLogBusy(false);
+  const take = (v) => {
+    setEntry(v);
+    if (looksLikeUrl(v)) {
+      const named = titleFromUrl(v);
+      if (named) setTitle(named);
+    } else {
+      setTitle(v.trim());
+    }
   };
 
   const attachProof = async (file) => {
     if (!file) return;
     setProofBusy(true);
     setErr('');
-    try {
-      const proofUrl = await api.uploadProofImage(file);
-      setForm((f) => ({ ...f, proofUrl }));
-    } catch (e2) { setErr(e2.message); }
+    try { setProofUrl(await api.uploadProofImage(file)); } catch (e) { setErr(e.message); }
     setProofBusy(false);
   };
 
-  const strike = async (id) => {
-    if (confirming !== id) {
-      setConfirming(id);
-      setTimeout(() => setConfirming((c) => (c === id ? null : c)), 2500);
-      return;
-    }
-    setConfirming(null);
+  const log = async (e) => {
+    e.preventDefault();
+    if (!title.trim() || busy || proofBusy) return;
+    setBusy(true);
+    setErr('');
     try {
-      await api.deleteProblem(id);
-      setRows((old) => old.filter((r) => r.id !== id));
+      const row = await api.logProblem({
+        title, difficulty, kind, proofUrl,
+        url: looksLikeUrl(entry) ? entry.trim() : '',
+      });
+      onLogged(row);
+      setEntry(''); setTitle(''); setDifficulty(''); setProofUrl('');
     } catch (e2) { setErr(e2.message); }
+    setBusy(false);
   };
 
-  if (rows === null) return null;
+  return (
+    <form className="spar-slip" onSubmit={log}>
+      <p className="spar-slip-head">
+        <span>Round slip</span>
+        <span>Nº {String(nextNo).padStart(3, '0')}</span>
+      </p>
+      <input
+        className="spar-slip-input"
+        placeholder="paste the leetcode / neetcode link — or just name the problem"
+        value={entry}
+        onChange={(e) => take(e.target.value)}
+      />
+      {title.trim() && (
+        <div className="spar-slip-body">
+          <p className="spar-slip-read">
+            logging <input className="spar-slip-title" value={title} maxLength={140}
+              onChange={(e) => setTitle(e.target.value)} />
+            {looksLikeUrl(entry) && <span className="spar-slip-linked">· linked ↗</span>}
+          </p>
+          <div className="spar-slip-chips">
+            <div className="spar-chipset" role="group" aria-label="difficulty">
+              {['easy', 'medium', 'hard'].map((d) => (
+                <button key={d} type="button"
+                  className={`spar-chip spar-chip-${d} ${difficulty === d ? 'spar-chip-on' : ''}`}
+                  onClick={() => setDifficulty((cur) => (cur === d ? '' : d))}>
+                  {d}
+                </button>
+              ))}
+            </div>
+            <div className="spar-chipset" role="group" aria-label="kind">
+              {['solved', 'studied'].map((k) => (
+                <button key={k} type="button"
+                  className={`spar-chip ${kind === k ? 'spar-chip-on' : ''}`}
+                  onClick={() => setKind(k)}>{k}</button>
+              ))}
+            </div>
+            <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
+              onChange={(e) => { attachProof(e.target.files?.[0]); e.target.value = ''; }} />
+            {proofUrl ? (
+              <button type="button" className="spar-chip spar-chip-proof spar-chip-on"
+                title="Receipt attached — click to drop it" onClick={() => setProofUrl('')}>
+                receipt ✓
+              </button>
+            ) : (
+              <button type="button" className="spar-chip spar-chip-proof" disabled={proofBusy}
+                onClick={() => fileRef.current?.click()}>
+                {proofBusy ? 'attaching…' : '+ receipt'}
+              </button>
+            )}
+            <button type="submit" className="spar-bell" disabled={busy || proofBusy || !title.trim()}>
+              {busy ? 'ringing…' : 'Ring it in'}
+            </button>
+          </div>
+        </div>
+      )}
+      {err && <p className="t-small mt-2" style={{ color: 'var(--stamp)' }}>{err}</p>}
+    </form>
+  );
+}
 
+// ── the rounds, interleaved, a scoreline where the day turns ─
+function Rounds({ rows, you, partner, onStrike, confirming }) {
   const today = sparDay(new Date());
-  const weekAgo = Date.now() - 7 * 86400000;
-  const n = (mine, pred = () => true) => rows.filter((r) => r.mine === mine && pred(r)).length;
-  const streakOf = (mine) => {
-    const days = new Set(rows.filter((r) => r.mine === mine).map((r) => sparDay(r.solvedAt)));
-    let s = 0;
-    const d = new Date();
-    if (!days.has(sparDay(d))) d.setDate(d.getDate() - 1); // today is still open
-    while (days.has(sparDay(d))) { s += 1; d.setDate(d.getDate() - 1); }
-    return s;
-  };
-
-  // the log, interleaved newest-first with a scoreline where the day turns
   const lines = [];
   let lastDay = null;
   for (const r of rows) {
@@ -92,7 +139,9 @@ function SparringLog({ you, partner }) {
       const mineN = dayRows.filter((x) => x.mine).length;
       lines.push(
         <p key={`day-${k}`} className="spar-dayline">
-          {k === today ? 'today' : fmtDate(r.solvedAt)} — {you.name} {mineN} : {dayRows.length - mineN} {partner.name}
+          <span className="spar-dayline-rule" />
+          {k === today ? 'today' : fmtDate(r.solvedAt)} · {you.name} {mineN} — {dayRows.length - mineN} {partner.name}
+          <span className="spar-dayline-rule" />
         </p>,
       );
     }
@@ -110,90 +159,31 @@ function SparringLog({ you, partner }) {
         {r.note && <span className="spar-note">{r.note}</span>}
         {r.mine && (
           <button type="button" className={`spar-x ${confirming === r.id ? 'spar-x-hot' : ''}`}
-            title="Strike this round from your log" onClick={() => strike(r.id)}>
+            title="Strike this round from your log" onClick={() => onStrike(r.id)}>
             {confirming === r.id ? 'SURE?' : '×'}
           </button>
         )}
       </div>,
     );
   }
-
-  return (
-    <div className="mb-16">
-      <p className="t-label mb-2">The rounds</p>
-      <p className="fig-caption mb-5">counted head to head — a receipt or it's on honor</p>
-
-      <div style={{ borderTop: '1px solid var(--ink)' }}>
-        <TapeRow label="Rounds today" you={n(true, (r) => sparDay(r.solvedAt) === today)} partner={n(false, (r) => sparDay(r.solvedAt) === today)} />
-        <TapeRow label="Rounds this week" you={n(true, (r) => +new Date(r.solvedAt) > weekAgo)} partner={n(false, (r) => +new Date(r.solvedAt) > weekAgo)} />
-        <TapeRow label="Rounds all-time" you={n(true)} partner={n(false)} />
-        <TapeRow label="Hards felled" you={n(true, (r) => r.difficulty === 'hard' && r.kind === 'solved')} partner={n(false, (r) => r.difficulty === 'hard' && r.kind === 'solved')} />
-        <TapeRow label="Grind streak" you={streakOf(true)} partner={streakOf(false)} suffix="d" />
-      </div>
-
-      <form className="spar-form" onSubmit={log}>
-        <div className="spar-form-row">
-          <input className="input-field flex-1" placeholder="paste the problem link — leetcode or neetcode"
-            value={form.url}
-            onChange={(e) => {
-              const url = e.target.value;
-              setForm((f) => ({ ...f, url, title: f.title || titleFromUrl(url) }));
-            }} />
-          <input className="input-field flex-1" placeholder="problem name" maxLength={140}
-            value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
-        </div>
-        <div className="spar-form-row">
-          <select className="select-field" value={form.difficulty}
-            onChange={(e) => setForm((f) => ({ ...f, difficulty: e.target.value }))}>
-            <option value="">difficulty —</option>
-            <option value="easy">easy</option>
-            <option value="medium">medium</option>
-            <option value="hard">hard</option>
-          </select>
-          <div className="spar-kind">
-            {['solved', 'studied'].map((k) => (
-              <button key={k} type="button"
-                className={`spar-kind-btn ${form.kind === k ? 'spar-kind-on' : ''}`}
-                onClick={() => setForm((f) => ({ ...f, kind: k }))}>{k}</button>
-            ))}
-          </div>
-          <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
-            onChange={(e) => { attachProof(e.target.files?.[0]); e.target.value = ''; }} />
-          {form.proofUrl ? (
-            <span className="spar-attached">
-              receipt attached
-              <button type="button" className="spar-x" title="Drop the receipt"
-                onClick={() => setForm((f) => ({ ...f, proofUrl: '' }))}>×</button>
-            </span>
-          ) : (
-            <button type="button" className="btn-ghost" disabled={proofBusy}
-              onClick={() => fileRef.current?.click()}>
-              {proofBusy ? 'attaching…' : 'attach a receipt'}
-            </button>
-          )}
-          <button type="submit" className="btn-black" disabled={logBusy || proofBusy || !form.title.trim()}>
-            {logBusy ? 'logging…' : 'log the round'}
-          </button>
-        </div>
-      </form>
-      {err && <p className="t-small mb-4" style={{ color: 'var(--stamp)' }}>{err}</p>}
-
-      {rows.length === 0
-        ? <p className="t-body">No rounds logged. First blood is available.</p>
-        : <div className="spar-rounds">{lines}</div>}
-    </div>
-  );
+  return <div className="spar-rounds">{lines}</div>;
 }
 
 export default function SparringRing() {
   const [conn, setConn] = useState(null);
   const [me, setMe] = useState(null);
+  const [rows, setRows] = useState(null);
   const [inviteEmail, setInviteEmail] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [confirming, setConfirming] = useState(null);
 
   const load = () => Promise.all([api.getSparBout(), api.getMe()])
-    .then(([c, u]) => { setConn(c); setMe(u); })
+    .then(([c, u]) => {
+      setConn(c);
+      setMe(u);
+      if (c.status === 'CONNECTED') api.getProblems().then(setRows).catch(() => setRows([]));
+    })
     .catch((e) => setError(e.message));
   useEffect(() => { load(); }, []);
 
@@ -204,11 +194,38 @@ export default function SparringRing() {
     setBusy(false);
   };
 
+  const strike = async (id) => {
+    if (confirming !== id) {
+      setConfirming(id);
+      setTimeout(() => setConfirming((c) => (c === id ? null : c)), 2500);
+      return;
+    }
+    setConfirming(null);
+    try {
+      await api.deleteProblem(id);
+      setRows((old) => old.filter((r) => r.id !== id));
+    } catch (e) { setError(e.message); }
+  };
+
   if (conn === null || me === null) {
     return <p className="t-label pt-10">weighing in…</p>;
   }
 
   const connected = conn.status === 'CONNECTED';
+  const list = rows || [];
+  const today = sparDay(new Date());
+  const weekAgo = Date.now() - 7 * 86400000;
+  const n = (mine, pred = () => true) => list.filter((r) => r.mine === mine && pred(r)).length;
+  const streakOf = (mine) => {
+    const days = new Set(list.filter((r) => r.mine === mine).map((r) => sparDay(r.solvedAt)));
+    let s = 0;
+    const d = new Date();
+    if (!days.has(sparDay(d))) d.setDate(d.getDate() - 1); // today is still open
+    while (days.has(sparDay(d))) { s += 1; d.setDate(d.getDate() - 1); }
+    return s;
+  };
+  const todayYou = n(true, (r) => sparDay(r.solvedAt) === today);
+  const todayThem = n(false, (r) => sparDay(r.solvedAt) === today);
 
   return (
     <div className="max-w-[820px] stagger">
@@ -224,15 +241,46 @@ export default function SparringRing() {
 
       {connected ? (
         <>
-          <div className="flex items-center justify-between mb-10">
+          {/* the poster: fighters flanking today's score */}
+          <div className="flex items-center justify-between mb-4">
             <FighterPortrait user={me} vs={conn.partner} corner="black" ungated />
             <div className="text-center self-center px-4">
-              <p className="t-display" style={{ fontSize: '4rem', color: 'var(--stamp)', lineHeight: 1 }}>vs</p>
-              <p className="t-label mt-3">no purse ·<br />big o only</p>
+              <p className="t-label mb-2" style={{ letterSpacing: '0.22em' }}>today's rounds</p>
+              <p className="spar-bigscore">
+                <span>{todayYou}</span>
+                <span className="spar-bigscore-sep">:</span>
+                <span className="spar-bigscore-red">{todayThem}</span>
+              </p>
+              <p className="t-label mt-3" style={{ color: 'var(--ink-30)' }}>no purse · big O only</p>
             </div>
             <FighterPortrait user={conn.partner} vs={me} corner="red" flipped ungated />
           </div>
-          <SparringLog you={me} partner={conn.partner} />
+
+          {/* the slip — logging is the first thing at hand */}
+          <RoundSlip nextNo={n(true) + 1}
+            onLogged={(row) => setRows((old) => [row, ...(old || [])])} />
+
+          {/* the rounds */}
+          {rows === null ? null : list.length === 0 ? (
+            <p className="t-body mt-8 mb-12 text-center">No rounds logged. First blood is available.</p>
+          ) : (
+            <div className="mt-8 mb-12">
+              <Rounds rows={list} you={me} partner={conn.partner} onStrike={strike} confirming={confirming} />
+            </div>
+          )}
+
+          {/* the tape, as the stats footer */}
+          <div className="mb-16">
+            <p className="t-label mb-5">Tale of the tape</p>
+            <div style={{ borderTop: '1px solid var(--ink)' }}>
+              <TapeRow label="Rounds this week" you={n(true, (r) => +new Date(r.solvedAt) > weekAgo)} partner={n(false, (r) => +new Date(r.solvedAt) > weekAgo)} />
+              <TapeRow label="Rounds all-time" you={n(true)} partner={n(false)} />
+              <TapeRow label="Hards felled" you={n(true, (r) => r.difficulty === 'hard' && r.kind === 'solved')} partner={n(false, (r) => r.difficulty === 'hard' && r.kind === 'solved')} />
+              <TapeRow label="Grind streak" you={streakOf(true)} partner={streakOf(false)} suffix="d" />
+            </div>
+            <p className="fig-caption mt-2">fig. the tape — a receipt or it's on honor; the other corner is watching</p>
+          </div>
+
           {error && <p className="t-small mb-6" style={{ color: 'var(--stamp)' }}>{error}</p>}
           <div className="pb-10">
             <button className="btn-ghost" disabled={busy}
