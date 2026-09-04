@@ -18,11 +18,16 @@ const miiFor = (u, vs) => {
   if (isWho(u, /khush/i)) return isWho(vs, /raunaq/i) ? MIIS.khushFull : MIIS.khushHead;
   return MIIS.taia;
 };
+// identities that own a mii — the ungated ring shows miis for these
+// and placards for anyone else, so no stranger pair borrows personal art
+const hasMii = (u) => isWho(u, /raunaq|khush|taia|tiye/i);
 
-// fighter artwork: miis in the personal edition, an initialed placard in public.
+// fighter artwork: miis in the personal edition, an initialed placard in
+// public. `ungated` (the sparring ring) skips the edition check for
+// fighters who own a mii — the ring is not BIBBLE's to keep.
 // mystery renders the unknown challenger; opposeUser picks the opposite mii for it.
-export function FighterArt({ user, vs, flipped, red, mystery = false, opposeUser }) {
-  if (isPersonal()) {
+export function FighterArt({ user, vs, flipped, red, mystery = false, opposeUser, ungated = false }) {
+  if (isPersonal() || (ungated && !mystery && hasMii(user))) {
     const src = mystery
       ? (opposeUser && isWho(opposeUser, /khush/i) ? MIIS.taia : MIIS.khushHead)
       : miiFor(user, vs);
@@ -92,12 +97,12 @@ export function FloorFire() {
   );
 }
 
-export function FighterPortrait({ user, vs, corner, flipped }) {
+export function FighterPortrait({ user, vs, corner, flipped, ungated = false }) {
   const red = corner === 'red';
   return (
     <div className={`w-[200px] ${red ? 'text-right' : ''}`}>
       <div className="border border-[var(--ink)] p-1 bg-white">
-        <FighterArt user={user} vs={vs} flipped={flipped} red={red} />
+        <FighterArt user={user} vs={vs} flipped={flipped} red={red} ungated={ungated} />
       </div>
       <p
         className="t-title text-[1.15rem] uppercase mt-3 leading-none"

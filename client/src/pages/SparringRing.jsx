@@ -225,12 +225,12 @@ export default function SparringRing() {
       {connected ? (
         <>
           <div className="flex items-center justify-between mb-10">
-            <FighterPortrait user={me} vs={conn.partner} corner="black" />
+            <FighterPortrait user={me} vs={conn.partner} corner="black" ungated />
             <div className="text-center self-center px-4">
               <p className="t-display" style={{ fontSize: '4rem', color: 'var(--stamp)', lineHeight: 1 }}>vs</p>
               <p className="t-label mt-3">no purse ·<br />big o only</p>
             </div>
-            <FighterPortrait user={conn.partner} vs={me} corner="red" flipped />
+            <FighterPortrait user={conn.partner} vs={me} corner="red" flipped ungated />
           </div>
           <SparringLog you={me} partner={conn.partner} />
           {error && <p className="t-small mb-6" style={{ color: 'var(--stamp)' }}>{error}</p>}
@@ -244,7 +244,7 @@ export default function SparringRing() {
       ) : (
         <>
           <div className="flex items-center justify-center gap-10 mb-12">
-            <div className="w-[200px]"><div className="border border-[var(--ink)] p-1 bg-white"><FighterArt user={me} /></div></div>
+            <div className="w-[200px]"><div className="border border-[var(--ink)] p-1 bg-white"><FighterArt user={me} ungated /></div></div>
             <p className="t-display" style={{ fontSize: '3rem', color: 'var(--stamp)' }}>vs</p>
             <div className="w-[200px] relative"><div className="border border-[var(--ink)] p-1 bg-white relative"><FighterArt mystery opposeUser={me} /></div></div>
           </div>
