@@ -16,10 +16,12 @@ function daysAgoKey(n) {
   return dayKey(d);
 }
 
-// find this user's single connection (either direction, pending or accepted)
-async function findConnection(userId) {
+// find this user's single connection OF A KIND (either direction,
+// pending or accepted) — 'tickets' is the face-off, 'leetcode' the
+// sparring ring; a user may hold one of each, different rivals allowed
+async function findConnection(userId, kind = 'tickets') {
   return prisma.connection.findFirst({
-    where: { OR: [{ requesterId: userId }, { addresseeId: userId }] },
+    where: { kind, OR: [{ requesterId: userId }, { addresseeId: userId }] },
     include: {
       requester: { select: { id: true, name: true, email: true } },
       addressee: { select: { id: true, name: true, email: true } },
@@ -209,6 +211,150 @@ router.post('/notes', async (req, res) => {
       data: { body, authorId: req.user.id, recipientId: shaped.partner.id },
     });
     res.status(201).json(note);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── the sparring ring (ADR-0014) ─────────────────────────────
+// A SEPARATE bout from the face-off: kind 'leetcode', its own rival.
+// Leetcode/neetcode problems logged per day, proof attached. Both
+// corners read the whole log — your rows and your rival's — so the
+// proof is social: the other side can always inspect the receipt.
+
+const PROBLEM_KINDS = ['solved', 'studied'];
+const DIFFICULTIES = ['', 'easy', 'medium', 'hard'];
+
+// GET /api/partner/spar — where the code bout stands
+router.get('/spar', async (req, res) => {
+  try {
+    const conn = await findConnection(req.user.id, 'leetcode');
+    res.json(shapeConnection(conn, req.user.id));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/partner/spar/invite { email } — call out a sparring rival
+router.post('/spar/invite', async (req, res) => {
+  try {
+    const email = (req.body.email || '').trim().toLowerCase();
+    if (!email) return res.status(400).json({ error: 'Email required' });
+    if (email === req.user.email.toLowerCase()) {
+      return res.status(400).json({ error: 'You cannot spar with yourself' });
+    }
+    const existing = await findConnection(req.user.id, 'leetcode');
+    if (existing) return res.status(400).json({ error: 'You already have a sparring partner' });
+    const other = await prisma.user.findUnique({ where: { email } });
+    if (!other) return res.status(404).json({ error: 'No ledger holder with that email' });
+    const theirs = await findConnection(other.id, 'leetcode');
+    if (theirs) return res.status(400).json({ error: 'That user already spars with someone' });
+    const conn = await prisma.connection.create({
+      data: { requesterId: req.user.id, addresseeId: other.id, kind: 'leetcode' },
+      include: {
+        requester: { select: { id: true, name: true, email: true } },
+        addressee: { select: { id: true, name: true, email: true } },
+      },
+    });
+    res.status(201).json(shapeConnection(conn, req.user.id));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/partner/spar/accept — step into the ring
+router.post('/spar/accept', async (req, res) => {
+  try {
+    const conn = await findConnection(req.user.id, 'leetcode');
+    if (!conn || conn.status !== 'PENDING' || conn.addresseeId !== req.user.id) {
+      return res.status(400).json({ error: 'No pending challenge to accept' });
+    }
+    const updated = await prisma.connection.update({
+      where: { id: conn.id },
+      data: { status: 'ACCEPTED', acceptedAt: new Date() },
+      include: {
+        requester: { select: { id: true, name: true, email: true } },
+        addressee: { select: { id: true, name: true, email: true } },
+      },
+    });
+    res.json(shapeConnection(updated, req.user.id));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/partner/spar — decline or hang up the gloves
+router.delete('/spar', async (req, res) => {
+  try {
+    const conn = await findConnection(req.user.id, 'leetcode');
+    if (!conn) return res.status(404).json({ error: 'No sparring partner' });
+    await prisma.connection.delete({ where: { id: conn.id } });
+    res.json({ status: 'NONE' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/partner/problems — the whole bout's log, newest first
+router.get('/problems', async (req, res) => {
+  try {
+    const conn = await findConnection(req.user.id, 'leetcode');
+    const shaped = shapeConnection(conn, req.user.id);
+    const ids = [req.user.id];
+    if (shaped.status === 'CONNECTED') ids.push(shaped.partner.id);
+    const rows = await prisma.problem.findMany({
+      where: { userId: { in: ids } },
+      orderBy: { solvedAt: 'desc' },
+      take: 600,
+    });
+    res.json(rows.map((r) => ({ ...r, mine: r.userId === req.user.id })));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/partner/problems — log one problem
+router.post('/problems', async (req, res) => {
+  try {
+    const title = String(req.body?.title ?? '').trim().slice(0, 140);
+    if (!title) return res.status(400).json({ error: 'Name the problem' });
+    const kind = PROBLEM_KINDS.includes(req.body?.kind) ? req.body.kind : 'solved';
+    const difficulty = DIFFICULTIES.includes(req.body?.difficulty) ? req.body.difficulty : '';
+    // a backdated log is allowed a fortnight — yesterday's grind counts,
+    // but nobody pre-logs tomorrow
+    let solvedAt = new Date();
+    if (req.body?.solvedAt) {
+      const d = new Date(req.body.solvedAt);
+      const age = Date.now() - d.getTime();
+      if (!Number.isNaN(d.getTime()) && age >= 0 && age <= 14 * 86400000) solvedAt = d;
+    }
+    const row = await prisma.problem.create({
+      data: {
+        title,
+        url: String(req.body?.url ?? '').trim().slice(0, 500),
+        kind,
+        difficulty,
+        proofUrl: String(req.body?.proofUrl ?? '').trim().slice(0, 500),
+        note: String(req.body?.note ?? '').trim().slice(0, 500),
+        solvedAt,
+        userId: req.user.id,
+      },
+    });
+    res.status(201).json({ ...row, mine: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/partner/problems/:id — strike your own row only
+router.delete('/problems/:id', async (req, res) => {
+  try {
+    const row = await prisma.problem.findFirst({
+      where: { id: req.params.id, userId: req.user.id },
+    });
+    if (!row) return res.status(404).json({ error: 'No such round in your log' });
+    await prisma.problem.delete({ where: { id: row.id } });
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

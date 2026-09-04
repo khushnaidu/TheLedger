@@ -99,6 +99,26 @@ export const api = {
   acceptPartner: () => request('/partner/accept', { method: 'POST' }),
   unlinkPartner: () => request('/partner', { method: 'DELETE' }),
   getFaceoff: () => request('/partner/faceoff'),
+  // the sparring ring (ADR-0014) — its own bout, kind 'leetcode'
+  getSparBout: () => request('/partner/spar'),
+  inviteSpar: (email) => request('/partner/spar/invite', { method: 'POST', body: JSON.stringify({ email }) }),
+  acceptSpar: () => request('/partner/spar/accept', { method: 'POST' }),
+  unlinkSpar: () => request('/partner/spar', { method: 'DELETE' }),
+  getProblems: () => request('/partner/problems'),
+  logProblem: (data) => request('/partner/problems', { method: 'POST', body: JSON.stringify(data) }),
+  deleteProblem: (id) => request(`/partner/problems/${id}`, { method: 'DELETE' }),
+  uploadProofImage: async (file) => {
+    const { upload } = await import('@vercel/blob/client');
+    const token = getToken();
+    const { userId } = JSON.parse(atob(token.split('.')[1]));
+    const safeName = (file.name || 'proof.png').replace(/[^\w.-]+/g, '_').slice(-60);
+    const blob = await upload(`proofs/${userId}/${safeName}`, file, {
+      access: 'public',
+      handleUploadUrl: '/api/uploads',
+      clientPayload: token,
+    });
+    return blob.url;
+  },
   leavePartnerNote: (body) => request('/partner/notes', { method: 'POST', body: JSON.stringify({ body }) }),
 
   // AI Assistant

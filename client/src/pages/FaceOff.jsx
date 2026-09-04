@@ -2,17 +2,30 @@ import { useState, useEffect } from 'react';
 import { api } from '../api';
 import { isPersonal } from '../lib/edition';
 
-// the two contenders — mii portraits keyed by identity
-const miiFor = (u) =>
-  /khush/i.test(`${u?.name || ''} ${u?.email || ''}`) ? '/art/khush-mii.gif' : '/art/taia-mii.gif';
+// the contenders — mii portraits keyed by identity. The choice is
+// PAIR-AWARE: the brothers' bout wears the full-body miis, while the
+// khush–taia bout keeps its matched head pair (a full-body fighter
+// towering over a head shot read wrong).
+const MIIS = {
+  khushHead: '/art/khush-mii.gif',
+  khushFull: '/art/khush-mii2.gif',
+  taia: '/art/taia-mii.gif',
+  raunaq: '/art/raunaq-mii.gif',
+};
+export const isWho = (u, re) => re.test(`${u?.name || ''} ${u?.email || ''}`);
+const miiFor = (u, vs) => {
+  if (isWho(u, /raunaq/i)) return MIIS.raunaq;
+  if (isWho(u, /khush/i)) return isWho(vs, /raunaq/i) ? MIIS.khushFull : MIIS.khushHead;
+  return MIIS.taia;
+};
 
 // fighter artwork: miis in the personal edition, an initialed placard in public.
 // mystery renders the unknown challenger; opposeUser picks the opposite mii for it.
-function FighterArt({ user, flipped, red, mystery = false, opposeUser }) {
+export function FighterArt({ user, vs, flipped, red, mystery = false, opposeUser }) {
   if (isPersonal()) {
     const src = mystery
-      ? (opposeUser && miiFor(opposeUser) === '/art/khush-mii.gif' ? '/art/taia-mii.gif' : '/art/khush-mii.gif')
-      : miiFor(user);
+      ? (opposeUser && isWho(opposeUser, /khush/i) ? MIIS.taia : MIIS.khushHead)
+      : miiFor(user, vs);
     return (
       <>
         <img
@@ -22,6 +35,11 @@ function FighterArt({ user, flipped, red, mystery = false, opposeUser }) {
           style={{
             ...(flipped || mystery ? { transform: 'scaleX(-1)' } : {}),
             ...(mystery ? { filter: 'grayscale(1) contrast(0.6) brightness(1.15)' } : {}),
+            // the full-body pair comes in mismatched frames; one shared
+            // aspect keeps the two corners level on the poster
+            ...(src === MIIS.khushFull || src === MIIS.raunaq
+              ? { aspectRatio: '3 / 5', objectFit: 'cover' }
+              : {}),
           }}
         />
         {mystery && (
@@ -43,7 +61,7 @@ function FighterArt({ user, flipped, red, mystery = false, opposeUser }) {
   );
 }
 
-const fmtDate = (d) =>
+export const fmtDate = (d) =>
   new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '.');
 
 const DAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -59,7 +77,7 @@ function dayLabels() {
 }
 
 // a low fire smoldering along the bottom of the page — same recipe as the board's fire pit
-function FloorFire() {
+export function FloorFire() {
   return (
     <div className="relative h-[32px] pointer-events-none" aria-hidden="true">
       <div
@@ -74,12 +92,12 @@ function FloorFire() {
   );
 }
 
-function FighterPortrait({ user, corner, flipped }) {
+export function FighterPortrait({ user, vs, corner, flipped }) {
   const red = corner === 'red';
   return (
     <div className={`w-[200px] ${red ? 'text-right' : ''}`}>
       <div className="border border-[var(--ink)] p-1 bg-white">
-        <FighterArt user={user} flipped={flipped} red={red} />
+        <FighterArt user={user} vs={vs} flipped={flipped} red={red} />
       </div>
       <p
         className="t-title text-[1.15rem] uppercase mt-3 leading-none"
@@ -93,7 +111,7 @@ function FighterPortrait({ user, corner, flipped }) {
 }
 
 // one line of the tale of the tape — bars grow toward the center label
-function TapeRow({ label, you, partner, suffix = '', lowerWins = false }) {
+export function TapeRow({ label, you, partner, suffix = '', lowerWins = false }) {
   const max = Math.max(you, partner, 1);
   const youLeads = lowerWins ? you < partner : you > partner;
   const partnerLeads = lowerWins ? partner < you : partner > you;
@@ -297,12 +315,12 @@ export default function FaceOff() {
 
       {/* Fighters */}
       <div className="flex items-center justify-between mb-10">
-        <FighterPortrait user={you} corner="black" />
+        <FighterPortrait user={you} vs={partner} corner="black" />
         <div className="text-center self-center px-4">
           <p className="t-display" style={{ fontSize: '4rem', color: 'var(--stamp)', lineHeight: 1 }}>vs</p>
           <p className="t-label mt-3">no purse ·<br />pride only</p>
         </div>
-        <FighterPortrait user={partner} corner="red" flipped />
+        <FighterPortrait user={partner} vs={you} corner="red" flipped />
       </div>
 
       {/* Weekly verdict */}

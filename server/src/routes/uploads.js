@@ -27,9 +27,19 @@ router.post('/', async (req, res) => {
         const isNotebook = pathname.startsWith(`notebooks/${payload.userId}/`);
         const isPaper = pathname.startsWith(`papers/${payload.userId}/`);
         const isResume = pathname.startsWith(`resumes/${payload.userId}/`);
-        if (!isNotebook && !isPaper && !isResume) {
+        const isProof = pathname.startsWith(`proofs/${payload.userId}/`);
+        if (!isNotebook && !isPaper && !isResume && !isProof) {
           console.error(`Upload path rejected: "${pathname}" for user ${payload.userId}`);
           throw new Error('Uploads must live under your own shelf');
+        }
+        // sparring-log receipts: a screenshot of the accepted submission
+        if (isProof) {
+          return {
+            allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp'],
+            maximumSizeInBytes: 6_000_000,
+            addRandomSuffix: true,
+            tokenPayload: JSON.stringify({ userId: payload.userId }),
+          };
         }
         if (isResume) {
           return {

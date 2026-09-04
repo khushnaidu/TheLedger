@@ -43,6 +43,8 @@ export const TOOLS = [
     Component: lazy(() => import('../pages/MyWall')) },
   { id: 'faceoff', name: 'Face-Off', route: '/faceoff', section: 'parlor',
     Component: lazy(() => import('../pages/FaceOff')) },
+  { id: 'sparring', name: 'The Sparring Ring', route: '/sparring', section: 'parlor',
+    Component: lazy(() => import('../pages/SparringRing')) },
 ];
 
 // Routes with no nav row — detail/editor pages reached from a tool.

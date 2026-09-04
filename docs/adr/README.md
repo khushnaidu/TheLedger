@@ -24,3 +24,4 @@ problem and constraints), **Decision** (what we chose, concretely), and
 - [0011](0011-notice-to-patrons-tutorial-cards.md) — Notice to Patrons: per-page tutorial cards in the house voice
 - [0012](0012-application-log.md) — The Application Log: paste a posting, it files itself as applied-for
 - [0013](0013-server-side-xp.md) — XP moves server-side: the account's experience, not the browser's
+- [0014](0014-sparring-log.md) — The Sparring Ring: the leetcode bout, its own page and rival, proof attached

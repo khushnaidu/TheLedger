@@ -5112,6 +5112,130 @@ body.rr-resizing .rr-textlayer { pointer-events: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   THE SPARRING LOG — leetcode rounds in the face-off (spar-)
+   ═══════════════════════════════════════════════════════════════ */
+
+.spar-form { margin: 18px 0 14px; }
+.spar-form-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.spar-kind { display: flex; }
+.spar-kind-btn {
+  border: 1px solid var(--line);
+  background: transparent;
+  padding: 6px 12px;
+  font-family: var(--font);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-50);
+  cursor: pointer;
+}
+.spar-kind-btn + .spar-kind-btn { border-left: none; }
+.spar-kind-on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.spar-attached {
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fin-credit);
+}
+
+.spar-rounds { border-top: 1px solid var(--ink); }
+
+.spar-dayline {
+  padding: 8px 0 4px;
+  text-align: center;
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--stamp);
+}
+
+.spar-round {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 6px 2px;
+  border-bottom: 1px dashed var(--ink-15);
+  font-size: 0.6875rem;
+}
+.spar-corner {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  align-self: center;
+  background: var(--ink);
+}
+.spar-corner-red { background: var(--stamp); }
+.spar-title { text-transform: none; letter-spacing: 0.02em; }
+a.spar-title:hover { color: var(--stamp); }
+
+.spar-diff {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  border: 1px solid var(--ink-30);
+  padding: 0 4px;
+}
+.spar-diff-hard { color: var(--stamp); border-color: var(--stamp); }
+.spar-diff-easy { color: var(--fin-credit); border-color: var(--fin-credit); }
+
+.spar-studied {
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-30);
+}
+
+.spar-receipt {
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fin-credit);
+}
+.spar-receipt:hover { text-decoration: underline; }
+.spar-honor {
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-30);
+  font-style: italic;
+}
+
+.spar-note {
+  font-size: 0.625rem;
+  color: var(--ink-50);
+  text-transform: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.spar-x {
+  margin-left: auto;
+  border: none;
+  background: none;
+  font-family: var(--font);
+  font-size: 0.625rem;
+  color: var(--ink-30);
+  cursor: pointer;
+  padding: 0 4px;
+}
+.spar-x:hover, .spar-x-hot { color: var(--stamp); }
+.spar-x-hot { font-weight: 700; }
+
+/* ═══════════════════════════════════════════════════════════════
    NOTICE TO PATRONS — the house tutorial cards (ntc-)
    a small printed instruction slip per page; the chip reprints it
    ═══════════════════════════════════════════════════════════════ */

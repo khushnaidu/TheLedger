@@ -36,6 +36,7 @@ model User {
   jobPostings JobPosting[]
   resumes     Resume[]
   applications Application[]
+  problems    Problem[]
 
   sentInvites     Connection[]  @relation("connRequester")
   receivedInvites Connection[]  @relation("connAddressee")
@@ -44,6 +45,23 @@ model User {
 }
 
 // Two accounts linked for the face-off — invite by email, other side accepts
+// ── The Parlor: the sparring log — leetcode/neetcode problems logged
+// per day, proof attached, read across the bout. See ADR-0014. ──
+model Problem {
+  id         String   @id @default(uuid())
+  title      String
+  url        String   @default("")
+  kind       String   @default("solved") // solved | studied
+  difficulty String   @default("")       // easy | medium | hard | ""
+  proofUrl   String   @default("")       // submission link or uploaded screenshot
+  note       String   @default("")
+  solvedAt   DateTime @default(now())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, solvedAt])
+}
+
 model Connection {
   id          String    @id @default(uuid())
   requester   User      @relation("connRequester", fields: [requesterId], references: [id])
@@ -51,6 +69,9 @@ model Connection {
   addressee   User      @relation("connAddressee", fields: [addresseeId], references: [id])
   addresseeId String
   status      String    @default("PENDING") // PENDING | ACCEPTED
+  // one bout per KIND per user: 'tickets' is the face-off,
+  // 'leetcode' is the sparring ring — different rivals allowed
+  kind        String    @default("tickets")
   createdAt   DateTime  @default(now())
   acceptedAt  DateTime?
 

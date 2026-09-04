@@ -148,6 +148,19 @@ const NOTICES = [
     ],
   },
   {
+    id: 'sparring',
+    match: (p) => p.startsWith('/sparring'),
+    section: 'The Parlor',
+    title: 'The sparring ring',
+    lead: 'For the interview grind: leetcode and neetcode rounds counted daily, head to head — a separate bout from the Face-Off, with its own rival.',
+    steps: [
+      'Call out your sparring partner by email; the ring opens when they accept.',
+      'Log each round: paste the problem link (it names itself), mark it solved or studied, and attach a receipt — a submission link or a screenshot.',
+      'Both corners read the whole log. A round without proof is filed "on honor" for everyone to see.',
+      'The tape counts rounds today, this week, all-time, hards felled, and your grind streak. The scoreline turns with each day.',
+    ],
+  },
+  {
     id: 'board',
     match: (p) => p.startsWith('/board'),
     section: 'The Desk',
