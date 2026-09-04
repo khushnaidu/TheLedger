@@ -19,6 +19,7 @@ const titleFromUrl = (url) => {
   return m ? m[1].split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : '';
 };
 const looksLikeUrl = (s) => /^https?:\/\//i.test(s.trim());
+const isYt = (s) => /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)/i.test(s);
 
 // ── the round slip: one line in, chips, bell ─
 function RoundSlip({ nextNo, onLogged }) {
@@ -34,13 +35,18 @@ function RoundSlip({ nextNo, onLogged }) {
 
   const take = (v) => {
     setEntry(v);
-    if (looksLikeUrl(v)) {
+    if (isYt(v)) {
+      // a neetcode video: filed as watched, and it names itself on filing
+      setKind('watched');
+      setTitle('');
+    } else if (looksLikeUrl(v)) {
       const named = titleFromUrl(v);
       if (named) setTitle(named);
     } else {
       setTitle(v.trim());
     }
   };
+  const video = isYt(entry);
 
   const attachProof = async (file) => {
     if (!file) return;
@@ -52,7 +58,7 @@ function RoundSlip({ nextNo, onLogged }) {
 
   const log = async (e) => {
     e.preventDefault();
-    if (!title.trim() || busy || proofBusy) return;
+    if ((!title.trim() && !video) || busy || proofBusy) return;
     setBusy(true);
     setErr('');
     try {
@@ -74,14 +80,15 @@ function RoundSlip({ nextNo, onLogged }) {
       </p>
       <input
         className="spar-slip-input"
-        placeholder="paste the leetcode / neetcode link — or just name the problem"
+        placeholder="paste the problem link, a neetcode video, — or just name it"
         value={entry}
         onChange={(e) => take(e.target.value)}
       />
-      {title.trim() && (
+      {(title.trim() || video) && (
         <div className="spar-slip-body">
           <p className="spar-slip-read">
             logging <input className="spar-slip-title" value={title} maxLength={140}
+              placeholder={video ? 'the video names itself on filing' : ''}
               onChange={(e) => setTitle(e.target.value)} />
             {looksLikeUrl(entry) && <span className="spar-slip-linked">· linked ↗</span>}
           </p>
@@ -96,7 +103,7 @@ function RoundSlip({ nextNo, onLogged }) {
               ))}
             </div>
             <div className="spar-chipset" role="group" aria-label="kind">
-              {['solved', 'studied'].map((k) => (
+              {['solved', 'studied', 'watched'].map((k) => (
                 <button key={k} type="button"
                   className={`spar-chip ${kind === k ? 'spar-chip-on' : ''}`}
                   onClick={() => setKind(k)}>{k}</button>
@@ -115,7 +122,7 @@ function RoundSlip({ nextNo, onLogged }) {
                 {proofBusy ? 'attaching…' : '+ receipt'}
               </button>
             )}
-            <button type="submit" className="spar-bell" disabled={busy || proofBusy || !title.trim()}>
+            <button type="submit" className="spar-bell" disabled={busy || proofBusy || (!title.trim() && !video)}>
               {busy ? 'ringing…' : 'Ring it in'}
             </button>
           </div>
@@ -153,6 +160,7 @@ function Rounds({ rows, you, partner, onStrike, confirming }) {
           : <span className="spar-title">{r.title}</span>}
         {r.difficulty && <span className={`spar-diff spar-diff-${r.difficulty}`}>{DIFF_LETTER[r.difficulty]}</span>}
         {r.kind === 'studied' && <span className="spar-studied">studied</span>}
+        {r.kind === 'watched' && <span className="spar-studied">watched ▸</span>}
         {r.proofUrl
           ? <a className="spar-receipt" href={r.proofUrl} target="_blank" rel="noreferrer">receipt ↗</a>
           : <span className="spar-honor">on honor</span>}
@@ -276,6 +284,7 @@ export default function SparringRing() {
               <TapeRow label="Rounds this week" you={n(true, (r) => +new Date(r.solvedAt) > weekAgo)} partner={n(false, (r) => +new Date(r.solvedAt) > weekAgo)} />
               <TapeRow label="Rounds all-time" you={n(true)} partner={n(false)} />
               <TapeRow label="Hards felled" you={n(true, (r) => r.difficulty === 'hard' && r.kind === 'solved')} partner={n(false, (r) => r.difficulty === 'hard' && r.kind === 'solved')} />
+              <TapeRow label="Videos watched" you={n(true, (r) => r.kind === 'watched')} partner={n(false, (r) => r.kind === 'watched')} />
               <TapeRow label="Grind streak" you={streakOf(true)} partner={streakOf(false)} suffix="d" />
             </div>
             <p className="fig-caption mt-2">fig. the tape — a receipt or it's on honor; the other corner is watching</p>

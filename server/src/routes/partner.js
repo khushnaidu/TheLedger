@@ -222,8 +222,22 @@ router.post('/notes', async (req, res) => {
 // corners read the whole log — your rows and your rival's — so the
 // proof is social: the other side can always inspect the receipt.
 
-const PROBLEM_KINDS = ['solved', 'studied'];
+const PROBLEM_KINDS = ['solved', 'studied', 'watched'];
 const DIFFICULTIES = ['', 'easy', 'medium', 'hard'];
+const YT_RE = /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)[\w-]{6,}/i;
+
+// a watched video names itself: YouTube's public oEmbed hands back the
+// title, no key needed — fail-open to a plain label if it won't answer
+const videoTitle = async (url) => {
+  try {
+    const r = await fetch(
+      'https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent(url),
+      { signal: AbortSignal.timeout(4000) },
+    );
+    if (!r.ok) return '';
+    return String((await r.json()).title || '').trim().slice(0, 140);
+  } catch { return ''; }
+};
 
 // GET /api/partner/spar — where the code bout stands
 router.get('/spar', async (req, res) => {
@@ -313,12 +327,17 @@ router.get('/problems', async (req, res) => {
   }
 });
 
-// POST /api/partner/problems — log one problem
+// POST /api/partner/problems — log one problem (or one watched video)
 router.post('/problems', async (req, res) => {
   try {
-    const title = String(req.body?.title ?? '').trim().slice(0, 140);
-    if (!title) return res.status(400).json({ error: 'Name the problem' });
+    let title = String(req.body?.title ?? '').trim().slice(0, 140);
     const kind = PROBLEM_KINDS.includes(req.body?.kind) ? req.body.kind : 'solved';
+    const url = String(req.body?.url ?? '').trim().slice(0, 500);
+    if (!title && kind === 'watched' && YT_RE.test(url)) {
+      title = await videoTitle(url);
+      if (!title) title = 'a neetcode video';
+    }
+    if (!title) return res.status(400).json({ error: 'Name the problem' });
     const difficulty = DIFFICULTIES.includes(req.body?.difficulty) ? req.body.difficulty : '';
     // a backdated log is allowed a fortnight — yesterday's grind counts,
     // but nobody pre-logs tomorrow
@@ -331,7 +350,7 @@ router.post('/problems', async (req, res) => {
     const row = await prisma.problem.create({
       data: {
         title,
-        url: String(req.body?.url ?? '').trim().slice(0, 500),
+        url,
         kind,
         difficulty,
         proofUrl: String(req.body?.proofUrl ?? '').trim().slice(0, 500),
