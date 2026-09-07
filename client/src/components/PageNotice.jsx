@@ -26,7 +26,7 @@ const NOTICES = [
     lead: 'A notebook that behaves like one: real leaves, turned by hand.',
     steps: [
       'Drag a page corner to turn it — right corners go forward, left corners go back. The arrow keys turn pages too.',
-      'The palette on the left holds the pen, text, stickers, and pictures. Draw or write anywhere on the leaf.',
+      'The palette on the left holds the pen, text, code blocks, stickers, and pictures. Draw or write anywhere on the leaf; code keeps its indentation and highlights itself.',
       'Flip past the last page to bind a fresh one. "Tear out page" removes the open one, after asking.',
       'It saves itself as you work — the stamp in the top bar says when.',
     ],

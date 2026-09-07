@@ -7,6 +7,7 @@ const TOOLS = [
   { id: 'pen', label: 'Pen' },
   { id: 'erase', label: 'Erase' },
   { id: 'text', label: 'Text' },
+  { id: 'code', label: 'Code' },
   { id: 'image', label: 'Photo' },
   { id: 'sticker', label: 'Stickers' },
 ];

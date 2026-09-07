@@ -1,11 +1,12 @@
 import { useRef } from 'react';
-import { PAGE_W, PAGE_H, newText, newLineText, newSticker, snapLineY } from './model';
+import { PAGE_W, PAGE_H, newText, newLineText, newSticker, newCode, snapLineY } from './model';
 import TextItem from './TextItem';
 import ImageItem from './ImageItem';
 import StickerItem from './StickerItem';
+import CodeItem from './CodeItem';
 import InkLayer, { StrokeSvg } from './InkLayer';
 
-const ITEM_COMPONENTS = { text: TextItem, image: ImageItem, sticker: StickerItem };
+const ITEM_COMPONENTS = { text: TextItem, image: ImageItem, sticker: StickerItem, code: CodeItem };
 
 // One page of the spread, drawn at 700×920 logical units and scaled by the
 // reader. Paper furniture comes from nb-paper-* classes; items sit above the
@@ -54,8 +55,17 @@ export default function PageCanvas({
   const handlePageClick = (e) => {
     const onPaper = e.target === e.currentTarget || e.target.classList?.contains('nb-paper-layer');
     if (tool === 'text') {
+      // preventDefault, or the browser's mousedown focus-shift lands
+      // AFTER this handler and blurs the just-focused editor into
+      // self-deletion — same guard as doc-mode below
+      e.preventDefault();
       const [x, y] = toPagePoint(e);
       addItem(newText(Math.min(x, PAGE_W - 260), y));
+      onToolDone();
+    } else if (tool === 'code') {
+      e.preventDefault();
+      const [x, y] = toPagePoint(e);
+      addItem(newCode(Math.min(x, PAGE_W - 440), y));
       onToolDone();
     } else if (tool === 'sticker' && armedSticker) {
       const [x, y] = toPagePoint(e);
@@ -79,7 +89,7 @@ export default function PageCanvas({
   return (
     <div
       ref={pageRef}
-      className={`nb-page nb-paper-${paperStyle} ${tool === 'text' || tool === 'sticker' ? 'nb-page-placing' : ''}`}
+      className={`nb-page nb-paper-${paperStyle} ${tool === 'text' || tool === 'code' || tool === 'sticker' ? 'nb-page-placing' : ''}`}
       style={{ width: PAGE_W, height: PAGE_H, transform: `scale(${scale})` }}
       onPointerDown={handlePageClick}
     >

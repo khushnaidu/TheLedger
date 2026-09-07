@@ -2697,6 +2697,64 @@ aside {
 
 /* ── text items ──────────────────────────── */
 
+/* ── code blocks: a small dark printout pasted onto the page ─ */
+.nb-code {
+  border: 1px solid #0c0c0a;
+  background: #1d1e1a;
+  color: #e8e6dd;
+  box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.22);
+  font-family: 'IBM Plex Mono', monospace;
+  text-transform: none;
+}
+.nb-code-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 4px 8px;
+  border-bottom: 1px solid rgba(232, 230, 221, 0.18);
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(232, 230, 221, 0.45);
+}
+.nb-code-dots { letter-spacing: 0.2em; font-size: 0.4375rem; }
+.nb-code-pre {
+  margin: 0;
+  padding: 8px 10px 10px;
+  overflow-x: auto;
+  white-space: pre;
+  line-height: 1.5;
+  tab-size: 4;
+}
+.nb-code-pre code { font-family: inherit; font-size: inherit; }
+.nb-code-edit {
+  display: block;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.5;
+  padding: 8px 10px 10px;
+  resize: vertical;
+  white-space: pre;
+  tab-size: 4;
+}
+.nb-code-edit:focus { outline: none; }
+.nb-code-edit::placeholder { color: rgba(232, 230, 221, 0.35); }
+
+/* the token palette, tuned to the printout's paper-dark ground */
+.nb-code .hljs-keyword, .nb-code .hljs-literal, .nb-code .hljs-built_in { color: #e5a458; }
+.nb-code .hljs-string, .nb-code .hljs-regexp { color: #a8c084; }
+.nb-code .hljs-number { color: #d8b46a; }
+.nb-code .hljs-comment { color: rgba(232, 230, 221, 0.4); font-style: italic; }
+.nb-code .hljs-title, .nb-code .hljs-title.function_, .nb-code .hljs-title.class_ { color: #8fb8d8; }
+.nb-code .hljs-attr, .nb-code .hljs-property, .nb-code .hljs-variable { color: #d9a0a0; }
+.nb-code .hljs-params { color: inherit; }
+.nb-code .hljs-operator, .nb-code .hljs-punctuation { color: rgba(232, 230, 221, 0.75); }
+.nb-code .hljs-type { color: #c9a8d8; }
+
 .nb-text {
   min-height: 1.2em;
   line-height: 1.35;

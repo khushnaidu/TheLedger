@@ -53,6 +53,13 @@ export const newLineText = (x, y, w) => ({
   font: 'cute', size: 20, color: 'ink', text: '',
 });
 
+// a code block: a small dark printout pasted onto the page — mono,
+// whitespace-exact, highlighted on display (grammars load lazily)
+export const newCode = (x, y) => ({
+  id: uid(), type: 'code', x, y, w: 420, rot: 0,
+  lang: 'auto', size: 13, code: '',
+});
+
 export const newImage = (x, y, url, w, h) => ({
   id: uid(), type: 'image', x, y, w, h, rot: tilt(), url, frame: 'tape',
 });
