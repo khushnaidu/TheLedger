@@ -333,9 +333,12 @@ router.post('/problems', async (req, res) => {
     let title = String(req.body?.title ?? '').trim().slice(0, 140);
     const kind = PROBLEM_KINDS.includes(req.body?.kind) ? req.body.kind : 'solved';
     const url = String(req.body?.url ?? '').trim().slice(0, 500);
-    if (!title && kind === 'watched' && YT_RE.test(url)) {
+    // a youtube link names itself WHATEVER the kind — the natural flow
+    // is watch the video, solve the problem, file it as solved with the
+    // link, and the resolution must not switch off with the chip
+    if (!title && YT_RE.test(url)) {
       title = await videoTitle(url);
-      if (!title) title = 'a neetcode video';
+      if (!title && kind === 'watched') title = 'a neetcode video';
     }
     if (!title) return res.status(400).json({ error: 'Name the problem' });
     const difficulty = DIFFICULTIES.includes(req.body?.difficulty) ? req.body.difficulty : '';
