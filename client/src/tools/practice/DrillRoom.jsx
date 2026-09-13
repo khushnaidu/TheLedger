@@ -4,6 +4,7 @@ import { api } from '../../api';
 import { runPython, warmUp, onEngineState } from './py';
 import CodePane from './CodePane';
 import TutorPanel from './TutorPanel';
+import BriefMd from './BriefMd';
 
 // THE BENCH — one drill, worked. Editor and console at the left, the
 // brief and Ada at the right. Code autosaves on a short idle; the run
@@ -15,6 +16,9 @@ const ENGINE_WORDS = {
   booting: 'stoking the engine…',
   ready: 'engine hot',
 };
+
+const RAIL_DEFAULT = 460;
+const clampRail = (w) => Math.max(340, Math.min(720, w));
 
 export default function DrillRoom() {
   const { drillId } = useParams();
@@ -30,6 +34,29 @@ export default function DrillRoom() {
   const codeRef = useRef('');
   const linesRef = useRef([]);
   const saveTimer = useRef(null);
+  const floorRef = useRef(null);
+  const [railW, setRailW] = useState(() => {
+    try { return clampRail(Number(localStorage.getItem('gym_rail_w')) || RAIL_DEFAULT); }
+    catch { return RAIL_DEFAULT; }
+  });
+
+  const setRail = (w) => {
+    const clamped = clampRail(w);
+    setRailW(clamped);
+    try { localStorage.setItem('gym_rail_w', String(clamped)); } catch { /* private mode */ }
+  };
+
+  const dragRail = (e) => {
+    e.preventDefault();
+    const rect = floorRef.current.getBoundingClientRect();
+    const move = (ev) => setRail(rect.right - ev.clientX - 5);
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
 
   useEffect(() => {
     api.getDrill(drillId)
@@ -151,7 +178,7 @@ export default function DrillRoom() {
         </button>
       </div>
 
-      <div className="gym-floor">
+      <div className="gym-floor" ref={floorRef} style={{ '--railw': `${railW}px` }}>
         <div className="gym-left">
           <div className="gym-editor-card">
             <CodePane key={drill.id} code={drill.code} onChange={onCodeChange} onRun={run} />
@@ -166,12 +193,23 @@ export default function DrillRoom() {
           </div>
         </div>
 
+        <div
+          className="gym-divider"
+          title="drag to resize — double-click to reset"
+          onPointerDown={dragRail}
+          onDoubleClick={() => setRail(RAIL_DEFAULT)}
+        />
+
         <div className="gym-rail">
           <div className={`gym-brief ${briefOpen ? '' : 'gym-brief-folded'}`}>
             <button data-clicky className="gym-brief-head" onClick={() => setBriefOpen((o) => !o)}>
               THE BRIEF <span>{briefOpen ? '−' : '+'}</span>
             </button>
-            {briefOpen && <pre className="gym-brief-text">{drill.brief}</pre>}
+            {briefOpen && (
+              <div className="gym-brief-scroll">
+                <BriefMd md={drill.briefMd} fallback={drill.brief} />
+              </div>
+            )}
           </div>
           <TutorPanel drillId={drill.id} getContext={getContext} />
         </div>

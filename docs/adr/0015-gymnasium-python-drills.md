@@ -70,3 +70,33 @@ migrations, the house's one-page-one-tool registry conventions.
   paste Ada's hints into another tool. That is their loss to take.
 - 15s wall clock rules out drills that legitimately compute for longer;
   acceptable at the bench, adjustable in one constant.
+
+## Amendment (2026-09-12, same day): the bench goes dark, the brief gets typeset
+
+User feedback on the first cut, three faults:
+
+1. **Everything typed out in ALL CAPS.** The ledger sets the whole paper
+   uppercase at the body level (`body { text-transform: uppercase }`), and
+   the gym block never opted its content out the way every other tool does.
+   Python is case-sensitive; a code editor that displays `PRINT` is broken on
+   arrival. Fixed with `text-transform: none` on the editor, console, brief,
+   tutor transcript and inputs, the intake textarea, drill titles. Chrome
+   (labels, stamps, buttons) stays uppercase — that's the house.
+2. **The light paper cards clashed at the bench.** The brief and Ada now sit
+   in the same near-black printout (#14130e) as the editor and readout — the
+   bench is one dark workspace set into the paper page. Type sizes came up
+   (messages 0.75rem, brief 0.6875rem).
+3. **The rail was fixed-width and cramped.** A col-resize divider between
+   bench and rail now drags 340–720px (default 460), persists in
+   localStorage `gym_rail_w`, double-click resets. Stacks below 1100px.
+
+Plus one addition in the applog's tradition: **the typesetting clerk**. A
+pasted problem arrives as an undifferentiated wall of text; at intake a
+haiku call (`typeset_brief`, tool-forced) resets it VERBATIM in a small
+markdown dialect (## sections, **labels**, inline code, fenced examples,
+constraint lists) and names the drill properly ("Two Sum", not "1. Two
+Sum"). Stored in `Drill.briefMd` (additive migration `drill_brief_md`);
+rendered by a hand-rolled five-construct renderer (`BriefMd.jsx`) — no
+markdown dependency for five constructs. Fail-open: clerk out → raw brief
+in a plain pre. The clerk is charter-bound like Ada: strip site chrome,
+never solve, never hint, never reword.

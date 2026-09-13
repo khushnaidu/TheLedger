@@ -17,6 +17,44 @@ const titleFromBrief = (brief) => {
   return line.slice(0, 80);
 };
 
+// ── the typesetting clerk ─────────────────────────────────────
+// A pasted leetcode problem arrives as one undifferentiated wall of
+// text. A haiku clerk resets it in clean markdown for the bench's
+// brief card — same words, better type — and names the drill while
+// he's at it. Fail-open: no clerk, no markdown, the raw paste shows.
+const CLERK_MODEL = 'claude-haiku-4-5';
+const typesetBrief = async (raw) => {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  const Anthropic = require('@anthropic-ai/sdk').default;
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const msg = await client.messages.create({
+    model: CLERK_MODEL,
+    max_tokens: 3000,
+    tools: [{
+      name: 'typeset_brief',
+      description: 'Typeset one practice problem for display.',
+      input_schema: {
+        type: 'object',
+        properties: {
+          title: {
+            type: 'string',
+            description: 'a short clean drill title, e.g. "Two Sum" or "Graphs: BFS & DFS". Use the problem\'s own name when it has one.',
+          },
+          markdown: {
+            type: 'string',
+            description: 'the brief restated VERBATIM in clean markdown: ## headings for sections (Examples, Constraints, Follow-up), **bold** for labels like Input/Output/Explanation, backtick inline code for identifiers and literal values, fenced code blocks for example input/output pairs, "- " lists for constraints. Strip site chrome (vote counts, company tags, "Seen this question in..."). Never solve it, never add hints or commentary, never drop or reword the problem itself — same words, better type. A short informal brief ("practice graphs with bfs") passes through as a single clean sentence.',
+          },
+        },
+        required: ['title', 'markdown'],
+      },
+    }],
+    tool_choice: { type: 'tool', name: 'typeset_brief' },
+    messages: [{ role: 'user', content: 'Typeset this practice brief:\n\n' + raw.slice(0, 12_000) }],
+  });
+  const use = msg.content.find((c) => c.type === 'tool_use');
+  return use ? use.input : null;
+};
+
 // ── Drills ────────────────────────────────────────────────────
 
 router.get('/drills', async (req, res) => {
@@ -37,9 +75,19 @@ router.post('/drills', async (req, res) => {
   try {
     const brief = (req.body.brief || '').trim().slice(0, MAX_BRIEF);
     if (!brief) return res.status(400).json({ error: 'Chalk up a question first' });
-    const title = (req.body.title || '').trim().slice(0, 80) || titleFromBrief(brief);
+    let set = null;
+    try { set = await typesetBrief(brief); } catch { /* fail-open: raw brief shows */ }
+    const title = (req.body.title || '').trim().slice(0, 80)
+      || (set?.title || '').trim().slice(0, 80)
+      || titleFromBrief(brief);
     const drill = await prisma.drill.create({
-      data: { title, brief, code: req.body.code || '', userId: req.user.id },
+      data: {
+        title,
+        brief,
+        briefMd: (set?.markdown || '').slice(0, MAX_BRIEF),
+        code: req.body.code || '',
+        userId: req.user.id,
+      },
     });
     res.status(201).json(drill);
   } catch (err) {

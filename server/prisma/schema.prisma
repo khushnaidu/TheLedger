@@ -392,6 +392,9 @@ model Drill {
   id        String   @id @default(uuid())
   title     String   @default("")
   brief     String   @default("")
+  // the brief typeset by a haiku clerk at intake — clean markdown for
+  // display; empty means the clerk was out and the raw brief shows
+  briefMd   String   @default("")
   code      String   @default("")
   status    String   @default("open") // open | solved
   userId    String
