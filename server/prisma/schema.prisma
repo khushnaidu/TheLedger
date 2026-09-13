@@ -37,6 +37,7 @@ model User {
   resumes     Resume[]
   applications Application[]
   problems    Problem[]
+  drills      Drill[]
 
   sentInvites     Connection[]  @relation("connRequester")
   receivedInvites Connection[]  @relation("connAddressee")
@@ -381,4 +382,22 @@ model LedgerEntry {
 
   @@unique([userId, externalKey])
   @@index([userId, date])
+}
+
+// ── The Study: the gymnasium — python drills worked at the bench with
+// Ada, the resident tutor. The brief is the question as the patron gave
+// it (a pasted leetcode problem or a loose "practice graphs with bfs");
+// code autosaves so a drill reopens exactly where it was left. ADR-0015 ──
+model Drill {
+  id        String   @id @default(uuid())
+  title     String   @default("")
+  brief     String   @default("")
+  code      String   @default("")
+  status    String   @default("open") // open | solved
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, updatedAt])
 }

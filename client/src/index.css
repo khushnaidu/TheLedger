@@ -6467,3 +6467,380 @@ body.jb-resizing .jb-board { pointer-events: none; }
 .jb-card .jb-card-old { margin-top: 5px; }
 .jb-card .jb-card-new { margin-top: 5px; }
 .jb-card .jb-card-where { margin-top: 4px; }
+
+/* ════ THE GYMNASIUM (gym-) — python drills with Ada (ADR-0015) ════
+   The list page keeps the classifieds' intake manners; the bench is a
+   dark printout card (the nb-code family look) set into the paper. */
+
+.gym-page { max-width: 1100px; padding-bottom: 56px; }
+
+.gym-intake {
+  margin-top: 22px;
+  border: 1px solid var(--line);
+  background: #fcfbf7;
+  padding: 12px 14px;
+  max-width: 760px;
+}
+.gym-intake-head {
+  font-size: 0.5rem;
+  letter-spacing: 0.18em;
+  color: var(--ink-50);
+  text-transform: uppercase;
+}
+.gym-chalk {
+  width: 100%;
+  margin: 8px 0;
+  border: 1px solid var(--line);
+  background: transparent;
+  padding: 7px 9px;
+  font-family: var(--font);
+  font-size: 0.625rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+.gym-chalk:focus { outline: none; border-color: var(--ink); }
+
+.gym-error {
+  margin-top: 14px;
+  font-size: 0.625rem;
+  color: var(--stamp);
+}
+.gym-empty {
+  margin-top: 40px;
+  font-size: 0.6875rem;
+  color: var(--ink-30);
+}
+
+/* ── the board: one ruled line per drill ─ */
+.gym-board { margin-top: 28px; border-top: 1px solid var(--ink); }
+.gym-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid var(--ink-15);
+}
+.gym-row-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  text-align: left;
+  padding: 11px 2px;
+}
+.gym-row-open:hover .gym-row-title { text-decoration: underline; }
+.gym-row-title {
+  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gym-row-solved .gym-row-title { color: var(--ink-30); }
+.gym-row-date {
+  flex-shrink: 0;
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-30);
+}
+.gym-stamp {
+  flex-shrink: 0;
+  font-size: 0.4375rem;
+  letter-spacing: 0.2em;
+  border: 1px solid var(--ink-30);
+  color: var(--ink-50);
+  padding: 2px 7px;
+}
+.gym-stamp-solved {
+  border-color: var(--stamp);
+  color: var(--stamp);
+  transform: rotate(-3deg);
+}
+.gym-strike {
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  color: var(--ink-30);
+  padding: 4px 8px;
+}
+.gym-strike:hover { color: var(--ink); }
+.gym-strike-armed { color: var(--stamp); font-size: 0.5rem; letter-spacing: 0.12em; }
+
+/* ── the bench ─ */
+.gym-room { padding-bottom: 32px; }
+.gym-bench-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0 10px;
+  border-bottom: 1px solid var(--ink);
+  /* the notice chip sits top-right, level with the page head */
+  padding-right: 158px;
+}
+.gym-back {
+  flex-shrink: 0;
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  color: var(--ink-50);
+}
+.gym-back:hover { color: var(--ink); }
+.gym-title-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
+  padding: 2px 4px;
+}
+.gym-title-input:focus { outline: none; background: var(--ink-04); }
+.gym-engine {
+  flex-shrink: 0;
+  font-size: 0.4375rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-30);
+}
+.gym-engine-booting { animation: rrPulse 1.2s steps(2) infinite; }
+.gym-engine-ready { color: var(--ink); }
+.gym-savestamp {
+  flex-shrink: 0;
+  font-size: 0.4375rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-30);
+}
+.gym-solved {
+  flex-shrink: 0;
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border: 1px solid var(--ink-30);
+  color: var(--ink-50);
+  padding: 4px 9px;
+}
+.gym-solved:hover { border-color: var(--ink); color: var(--ink); }
+.gym-solved-on { border-color: var(--stamp); color: var(--stamp); transform: rotate(-2deg); }
+.gym-run {
+  flex-shrink: 0;
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  background: var(--ink);
+  color: #fff;
+  padding: 6px 14px;
+}
+.gym-run:disabled { opacity: 0.5; }
+
+.gym-floor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 18px;
+  margin-top: 16px;
+  align-items: start;
+}
+.gym-left { min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+
+/* the printout: editor card cut from the notebook code block's cloth */
+.gym-editor-card {
+  border: 1px solid var(--ink);
+  background: #14130e;
+  box-shadow: 4px 4px 0 var(--ink-15);
+  height: 52vh;
+  min-height: 320px;
+}
+.gym-editor { height: 100%; }
+.gym-editor .cm-editor { height: 100%; }
+
+.gym-console {
+  border: 1px solid var(--ink);
+  background: #14130e;
+  color: #e8e4d8;
+  padding: 10px 12px;
+  height: 190px;
+  overflow-y: auto;
+  font-size: 0.625rem;
+}
+.gym-console-head {
+  font-size: 0.4375rem;
+  letter-spacing: 0.22em;
+  color: rgba(232,228,216,0.4);
+  margin-bottom: 6px;
+}
+.gym-console-idle { color: rgba(232,228,216,0.35); font-size: 0.5625rem; line-height: 1.5; }
+.gym-line {
+  font-family: var(--font);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+  margin: 0;
+}
+.gym-line-err { color: #e07a6a; }
+.gym-line-sys { color: rgba(232,228,216,0.45); }
+.gym-blink { animation: rrPulse 1s steps(2) infinite; }
+
+/* ── the rail: brief + Ada ─ */
+.gym-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: sticky;
+  top: 16px;
+  height: calc(100vh - 120px);
+  min-height: 480px;
+}
+.gym-brief {
+  border: 1px solid var(--line);
+  background: #fcfbf7;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 34%;
+}
+.gym-brief-folded { max-height: none; }
+.gym-brief-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 0.5rem;
+  letter-spacing: 0.22em;
+  color: var(--ink-50);
+  text-align: left;
+}
+.gym-brief-text {
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0 12px 10px;
+}
+
+/* Ada — same panel manners as the house's other consultants */
+.gym-tutor {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink-15);
+}
+.gym-tutor-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--ink);
+}
+.gym-ada-mark {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ink);
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 1.0625rem;
+  background: #fcfbf7;
+}
+.gym-tutor-name {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+.gym-tutor-role {
+  font-size: 0.4rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-30);
+  margin-top: 3px;
+}
+.gym-atwork {
+  position: absolute;
+  right: 12px;
+  top: 14px;
+  font-size: 0.4375rem;
+  letter-spacing: 0.2em;
+  color: var(--stamp);
+  border: 1px solid var(--stamp);
+  padding: 2px 6px;
+  transform: rotate(4deg);
+  animation: rrPulse 1.2s steps(2) infinite;
+}
+.gym-tutor-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.gym-msg {
+  max-width: 88%;
+  font-size: 0.625rem;
+  line-height: 1.65;
+}
+.gym-msg p { white-space: pre-wrap; word-break: break-word; }
+.gym-msg-ada { align-self: flex-start; }
+.gym-msg-user {
+  align-self: flex-end;
+  background: var(--ink-04);
+  border: 1px solid var(--ink-08);
+  padding: 7px 10px;
+}
+.gym-msg-thinking { color: var(--ink-30); font-style: italic; }
+.gym-cut {
+  margin-top: 6px;
+  font-size: 0.5rem;
+  color: var(--ink-30);
+  font-style: italic;
+}
+.gym-code-inline {
+  font-family: var(--font);
+  background: var(--ink-04);
+  border: 1px solid var(--ink-08);
+  padding: 0 4px;
+  font-size: 0.94em;
+}
+.gym-tutor-inputrow {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid var(--ink);
+}
+.gym-tutor-input {
+  flex: 1;
+  border: 1px solid var(--line);
+  background: transparent;
+  padding: 6px 8px;
+  font-family: var(--font);
+  font-size: 0.5625rem;
+  line-height: 1.5;
+  resize: none;
+}
+.gym-tutor-input:focus { outline: none; border-color: var(--ink); }
+.gym-tutor-send {
+  align-self: flex-end;
+  font-size: 0.5625rem;
+  letter-spacing: 0.16em;
+  background: var(--ink);
+  color: #fff;
+  padding: 8px 12px;
+}
+.gym-tutor-send:disabled { opacity: 0.4; }
+
+@media (max-width: 1100px) {
+  .gym-floor { grid-template-columns: 1fr; }
+  .gym-rail { position: static; height: auto; min-height: 0; }
+  .gym-tutor { min-height: 420px; }
+}

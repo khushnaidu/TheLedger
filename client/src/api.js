@@ -182,6 +182,14 @@ export const api = {
     request(`/research/papers/${paperId}/annotations/${annId}`, { method: 'DELETE' }),
   askJane: (data) => request('/research/chat', { method: 'POST', body: JSON.stringify(data) }),
 
+  // The Gymnasium (the study)
+  getDrills: () => request('/practice/drills'),
+  createDrill: (data) => request('/practice/drills', { method: 'POST', body: JSON.stringify(data) }),
+  getDrill: (id) => request(`/practice/drills/${id}`),
+  updateDrill: (id, data) => request(`/practice/drills/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteDrill: (id) => request(`/practice/drills/${id}`, { method: 'DELETE' }),
+  askAda: (data) => request('/practice/chat', { method: 'POST', body: JSON.stringify(data) }),
+
   // The Accounts (the household book)
   getEntries: (params = {}) => {
     const qs = new URLSearchParams(params).toString();

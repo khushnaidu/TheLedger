@@ -17,13 +17,15 @@ import { clearEdition, isPersonal } from './lib/edition';
 import { initClicky } from './lib/clicky';
 
 // Gus does not work every floor. The Reading Room is Jane's, The
-// Accounts belongs to Marx and Friedman, who lean in as a pair, and
-// the Rewrite Desk staffs its own clerk in the rail — nobody peeks.
+// Accounts belongs to Marx and Friedman, who lean in as a pair, the
+// Rewrite Desk staffs its own clerk in the rail, and the Gymnasium
+// is Ada's — nobody peeks over a shoulder at the bench.
 function AssistantOnDuty({ user }) {
   const { pathname } = useLocation();
   if (pathname.startsWith('/research')) return <JanePeek />;
   if (pathname.startsWith('/finance')) return <ClerkPeek />;
   if (pathname.startsWith('/jobs')) return null;
+  if (pathname.startsWith('/practice')) return null;
   return (
     <GusAssistant user={user} onTicketsCreated={() => {
       window.dispatchEvent(new Event('gus-tickets-created'));

@@ -44,6 +44,32 @@ const NOTICES = [
     ],
   },
   {
+    id: 'drill-room',
+    match: (p) => /^\/practice\/.+/.test(p),
+    section: 'The Study',
+    title: 'The bench',
+    lead: 'One drill, worked: your code at the left, the brief and the tutor at the right.',
+    steps: [
+      'Write your Python in the editor and press RUN (or ⌘↵). Real Python runs right here; the readout below prints output and full tracebacks.',
+      'Ada, at the right, sees your brief, your code, and your last run with every question. She guides — syntax, data structures, complexity — but she will not write the solution.',
+      'Stuck between idea and syntax? Type your pseudocode into the editor and ask her how to turn a line of it into Python.',
+      'Code saves itself as you type. Mark the drill solved when it earns it.',
+    ],
+  },
+  {
+    id: 'practice',
+    match: (p) => p.startsWith('/practice'),
+    section: 'The Study',
+    title: 'The gymnasium',
+    lead: 'For the interview grind’s other half: not logging problems but learning to code them — turning the idea in your head into working Python, with a tutor who guides and never solves.',
+    steps: [
+      'Chalk up a drill: paste a whole leetcode problem, or write one line like "practice graphs in python with bfs and dfs".',
+      'Each drill opens a bench: an editor, a real Python engine that runs in your browser, and Ada the tutor.',
+      'Drills keep their code — reopen one and the bench is exactly as you left it.',
+      'Mark a drill SOLVED when you beat it; × strikes it from the board.',
+    ],
+  },
+  {
     id: 'paper-reader',
     match: (p) => /^\/research\/.+/.test(p),
     section: 'The Study',

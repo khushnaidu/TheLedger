@@ -30,6 +30,8 @@ export const TOOLS = [
     Component: lazy(() => import('./notebooks/NotebooksShelf')) },
   { id: 'research', name: 'Reading Room', route: '/research', section: 'study',
     Component: lazy(() => import('./research/ReadingRoom')) },
+  { id: 'practice', name: 'The Gymnasium', route: '/practice', section: 'study',
+    Component: lazy(() => import('./practice/Gymnasium')) },
   // ── the classifieds ── (the jobs wire retired 2026-08; the desk IS the section now)
   { id: 'jobs', name: 'The Rewrite Desk', route: '/jobs', end: true, section: 'classifieds',
     Component: lazy(() => import('./jobs/ResumeDesk')) },
@@ -53,6 +55,7 @@ export const HIDDEN_ROUTES = [
   { route: '/tickets/:id', Component: lazy(() => import('../pages/TicketDetail')) },
   { route: '/notebooks/:id', Component: lazy(() => import('./notebooks/NotebookReader')) },
   { route: '/research/:paperId', Component: lazy(() => import('./research/PaperReader')) },
+  { route: '/practice/:drillId', Component: lazy(() => import('./practice/DrillRoom')) },
   { route: '/finance/lines', Component: lazy(() => import('./finance/LedgerLines')) },
   // old bookmark alias — the desk moved up to /jobs when the wire retired
   { route: '/jobs/resume', Component: lazy(() => import('./jobs/ResumeDesk')) },
