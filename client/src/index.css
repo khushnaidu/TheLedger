@@ -6625,6 +6625,16 @@ body.jb-resizing .jb-board { pointer-events: none; }
 }
 .gym-solved:hover { border-color: var(--ink); color: var(--ink); }
 .gym-solved-on { border-color: var(--stamp); color: var(--stamp); transform: rotate(-2deg); }
+.gym-prove {
+  flex-shrink: 0;
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  padding: 5px 10px;
+}
+.gym-prove:hover { background: var(--ink-04); }
+.gym-prove:disabled { opacity: 0.5; }
 .gym-run {
   flex-shrink: 0;
   font-size: 0.5625rem;
@@ -6681,6 +6691,8 @@ body.jb-resizing .jb-board { pointer-events: none; }
 }
 .gym-line-err { color: #e07a6a; }
 .gym-line-sys { color: rgba(232,228,216,0.45); }
+.gym-line-pass { color: #98c379; }
+.gym-line-fail { color: #e07a6a; }
 .gym-blink { animation: rrPulse 1s steps(2) infinite; }
 
 /* ── the divider: grab it to reapportion the floor ─ */
@@ -6743,6 +6755,20 @@ body.jb-resizing .jb-board { pointer-events: none; }
   overflow-y: auto;
   padding: 0 14px 12px;
   text-transform: none;
+}
+.gym-brief-entry {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 8px 14px;
+  border-top: 1px solid rgba(232,228,216,0.14);
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  color: rgba(232,228,216,0.5);
+  text-transform: none;
+}
+.gym-brief-entry code {
+  font-family: var(--font);
+  color: #61afef;
 }
 .gym-brief-raw {
   font-family: var(--font);
@@ -6866,6 +6892,20 @@ body.jb-resizing .jb-board { pointer-events: none; }
   line-height: 1.7;
 }
 .gym-msg p { white-space: pre-wrap; word-break: break-word; }
+.gym-msg p + p, .gym-msg .gym-msg-pre + p { margin-top: 8px; }
+.gym-msg-pre {
+  font-family: var(--font);
+  color: #98c379;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(232,228,216,0.14);
+  border-left: 2px solid rgba(229,192,123,0.55);
+  padding: 8px 10px;
+  margin: 8px 0;
+  font-size: 0.6875rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
 .gym-msg-ada { align-self: flex-start; }
 .gym-msg-user {
   align-self: flex-end;

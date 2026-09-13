@@ -395,6 +395,11 @@ model Drill {
   // the brief typeset by a haiku clerk at intake — clean markdown for
   // display; empty means the clerk was out and the raw brief shows
   briefMd   String   @default("")
+  // the proof, also the clerk's work: the function signature the brief
+  // expects, and up to 3 checks lifted from the brief's own examples
+  // ([{name, call, expected}]). Empty when the brief is a loose topic.
+  entry     String   @default("")
+  tests     Json     @default("[]")
   code      String   @default("")
   status    String   @default("open") // open | solved
   userId    String

@@ -100,3 +100,34 @@ rendered by a hand-rolled five-construct renderer (`BriefMd.jsx`) — no
 markdown dependency for five constructs. Fail-open: clerk out → raw brief
 in a plain pre. The clerk is charter-bound like Ada: strip site chrome,
 never solve, never hint, never reword.
+
+## Amendment (2026-09-13): Ada's manners, and the proof
+
+Two more rounds of user feedback:
+
+1. **"I'm having to constantly paste my code to Ada."** The plumbing was
+   never the problem — every question already carries the editor's live
+   content (verified by request capture on local and prod). The problem was
+   her manners: the greeting literally said "paste your thinking", and
+   nothing forbade her asking for code she already has. Her charter now
+   states she watches the editor live and must NEVER ask for a paste; the
+   greeting and her role line ("reads your editor live") say so; and her
+   replies may quote the student's own lines back in fenced blocks (quoting
+   is not solving — the 3-line limit applies only to code she composes),
+   which the panel now renders as proper blocks.
+2. **Static tests ("the proof").** The typesetting clerk also extracts, at
+   intake: `Drill.entry` (the def line the brief expects) and `Drill.tests`
+   (≤3 `{name, call, expected}` checks lifted verbatim from the brief's own
+   worked examples, normalized to compare with `==`; migration
+   `drill_proofs`). The bench shows the expected signature under the brief
+   and a PROVE IT button: the student's code runs with a harness appended
+   that evals each check in the same namespace and reports on one JSON
+   sentinel line, which the readout formats as ✓ / "✗ got X, expected Y" /
+   "the proof: N of M stood". Results land in the readout, so Ada reads
+   them as part of THE OUTPUT with no extra plumbing. Loose briefs
+   ("practice bfs") get no entry and no tests; the button simply absents
+   itself. The engine's leetcode preloads (collections, typing, heapq,
+   itertools, functools, bisect, math) went in the same day — each run in a
+   fresh prelude-seeded namespace — so clerk-written calls like
+   `two_sum([2,7,11,15], 9)` with `List[int]` hints run regardless of the
+   student's own imports.

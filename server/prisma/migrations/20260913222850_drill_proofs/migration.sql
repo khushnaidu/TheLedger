@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Drill" ADD COLUMN     "entry" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "tests" JSONB NOT NULL DEFAULT '[]';

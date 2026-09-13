@@ -14,7 +14,7 @@ const THINKING_LINES = [
   'Poetical science takes a moment…',
 ];
 
-const GREETING = "Show me where you are. Paste your thinking, run what you have, or just ask where to begin. I won't write it for you, but I'll get you writing it.";
+const GREETING = "I read your editor as you type — no pasting needed. Write, run what you have, and ask me anything; I won't write it for you, but I'll get you writing it.";
 
 // backtick fragments arrive from Ada as `code` — set them in type
 const renderInline = (text) => {
@@ -23,6 +23,17 @@ const renderInline = (text) => {
     p.startsWith('`') && p.endsWith('`') && p.length > 2
       ? <code key={i} className="gym-code-inline">{p.slice(1, -1)}</code>
       : p
+  );
+};
+
+// she quotes the student's own lines back in ```fences``` — set those
+// as blocks, everything between as prose
+const renderMsg = (text) => {
+  const parts = text.split(/```[^\n`]*\n?([\s\S]*?)```/g);
+  return parts.map((p, i) =>
+    i % 2 === 1
+      ? <pre key={i} className="gym-msg-pre">{p.replace(/\n$/, '')}</pre>
+      : (p.trim() ? <p key={i}>{renderInline(p.replace(/^\n+|\n+$/g, ''))}</p> : null)
   );
 };
 
@@ -81,7 +92,7 @@ export default function TutorPanel({ drillId, getContext }) {
         <div className="gym-ada-mark">A.</div>
         <div>
           <p className="gym-tutor-name">Ada</p>
-          <p className="gym-tutor-role">the tutor · guides, never solves</p>
+          <p className="gym-tutor-role">the tutor · reads your editor live · never solves</p>
         </div>
         {loading && <span className="gym-atwork">AT THE BOARD</span>}
       </div>
@@ -92,7 +103,7 @@ export default function TutorPanel({ drillId, getContext }) {
         )}
         {messages.map((m, i) => (
           <div key={i} className={`gym-msg ${m.role === 'user' ? 'gym-msg-user' : 'gym-msg-ada'}`}>
-            <p>{m.role === 'assistant' ? renderInline(m.content) : m.content}</p>
+            {m.role === 'assistant' ? renderMsg(m.content) : <p>{m.content}</p>}
             {m.truncated && <p className="gym-cut">She ran out of chalk mid-thought. Ask her to carry on.</p>}
           </div>
         ))}

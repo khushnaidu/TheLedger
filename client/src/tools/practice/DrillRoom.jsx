@@ -20,6 +20,29 @@ const ENGINE_WORDS = {
 const RAIL_DEFAULT = 460;
 const clampRail = (w) => Math.max(340, Math.min(720, w));
 
+// The proof: the student's code, then a harness that evals each of the
+// clerk's checks in the same namespace and reports on one sentinel
+// line. JSON.stringify twice: a JSON string literal is a valid python
+// string literal, so the cases ride in without an escaping dialect.
+const PROOF_SENTINEL = '__PROOF__';
+const buildProof = (code, cases) => `${code}
+
+def __prove():
+    import json as __json
+    __cases = __json.loads(${JSON.stringify(JSON.stringify(cases))})
+    __out = []
+    for __c in __cases:
+        try:
+            __got = eval(__c["call"])
+            __exp = eval(__c["expected"])
+            __out.append({"name": __c["name"], "ok": __got == __exp, "got": repr(__got), "exp": repr(__exp)})
+        except Exception as __e:
+            __out.append({"name": __c["name"], "ok": False, "err": type(__e).__name__ + ": " + str(__e)})
+    print("${PROOF_SENTINEL}" + __json.dumps(__out))
+
+__prove()
+`;
+
 export default function DrillRoom() {
   const { drillId } = useParams();
   const navigate = useNavigate();
@@ -121,6 +144,36 @@ export default function DrillRoom() {
     setRunning(false);
   };
 
+  const runProof = async () => {
+    if (running || !drill.tests?.length) return;
+    clearTimeout(saveTimer.current);
+    saveCode();
+    setLines([]);
+    linesRef.current = [];
+    setRunning(true);
+    if (engine !== 'ready') pushLine('sys', 'first run stokes the engine — a few seconds…');
+    const { error, timedOut } = await runPython(buildProof(codeRef.current, drill.tests), {
+      onStream: (s, kind) => {
+        if (s.startsWith(PROOF_SENTINEL)) {
+          try {
+            const results = JSON.parse(s.slice(PROOF_SENTINEL.length));
+            let stood = 0;
+            for (const r of results) {
+              if (r.ok) { stood++; pushLine('pass', `✓ ${r.name}`); }
+              else if (r.err) pushLine('fail', `✗ ${r.name} — ${r.err}`);
+              else pushLine('fail', `✗ ${r.name} — got ${r.got}, expected ${r.exp}`);
+            }
+            pushLine('sys', `── the proof: ${stood} of ${results.length} stood`);
+          } catch { pushLine('err', s); }
+          return;
+        }
+        pushLine(kind === 'err' ? 'err' : 'out', s);
+      },
+    });
+    if (error) pushLine(timedOut ? 'sys' : 'err', error);
+    setRunning(false);
+  };
+
   const renameTitle = async (title) => {
     const t = title.trim();
     if (!t || !drill || t === drill.title) return;
@@ -173,6 +226,12 @@ export default function DrillRoom() {
         <button data-clicky className={`gym-solved ${drill.status === 'solved' ? 'gym-solved-on' : ''}`} onClick={toggleSolved}>
           {drill.status === 'solved' ? 'SOLVED ✓' : 'mark solved'}
         </button>
+        {drill.tests?.length > 0 && (
+          <button data-clicky className="gym-prove" disabled={running} onClick={runProof}
+            title="run your code against the brief's own examples">
+            PROVE IT ({drill.tests.length})
+          </button>
+        )}
         <button data-clicky className="gym-run" disabled={running} onClick={run}>
           {running ? 'RUNNING…' : 'RUN ⌘↵'}
         </button>
@@ -209,6 +268,9 @@ export default function DrillRoom() {
               <div className="gym-brief-scroll">
                 <BriefMd md={drill.briefMd} fallback={drill.brief} />
               </div>
+            )}
+            {briefOpen && drill.entry && (
+              <p className="gym-brief-entry">expects <code>{drill.entry}</code></p>
             )}
           </div>
           <TutorPanel drillId={drill.id} getContext={getContext} />

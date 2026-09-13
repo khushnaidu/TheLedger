@@ -51,6 +51,7 @@ const NOTICES = [
     lead: 'One drill, worked: your code at the left, the brief and the tutor at the right.',
     steps: [
       'Write your Python in the editor and press RUN (or ⌘↵). Real Python runs right here, with leetcode’s usual names preloaded — deque, defaultdict, Counter, heapq, List, Optional and kin work without imports. The readout below prints output and full tracebacks.',
+      'When the drill came from a real problem, PROVE IT runs your code against the brief’s own examples — each check lands in the readout as a ✓ or a ✗ with what came out versus what was expected.',
       'Ada, at the right, sees your brief, your code, and your last run with every question. She guides — syntax, data structures, complexity — but she will not write the solution.',
       'Stuck between idea and syntax? Type your pseudocode into the editor and ask her how to turn a line of it into Python.',
       'Code saves itself as you type. Mark the drill solved when it earns it.',
