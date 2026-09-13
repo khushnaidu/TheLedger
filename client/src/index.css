@@ -6746,42 +6746,48 @@ body.jb-resizing .jb-board { pointer-events: none; }
 }
 .gym-brief-raw {
   font-family: var(--font);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;
   margin: 0;
 }
 
-/* the typeset brief — the clerk's markdown */
-.gym-md { font-size: 0.6875rem; line-height: 1.7; }
+/* the typeset brief — the clerk's markdown, inked in the editor's own
+   one-dark palette so the rail and the code read as one set */
+.gym-md { font-size: 0.8125rem; line-height: 1.75; }
 .gym-md-h {
   font-family: var(--font-head);
   font-weight: 700;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #fff;
-  margin: 14px 0 6px;
+  color: #e5c07b;
+  margin: 16px 0 7px;
 }
 .gym-md-h:first-child { margin-top: 4px; }
-.gym-md-p { margin: 0 0 8px; }
-.gym-md-ul { margin: 0 0 8px; padding-left: 16px; list-style: square; }
-.gym-md-ul li { margin-bottom: 4px; }
+.gym-md-p { margin: 0 0 9px; }
+.gym-md p strong, .gym-md li strong { color: #61afef; font-weight: 700; }
+.gym-md-ul { margin: 0 0 9px; padding-left: 18px; list-style: square; }
+.gym-md-ul li { margin-bottom: 5px; }
+.gym-md-ul li::marker { color: #e5c07b; }
 .gym-md-pre {
   font-family: var(--font);
+  color: #98c379;
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(232,228,216,0.14);
-  padding: 8px 10px;
-  margin: 0 0 10px;
-  font-size: 0.65rem;
+  border-left: 2px solid rgba(229,192,123,0.55);
+  padding: 9px 11px;
+  margin: 0 0 11px;
+  font-size: 0.75rem;
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
 }
 .gym-md-code-inline {
   font-family: var(--font);
-  background: rgba(255,255,255,0.08);
+  color: #d19a66;
+  background: rgba(255,255,255,0.07);
   border: 1px solid rgba(232,228,216,0.12);
   padding: 0 4px;
   font-size: 0.95em;
