@@ -390,6 +390,28 @@ function EditCard({ edit, idx, onSet, onSpike }) {
   );
 }
 
+// A drafted answer ("why us", a cover note) arrives beside the note as
+// its own slip, with the copy one press away — it never touches the
+// document, and like the rest of the session it dies with the desk.
+function DraftSlip({ text }) {
+  const [copied, setCopied] = useState(false);
+  const take = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch { /* clipboard denied — the slip is still selectable */ }
+  };
+  return (
+    <div className="jb-draft">
+      <pre className="jb-draft-text">{text}</pre>
+      <button data-clicky className="jb-draft-copy" onClick={take}>
+        {copied ? 'copied ✓' : 'take the copy'}
+      </button>
+    </div>
+  );
+}
+
 export default function ResumeDesk() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
@@ -574,7 +596,9 @@ export default function ResumeDesk() {
       tallyRef.current = { set: 0, spiked: 0 };
       const bookkeeping = set || spiked
         ? `(Of your last filing I set ${set} and spiked ${spiked}.)\n` : '';
-      const history = chat.slice(-12);
+      // drafts ride back into history so the clerk remembers what it wrote
+      const history = chat.slice(-12).map((t) =>
+        t.draft ? { ...t, text: `${t.text}\n\n[the draft you filed]\n${t.draft}` } : t);
       setChat((c) => [...c, { who: 'you', text: ask }]);
       const body = {
         segments: fresh.map((s) => ({
@@ -585,7 +609,7 @@ export default function ResumeDesk() {
         instruction: bookkeeping + ask,
         history,
       };
-      const { edits, adds = [], formats = [], layouts = [], strikes = [], misfiled = 0, note: clerkNote } = await api.tailorResume(body);
+      const { edits, adds = [], formats = [], layouts = [], strikes = [], misfiled = 0, note: clerkNote, answer } = await api.tailorResume(body);
       // a retype or lay-out that matches the current state is a no-op —
       // don't put a card in front of the reader for it
       const changesDress = (s, set) => (set.bold !== undefined && set.bold !== !!s.b)
@@ -655,9 +679,10 @@ export default function ResumeDesk() {
         who: 'clerk',
         text: misfiled
           ? `${clerkNote} (${misfiled} ${misfiled === 1 ? 'proposal was' : 'proposals were'} misfiled and thrown out at the desk. Ask again, more specifically, for what is missing.)`
-          : rawFilings === 0
+          : rawFilings === 0 && !answer
             ? `${clerkNote} (No filings came with this note.)`
             : clerkNote,
+        draft: answer || undefined,
       }]);
     } catch (e) { setError(e.message); }
     setAsking(false);
@@ -956,7 +981,14 @@ export default function ResumeDesk() {
           {chat.length > 0 && (
             <div className="jb-chat" ref={chatRef}>
               {chat.map((m, i) => (
-                <p key={i} className={m.who === 'you' ? 'jb-msg-you' : 'jb-msg-clerk'}>{m.text}</p>
+                m.draft ? (
+                  <div key={i}>
+                    <p className="jb-msg-clerk">{m.text}</p>
+                    <DraftSlip text={m.draft} />
+                  </div>
+                ) : (
+                  <p key={i} className={m.who === 'you' ? 'jb-msg-you' : 'jb-msg-clerk'}>{m.text}</p>
+                )
               ))}
               {asking && <p className="jb-msg-clerk jb-msg-wait">at the desk…</p>}
             </div>

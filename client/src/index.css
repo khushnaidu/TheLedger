@@ -6221,6 +6221,32 @@ th.al-tickcell { text-align: center; }
 
 .jb-msg-wait { color: var(--ink-30); border-left-color: var(--ink-30); }
 
+/* the drafted answer, filed as its own slip under the clerk's note */
+.jb-draft {
+  margin: 8px 0 4px 8px;
+  border: 1px solid var(--line);
+  background: #fcfbf7;
+  padding: 10px 12px 8px;
+}
+.jb-draft-text {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 0.625rem;
+  line-height: 1.7;
+  text-transform: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.jb-draft-copy {
+  margin-top: 8px;
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border: 1px solid var(--ink);
+  padding: 4px 10px;
+}
+.jb-draft-copy:hover { background: var(--ink); color: #fff; }
+
 /* ═══════════════════════════════════════════════════════════════
    THE REWRITE DESK, SET PHOTOREAL — the galley proof on the board
    supersedes the plain jb-desk styles above

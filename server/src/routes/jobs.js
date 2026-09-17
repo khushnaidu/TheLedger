@@ -281,6 +281,7 @@ const EDITS_TOOL = {
         },
       },
       note: { type: 'string', description: 'one or two short sentences: what you did, what you refused' },
+      answer: { type: 'string', description: 'longer prose the reader asked you to WRITE rather than edit: an answer to an application form question ("why us", "a product you are proud of"), a cover note, a short pitch. First person, in the reader\'s voice, plain text ready to paste into a form — no markdown marks. Omit entirely when the ask is resume surgery.' },
     },
     required: ['edits', 'note'],
   },
@@ -302,6 +303,8 @@ Replacement text prints on the page exactly as filed: plain prose, never markdow
 ACROSS ALL FIVE MOVES. Formatting no mark shows you, like color or highlight, is beyond your moves; say so in the note rather than guessing. Never redesign on your own taste: change only what the instruction covers, and when the reader asks for consistency, make the odd one out match its siblings, not the other way round. Keep the moves apart: a formatting or layout problem is fixed by a retype or a lay-out and never by rewriting the words, and a wording problem is never fixed by either. A stray font or a stray indent IS an inconsistency, fix it when asked for consistency.
 
 TRUTH. Two sources are true: what the resume already says, and what the reader tells you about themselves in the instruction. If the reader says they know a tool or did a thing, that is them saying so, write it in where they want it. What you must never do is make up substance on your own: no invented employers, dates, degrees, numbers, or skills that came from neither source. When a posting asks for something neither source gives you, leave it out and say so in the note.
+
+THE DESK'S SECOND SERVICE. Readers also bring the rest of the application to your desk: form questions like "Why do you want to work here" or "Tell us about a product you are proud of", cover notes, short pitches, summaries for a profile. That is desk work as much as the resume is — take it gladly, never wave it off as beyond your job. Draft from the same two true sources, the resume on the sheet and what the reader tells you, plus the posting when one is in front of you; TRUTH applies in full, so no invented projects, employers, numbers, or sentiments. Write in the reader's own first person, in plain paragraphs a form field accepts: no markdown marks, no headings, no bullet lists unless asked. Keep it tight, roughly 120 to 250 words, unless the reader names a limit, then respect the limit exactly. File the draft in "answer" and leave the edit arrays empty unless they also asked for resume changes; the note says what you drafted and what material you drew on. When the resume gives you nothing for the question, draft what you honestly can and ask for the missing substance in the note — never refuse, never invent.
 
 LAYOUT. Rewrites stay within about fifteen percent of the original segment's length unless the instruction asks for longer or shorter. Additions are welcome when asked for, but a resume that reflows onto an extra page is a failure, so keep new lines lean and say in the note if the page is likely getting tight.
 
@@ -533,7 +536,11 @@ router.post('/tailor', async (req, res) => {
       }
       // the note is the clerk's whole voice — a tight cap here guillotines
       // it mid-question and reads as a crash ("here is a half response")
-      return { edits, adds, formats, layouts, strikes, bounced, note: String(input?.note ?? '').slice(0, 2400) };
+      return {
+        edits, adds, formats, layouts, strikes, bounced,
+        note: String(input?.note ?? '').slice(0, 2400),
+        answer: String(input?.answer ?? '').slice(0, 8000),
+      };
     };
 
     // 16K output headroom: a dense one-pager tailored hard can file dozens
@@ -557,7 +564,7 @@ router.post('/tailor', async (req, res) => {
       });
     }
     let truncated = response.stop_reason === 'max_tokens';
-    let { edits, adds, formats, layouts, strikes, bounced, note } = resolve(block.input);
+    let { edits, adds, formats, layouts, strikes, bounced, note, answer } = resolve(block.input);
 
     if (bounced.length) {
       messages.push({ role: 'assistant', content: response.content });
@@ -581,13 +588,14 @@ router.post('/tailor', async (req, res) => {
         strikes = [...strikes, ...second.strikes];
         bounced = second.bounced;
         note = [note, second.note].filter((s) => s.trim()).join(' ');
+        answer = answer || second.answer;
       }
     }
 
     if (truncated) {
       note = `${note} (The clerk ran out of paper mid-filing, so some proposals may be missing. Ask again for whatever is not covered.)`;
     }
-    res.json({ edits, adds, formats, layouts, strikes, misfiled: bounced.length, note: note.slice(0, 2800) });
+    res.json({ edits, adds, formats, layouts, strikes, misfiled: bounced.length, note: note.slice(0, 2800), answer });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -473,3 +473,31 @@ Two decisions were locked with the user before building:
   orphaned blob is rent, not a failure.
 - The fixture + structural-diff harness lives in the session scratchpad,
   not the repo; the ADR records the method so it can be rebuilt.
+
+## Amendment (2026-09-17): the desk's second service — drafting the application's prose
+
+The clerk kept refusing form questions ("Why us?", "Tell us about a
+product you're proud of") as beyond its job — its charter scoped it to
+resume surgery, and the tool-forced `resume_edits` protocol gave prose
+no channel anyway: an answer could only ever squeeze into the note.
+
+Decision: the same tool gains an optional `answer` field (least
+invasive — tool forcing, the bounce path, and every edit move stay
+untouched). The charter gains a SECOND SERVICE section: application
+form answers, cover notes, and pitches are desk work, taken gladly,
+drafted in the reader's first person as plain pasteable prose (~120–250
+words, or the reader's stated limit), from the same two true sources
+(the resume sheet, the reader's own statements) plus the posting when
+present — TRUTH applies in full, so nothing invented, and thin material
+means draft-what's-honest plus one pointed question in the note, never
+a refusal. The client renders the draft as its own slip under the note
+(`DraftSlip`, "take the copy" clipboard chip), threads it back through
+history so the clerk remembers what it wrote, and suppresses the
+"(No filings came with this note.)" contradiction when a draft is the
+filing. Like everything at the desk, drafts are ephemeral — they die
+with the session.
+
+Verified: "Why do you want to work at Stripe?" against a probe sheet →
+zero filings, a grounded 160-word draft citing only the sheet's own
+projects, and a note naming its sources; "bold the 40% metric" still
+files a word-scope retype with no answer attached.

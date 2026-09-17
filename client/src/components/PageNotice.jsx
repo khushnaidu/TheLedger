@@ -119,6 +119,7 @@ const NOTICES = [
       'File a master with the pen — any .docx will do.',
       'The typewriter holds the latest master; click it to sit down. Drag sheets between the machine and the pile to swap.',
       'At the desk, tell the clerk what to change — or paste a whole job posting to tailor against it.',
+      'The clerk also drafts the rest of the application: ask it to answer a form question ("why us?", "a product you’re proud of") or write a cover note, and the draft arrives as a slip with the copy one press away — built from your resume, never invented.',
       'Every change arrives as a proof. Set the good ones, spike the rest, and take the copy as Word or PDF.',
       'Nothing is kept: leave the desk and the tailored copy is gone. The master stays on the shelf.',
     ],
