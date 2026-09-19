@@ -1,5 +1,6 @@
 const express = require('express');
 const Anthropic = require('@anthropic-ai/sdk').default;
+const { trace } = require('../lib/mimir');
 const prisma = require('../lib/prisma');
 
 const router = express.Router();
@@ -107,7 +108,7 @@ const APP_FIELDS = { company: 90, role: 120, location: 90, salary: 60, url: 300 
 const parsePosting = async (raw) => {
   if (!process.env.ANTHROPIC_API_KEY) return null;
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const msg = await client.messages.create({
+  const msg = await trace('The Filing Clerk', raw.slice(0, 300), () => client.messages.create({
     model: LOG_MODEL,
     max_tokens: 400,
     tools: [{
@@ -127,7 +128,7 @@ const parsePosting = async (raw) => {
     }],
     tool_choice: { type: 'tool', name: 'application_details' },
     messages: [{ role: 'user', content: 'Extract the details of this job posting:\n\n' + raw.slice(0, 8000) }],
-  });
+  }));
   const use = msg.content.find((c) => c.type === 'tool_use');
   return use ? use.input : null;
 };
@@ -546,14 +547,15 @@ router.post('/tailor', async (req, res) => {
     // 16K output headroom: a dense one-pager tailored hard can file dozens
     // of edits, and a filing cut off by max_tokens loses its tool block
     // entirely — the reader sees "half a response" and blames the window
-    const call = () => client.messages.create({
+    // each filing (first pass, and the rare bounce refile) is its own run
+    const call = () => trace('The Rewrite Clerk', ask, () => client.messages.create({
       model: REWRITE_MODEL,
       max_tokens: 16000,
       system: REWRITE_SYSTEM,
       tools: [EDITS_TOOL],
       tool_choice: { type: 'tool', name: 'resume_edits' },
       messages,
-    });
+    }));
     let response = await call();
     let block = response.content.find((b) => b.type === 'tool_use');
     if (!block) {

@@ -25,6 +25,8 @@ const ROUTES = [
 ];
 
 module.exports = function createApp({ before = [] } = {}) {
+  // Mimir observability — no-op unless MIMIR_API_KEY/MIMIR_API_URL is set
+  require('./lib/mimir').instrumentAnthropic();
   const app = express();
   app.use(cors());
   // notebook pages autosave JSON bigger than express's 100kb default

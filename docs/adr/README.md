@@ -26,3 +26,4 @@ problem and constraints), **Decision** (what we chose, concretely), and
 - [0013](0013-server-side-xp.md) — XP moves server-side: the account's experience, not the browser's
 - [0014](0014-sparring-log.md) — The Sparring Ring: the leetcode bout, its own page and rival, proof attached
 - [0015](0015-gymnasium-python-drills.md) — The Gymnasium: python drills in the browser (Pyodide + CodeMirror), Ada tutors and never solves
+- [0016](0016-mimir-observability.md) — Mimir observability: Node port of the wire protocol, every assistant a named agent

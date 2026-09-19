@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const Anthropic = require('@anthropic-ai/sdk').default;
+const { trace } = require('../lib/mimir');
 const prisma = require('../lib/prisma');
 
 const router = Router();
@@ -124,14 +125,16 @@ router.post('/generate-ticket', async (req, res) => {
       ? `\nExisting labels: ${existingLabels.map(l => l.name).join(', ')}. Prefer these when they fit, but suggest new ones if needed.`
       : '';
 
-    const response = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 8192,
-      system: GUS_SYSTEM_PROMPT + categoryContext + labelContext,
-      tools: TOOLS,
-      tool_choice: { type: 'any' },
-      messages,
-    });
+    const response = await trace('Gus',
+      [...messages].reverse().find((m) => m?.role === 'user' && typeof m.content === 'string')?.content || '',
+      () => client.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 8192,
+        system: GUS_SYSTEM_PROMPT + categoryContext + labelContext,
+        tools: TOOLS,
+        tool_choice: { type: 'any' },
+        messages,
+      }));
 
     const toolBlock = response.content.find(b => b.type === 'tool_use');
     if (!toolBlock) {

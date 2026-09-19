@@ -1,5 +1,6 @@
 const express = require('express');
 const Anthropic = require('@anthropic-ai/sdk').default;
+const { trace } = require('../lib/mimir');
 const prisma = require('../lib/prisma');
 
 const router = express.Router();
@@ -662,27 +663,32 @@ router.post('/chat', async (req, res) => {
     let block;
     let lookups = 0;
 
-    for (;;) {
-      response = await client.messages.create({
-        model: CLERK_MODEL,
-        max_tokens: 4096,
-        system,
-        tools: lookups < MAX_LOOKUPS
-          ? CLERK_TOOLS
-          : CLERK_TOOLS.filter((t) => t.name !== 'look_up_lines'),
-        tool_choice: { type: 'any' },
-        messages: convo,
-      });
+    // the whole shelf-trip loop is one traced run — each lookup and answer
+    // lands as a step under the clerk's name, not as separate runs
+    const lastAsk = [...convo].reverse().find((m) => m.role === 'user' && typeof m.content === 'string')?.content || '';
+    await trace(CLERKS[who].name, lastAsk, async () => {
+      for (;;) {
+        response = await client.messages.create({
+          model: CLERK_MODEL,
+          max_tokens: 4096,
+          system,
+          tools: lookups < MAX_LOOKUPS
+            ? CLERK_TOOLS
+            : CLERK_TOOLS.filter((t) => t.name !== 'look_up_lines'),
+          tool_choice: { type: 'any' },
+          messages: convo,
+        });
 
-      block = response.content.find((b) => b.type === 'tool_use');
-      if (!block) return res.status(500).json({ error: `${CLERKS[who].name} has stepped away from the desk. Try again.` });
-      if (block.name !== 'look_up_lines') break;
+        block = response.content.find((b) => b.type === 'tool_use');
+        if (!block || block.name !== 'look_up_lines') break;
 
-      lookups += 1;
-      const found = await lookUpLines(req.user.id, block.input || {});
-      convo.push({ role: 'assistant', content: response.content });
-      convo.push({ role: 'user', content: [{ type: 'tool_result', tool_use_id: block.id, content: found }] });
-    }
+        lookups += 1;
+        const found = await lookUpLines(req.user.id, block.input || {});
+        convo.push({ role: 'assistant', content: response.content });
+        convo.push({ role: 'user', content: [{ type: 'tool_result', tool_use_id: block.id, content: found }] });
+      }
+    });
+    if (!block) return res.status(500).json({ error: `${CLERKS[who].name} has stepped away from the desk. Try again.` });
 
     // a truncated draft must never look like a complete slip
     if (block.name === 'draft_entries'
@@ -826,12 +832,12 @@ router.post('/remark', async (req, res) => {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
     const speak = async (who, extra = '') => {
-      const r = await client.messages.create({
+      const r = await trace(CLERKS[who].name, `remark on ${heading} (${when})`, () => client.messages.create({
         model: CLERK_MODEL,
         max_tokens: 300,
         system: `${CLERKS[who].persona}\n\n${CLERK_VOICE}\n\n${REMARK_RULES}`,
         messages: [{ role: 'user', content: `${brief}${extra}` }],
-      });
+      }));
       const text = r.content.filter((b) => b.type === 'text').map((b) => b.text).join(' ');
       return { who, message: trimRemark(text) };
     };
@@ -920,7 +926,7 @@ router.post('/categorize', async (req, res) => {
     });
 
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const response = await client.messages.create({
+    const response = await trace('The Sorting Clerk', `${clean.length} lines to sort`, () => client.messages.create({
       model: CLERK_MODEL,
       max_tokens: 4096,
       system: `${SORT_SYSTEM}\n\nCategories already in this book: ${
@@ -928,7 +934,7 @@ router.post('/categorize', async (req, res) => {
       tools: SORT_TOOL,
       tool_choice: { type: 'tool', name: 'assign' },
       messages: [{ role: 'user', content: clean.map((d, i) => `${i + 1}. ${d}`).join('\n') }],
-    });
+    }));
 
     const block = response.content.find((b) => b.type === 'tool_use');
     if (!block) return res.status(500).json({ error: 'Could not read that list.' });

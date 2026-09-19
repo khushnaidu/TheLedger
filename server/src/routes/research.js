@@ -420,12 +420,13 @@ router.post('/chat', async (req, res) => {
 
     const Anthropic = require('@anthropic-ai/sdk').default;
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const response = await client.messages.create({
+    const { trace } = require('../lib/mimir');
+    const response = await trace('Jane', lastUserText, () => client.messages.create({
       model: JANE_MODEL,
       max_tokens: JANE_MAX_TOKENS,
       system,
       messages,
-    });
+    }));
     const text = response.content.find((b) => b.type === 'text')?.text;
     if (!text) {
       // He thought until the budget was gone and never got to the answer.

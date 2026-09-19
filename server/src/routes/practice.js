@@ -1,5 +1,6 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
+const { trace } = require('../lib/mimir');
 
 const router = express.Router();
 
@@ -27,7 +28,7 @@ const typesetBrief = async (raw) => {
   if (!process.env.ANTHROPIC_API_KEY) return null;
   const Anthropic = require('@anthropic-ai/sdk').default;
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const msg = await client.messages.create({
+  const msg = await trace('The Typesetting Clerk', raw.slice(0, 300), () => client.messages.create({
     model: CLERK_MODEL,
     max_tokens: 3000,
     tools: [{
@@ -68,7 +69,7 @@ const typesetBrief = async (raw) => {
     }],
     tool_choice: { type: 'tool', name: 'typeset_brief' },
     messages: [{ role: 'user', content: 'Typeset this practice brief:\n\n' + raw.slice(0, 12_000) }],
-  });
+  }));
   const use = msg.content.find((c) => c.type === 'tool_use');
   return use ? use.input : null;
 };
@@ -215,12 +216,12 @@ router.post('/chat', async (req, res) => {
 
     const Anthropic = require('@anthropic-ai/sdk').default;
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const response = await client.messages.create({
+    const response = await trace('Ada', messages[messages.length - 1].content, () => client.messages.create({
       model: ADA_MODEL,
       max_tokens: ADA_MAX_TOKENS,
       system,
       messages,
-    });
+    }));
     const text = response.content.find((b) => b.type === 'text')?.text;
     if (!text) return res.status(500).json({ error: 'Ada stepped away from the bench. Try again.' });
     res.json({ message: text, truncated: response.stop_reason === 'max_tokens' });
