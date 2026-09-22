@@ -104,6 +104,14 @@ const TOOLS = [
   },
 ];
 
+// Sliding context window: cap how much conversation history reaches the model
+// so input size stays bounded across a long session instead of climbing every
+// turn. Gus's history runs three wire-messages per turn (his tool_use, the
+// synthetic tool_result, the user's next line), so 24 keeps roughly the last
+// eight exchanges — the same defense the other clerks already apply (Jane,
+// Ada and the finance desk each slice their windows server-side).
+const CONTEXT_WINDOW = 24;
+
 router.post('/generate-ticket', async (req, res) => {
   try {
     if (!process.env.ANTHROPIC_API_KEY) {
@@ -113,6 +121,14 @@ router.post('/generate-ticket', async (req, res) => {
     const { messages, categories, labels: existingLabels } = req.body;
     if (!messages?.length) {
       return res.status(400).json({ error: 'Messages are required' });
+    }
+
+    // Trim stale history before the call. Slicing can leave an assistant turn
+    // or an orphaned tool_result at the front, either of which the API rejects,
+    // so drop from the front until the window opens on a plain user turn.
+    const convo = messages.slice(-CONTEXT_WINDOW);
+    while (convo.length && (convo[0].role !== 'user' || convo[0].content?.[0]?.type === 'tool_result')) {
+      convo.shift();
     }
 
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -126,14 +142,14 @@ router.post('/generate-ticket', async (req, res) => {
       : '';
 
     const response = await trace('Gus',
-      [...messages].reverse().find((m) => m?.role === 'user' && typeof m.content === 'string')?.content || '',
+      [...convo].reverse().find((m) => m?.role === 'user' && typeof m.content === 'string')?.content || '',
       () => client.messages.create({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 8192,
         system: GUS_SYSTEM_PROMPT + categoryContext + labelContext,
         tools: TOOLS,
         tool_choice: { type: 'any' },
-        messages,
+        messages: convo,
       }));
 
     const toolBlock = response.content.find(b => b.type === 'tool_use');
