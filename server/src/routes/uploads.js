@@ -71,7 +71,11 @@ router.post('/', async (req, res) => {
     // The client only ever sees the Blob SDK's wrapper around this, so the
     // reason a handshake was refused has to be recoverable from the logs.
     console.error('Upload handshake refused:', err.message);
-    res.status(400).json({ error: err.message });
+    // A dead session must read as one everywhere: 401 lets the client's
+    // request() preflight walk the visitor to /login instead of quoting
+    // the refusal back at them.
+    const status = /authentication required/i.test(err.message || '') ? 401 : 400;
+    res.status(status).json({ error: err.message });
   }
 });
 

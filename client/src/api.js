@@ -41,6 +41,56 @@ async function request(path, options = {}) {
   return res.json();
 }
 
+// ── the blob shelf ───────────────────────────────────────────
+// JWT segments are base64url; atob speaks plain base64. Whether a given
+// token happens to contain '-' or '_' is luck of the encoding, so
+// translate before decoding — the bare-atob version of this worked for
+// every token that happened to draw a clean alphabet, and no other.
+function tokenPayload(token) {
+  const seg = (token || '').split('.')[1] || '';
+  return JSON.parse(atob(seg.replace(/-/g, '+').replace(/_/g, '/')));
+}
+
+// One door to the blob store. The SDK flattens every handshake refusal
+// into "Failed to retrieve the client token", so the handshake question
+// is asked FIRST through request(), which speaks the house's language:
+// a dead session walks to /login like every other call, and a real
+// refusal arrives with the server's own words. Only then does the SDK
+// do the actual carry — after a passing preflight, a failure can only
+// be the browser-to-storage leg, and the error finally says so.
+async function uploadToShelf(shelf, fallbackName, file, contentType) {
+  const { upload } = await import('@vercel/blob/client');
+  const token = getToken();
+  const { userId } = tokenPayload(token);
+  const safeName = (file.name || '').replace(/[^\w.-]+/g, '_').slice(-60) || fallbackName;
+  const pathname = `${shelf}/${userId}/${safeName}`;
+  try {
+    await request('/uploads', {
+      method: 'POST',
+      body: JSON.stringify({
+        type: 'blob.generate-client-token',
+        payload: { pathname, callbackUrl: `${window.location.origin}/api/uploads`, clientPayload: token, multipart: false },
+      }),
+    });
+  } catch (err) {
+    if (/BLOB_READ_WRITE_TOKEN|storage not configured/i.test(err.message || '')) {
+      throw new Error('File storage is not set up on this deployment — create a Blob store on the Vercel project (Storage → Create → Blob), then add BLOB_READ_WRITE_TOKEN to server/.env for local dev.');
+    }
+    throw err;
+  }
+  try {
+    const blob = await upload(pathname, file, {
+      access: 'public',
+      handleUploadUrl: '/api/uploads',
+      clientPayload: token,
+      ...(contentType ? { contentType } : {}),
+    });
+    return blob.url;
+  } catch {
+    throw new Error('The desk cleared this upload, but your browser could not deliver the file to storage (vercel.com) — an ad blocker, VPN, or network filter is likely standing in the door.');
+  }
+}
+
 export const api = {
   // Auth
   register: (data) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
@@ -107,18 +157,7 @@ export const api = {
   getProblems: () => request('/partner/problems'),
   logProblem: (data) => request('/partner/problems', { method: 'POST', body: JSON.stringify(data) }),
   deleteProblem: (id) => request(`/partner/problems/${id}`, { method: 'DELETE' }),
-  uploadProofImage: async (file) => {
-    const { upload } = await import('@vercel/blob/client');
-    const token = getToken();
-    const { userId } = JSON.parse(atob(token.split('.')[1]));
-    const safeName = (file.name || 'proof.png').replace(/[^\w.-]+/g, '_').slice(-60);
-    const blob = await upload(`proofs/${userId}/${safeName}`, file, {
-      access: 'public',
-      handleUploadUrl: '/api/uploads',
-      clientPayload: token,
-    });
-    return blob.url;
-  },
+  uploadProofImage: (file) => uploadToShelf('proofs', 'proof.png', file),
   leavePartnerNote: (body) => request('/partner/notes', { method: 'POST', body: JSON.stringify({ body }) }),
 
   // AI Assistant
@@ -136,31 +175,10 @@ export const api = {
     request(`/notebooks/${id}/pages/${pageId}`, { method: 'PATCH', body: JSON.stringify({ content }) }),
   deleteNotebookPage: (id, pageId) => request(`/notebooks/${id}/pages/${pageId}`, { method: 'DELETE' }),
 
-  // Blob image upload — the SDK handshake can't carry our auth header,
-  // so the JWT rides along as clientPayload (verified server-side)
-  uploadNotebookImage: async (file) => {
-    const { upload } = await import('@vercel/blob/client');
-    const token = getToken();
-    const { userId } = JSON.parse(atob(token.split('.')[1]));
-    const safeName = file.name.replace(/[^\w.-]+/g, '_').slice(-60) || 'photo';
-    try {
-      const blob = await upload(`notebooks/${userId}/${safeName}`, file, {
-        access: 'public',
-        handleUploadUrl: '/api/uploads',
-        clientPayload: token,
-      });
-      return blob.url;
-    } catch (err) {
-      // Only claim this when the server actually said so. Matching a bare
-      // "token" swallowed every upload failure — the Blob SDK says "client
-      // token" whenever the handshake is refused for any reason — and
-      // reported it as unconfigured storage.
-      if (/BLOB_READ_WRITE_TOKEN|storage not configured/i.test(err.message || '')) {
-        throw new Error('Photo storage is not set up yet — create a Blob store on the Vercel project (Storage → Create → Blob), then add BLOB_READ_WRITE_TOKEN to server/.env for local dev.');
-      }
-      throw err;
-    }
-  },
+  // Blob uploads — the SDK handshake can't carry our auth header, so the
+  // JWT rides along as clientPayload (verified server-side); uploadToShelf
+  // holds the shared door and the shared failure language.
+  uploadNotebookImage: (file) => uploadToShelf('notebooks', 'photo', file),
 
   // Reading Room (the study)
   getCollections: () => request('/research/collections'),
@@ -232,56 +250,11 @@ export const api = {
   updateResume: (id, data) => request(`/jobs/resumes/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteResume: (id) => request(`/jobs/resumes/${id}`, { method: 'DELETE' }),
   tailorResume: (data) => request('/jobs/tailor', { method: 'POST', body: JSON.stringify(data) }),
-  uploadResumeDocx: async (file) => {
-    const { upload } = await import('@vercel/blob/client');
-    const token = getToken();
-    const { userId } = JSON.parse(atob(token.split('.')[1]));
-    const safeName = file.name.replace(/[^\w.-]+/g, '_').slice(-60) || 'resume.docx';
-    try {
-      const blob = await upload(`resumes/${userId}/${safeName}`, file, {
-        access: 'public',
-        handleUploadUrl: '/api/uploads',
-        clientPayload: token,
-        // stated outright: some machines hand .docx over as octet-stream
-        // and the server allowlist is exact (same lesson as the PDFs)
-        contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      });
-      return blob.url;
-    } catch (err) {
-      if (/BLOB_READ_WRITE_TOKEN|storage not configured/i.test(err.message || '')) {
-        throw new Error('File storage is not set up yet — create a Blob store on the Vercel project (Storage → Create → Blob), then add BLOB_READ_WRITE_TOKEN to server/.env for local dev.');
-      }
-      throw err;
-    }
-  },
+  // contentType stated outright: some machines hand .docx over as
+  // octet-stream and the server allowlist is exact (same lesson as PDFs)
+  uploadResumeDocx: (file) =>
+    uploadToShelf('resumes', 'resume.docx', file, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
 
   // PDF upload rides the same Blob handshake under papers/<userId>/
-  uploadPaperPdf: async (file) => {
-    const { upload } = await import('@vercel/blob/client');
-    const token = getToken();
-    const { userId } = JSON.parse(atob(token.split('.')[1]));
-    const safeName = file.name.replace(/[^\w.-]+/g, '_').slice(-60) || 'paper.pdf';
-    try {
-      const blob = await upload(`papers/${userId}/${safeName}`, file, {
-        access: 'public',
-        handleUploadUrl: '/api/uploads',
-        clientPayload: token,
-        // Some machines hand a .pdf to the file input as octet-stream or with
-        // no type at all, and the server's allowlist is exact — which failed
-        // the upload for one user and nobody else. The extension is already
-        // checked before we get here, so state the type outright.
-        contentType: 'application/pdf',
-      });
-      return blob.url;
-    } catch (err) {
-      // Only claim this when the server actually said so. Matching a bare
-      // "token" swallowed every upload failure — the Blob SDK says "client
-      // token" whenever the handshake is refused for any reason — and
-      // reported it as unconfigured storage.
-      if (/BLOB_READ_WRITE_TOKEN|storage not configured/i.test(err.message || '')) {
-        throw new Error('File storage is not set up yet — create a Blob store on the Vercel project (Storage → Create → Blob), then add BLOB_READ_WRITE_TOKEN to server/.env for local dev.');
-      }
-      throw err;
-    }
-  },
+  uploadPaperPdf: (file) => uploadToShelf('papers', 'paper.pdf', file, 'application/pdf'),
 };
