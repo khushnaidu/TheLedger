@@ -32,6 +32,24 @@ function toEmbedSrc(raw) {
   return `https://www.youtube.com/embed/${id}?autoplay=1`;
 }
 
+// YouTube only loops what it's told to re-queue: a playlist takes loop=1
+// as-is, a single video must be handed back as its own one-entry playlist
+// (loop=1&playlist=<id>). Decorating at render time keeps every stored
+// channel looping without touching the saved rows.
+function loopedSrc(src) {
+  try {
+    const u = new URL(src);
+    if (!u.searchParams.get('loop')) {
+      u.searchParams.set('loop', '1');
+      const id = u.pathname.split('/')[2];
+      if (id && id !== 'videoseries') u.searchParams.set('playlist', id);
+    }
+    return u.toString();
+  } catch {
+    return src;
+  }
+}
+
 export default function TvSet() {
   const [channel, setChannel] = useState(0);
   const [customChannels, setCustomChannels] = useState([]);
@@ -162,7 +180,7 @@ export default function TvSet() {
           {powered && !tuning && (
             <iframe
               ref={frameRef}
-              src={`${current.src}&enablejsapi=1`}
+              src={`${loopedSrc(current.src)}&enablejsapi=1`}
               title={`channel ${current.name}`}
               allow="autoplay; encrypted-media; picture-in-picture"
               allowFullScreen
